@@ -1,0 +1,40 @@
+{
+  "name": "juancharge-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mawrk19/JuanCharge-client.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mawrk19/JuanCharge-client/issues"
+  },
+  "homepage": "https://github.com/mawrk19/JuanCharge-client#readme",
+  "dependencies": {
+    "apexcharts": "^5.3.5",
+    "axios": "^1.12.2",
+    "leaflet": "^1.9.4",
+    "quasar": "^1.22.10",
+    "quasar-extras": "^2.0.9",
+    "vite": "^4.5.14",
+    "vite-plugin-pwa": "^1.0.3",
+    "vite-plugin-vue2": "^2.0.3",
+    "vue": "^2.7.16",
+    "vue-apexcharts": "^1.7.0",
+    "vue-router": "^3.6.5",
+    "vuex": "^3.6.2"
+  },
+  "devDependencies": {
+    "@quasar/extras": "^1.17.0"
+  }
+}
