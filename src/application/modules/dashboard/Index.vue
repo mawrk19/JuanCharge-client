@@ -280,4 +280,3 @@ export default {
   transform: translateY(-2px) scale(1.012);
 }
 </style>
-</style>
