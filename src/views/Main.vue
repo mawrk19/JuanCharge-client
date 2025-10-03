@@ -78,9 +78,10 @@ export default {
     toggleMini () {
       this.miniState = !this.miniState
     },
-    logout() {
-      this.$store.dispatch('auth/logout');
-      this.$router.push('/login');
+    async logout() {
+      await this.$store.dispatch('auth/logout');
+      // Force reload to clear all in-memory state
+      window.location = '/login';
     }
   }
 }

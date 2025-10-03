@@ -9,8 +9,8 @@ export default {
   async created() {
     const token = localStorage.getItem('token')
     if (token) {
-      this.$store.commit('auth/setToken', token)
-      await this.$store.dispatch('auth/fetchUser')
+      this.$store.commit('auth/SET_TOKEN', token)
+      // fetchUser action does not exist, so skip it
     }
   }
 }

@@ -1,10 +1,11 @@
 import api from "@/boot/axios";
+import { Cache } from "@/service/cache";
 
 export default {
   namespaced: true,
   state: () => ({
     user: null,
-    token: null
+    token: null,
   }),
   mutations: {
     SET_USER(state, user) {
@@ -16,20 +17,30 @@ export default {
     CLEAR_AUTH(state) {
       state.user = null;
       state.token = null;
-    }
+    },
   },
   actions: {
     async login({ commit }, payload) {
       try {
-        const res = await api.post('/api/auth/login', payload);
+        const res = await api.post("/api/auth/login", payload);
 
-        // Assume backend returns { user, token }
+        // Handle response with or without token
         commit("SET_USER", res.data.user);
-        commit("SET_TOKEN", res.data.token);
+        
+        if (res.data.token) {
+          commit("SET_TOKEN", res.data.token);
+          // Save to localStorage and Cache so session persists after refresh
+          localStorage.setItem("token", res.data.token);
+          Cache.set("token", res.data.token);
+        } else {
+          // Session-based auth, no token needed
+          commit("SET_TOKEN", "session");
+          localStorage.setItem("token", "session");
+          Cache.set("token", "session");
+        }
 
-        // Save to localStorage so session persists after refresh
-        localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        Cache.set("user", res.data.user);
 
         return res;
       } catch (err) {
@@ -40,15 +51,24 @@ export default {
       commit("CLEAR_AUTH");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      Cache.remove("token");
+      Cache.remove("user");
     },
     restoreSession({ commit }) {
-      const token = localStorage.getItem("token");
-      const user = localStorage.getItem("user");
-
+      let token = Cache.get("token");
+      let user = Cache.get("user");
+      if (!token) {
+        token = localStorage.getItem("token");
+        if (token) Cache.set("token", token);
+      }
+      if (!user) {
+        user = localStorage.getItem("user");
+        if (user) Cache.set("user", JSON.parse(user));
+      }
       if (token && user) {
         commit("SET_TOKEN", token);
-        commit("SET_USER", JSON.parse(user));
+        commit("SET_USER", typeof user === "string" ? JSON.parse(user) : user);
       }
-    }
-  }
+    },
+  },
 };

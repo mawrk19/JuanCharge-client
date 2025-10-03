@@ -34,7 +34,13 @@ export default {
         await this.$store.dispatch("auth/login", this.form);
         this.$router.push("/main/dashboard");
       } catch (e) {
-        console.error(e);
+        console.error('Login error:', e);
+        console.error('Error response:', e.response?.data);
+        console.error('Error status:', e.response?.status);
+        
+        // Show user-friendly error message
+        const errorMessage = e.response?.data?.message || 'Login failed. Please check your credentials.';
+        alert(errorMessage); // You can replace this with a proper notification
       }
     }
   }
