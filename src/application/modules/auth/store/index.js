@@ -23,20 +23,14 @@ export default {
     async login({ commit }, payload) {
       try {
         const res = await api.post("/api/auth/login", payload);
-
-        console.log('Login response:', res.data); // Debug log
-
-        // Handle response with or without token
         commit("SET_USER", res.data.user);
         
         if (res.data.token && res.data.token !== 'session') {
-          // Real token from backend - but still use sessionStorage for session-based behavior
           commit("SET_TOKEN", res.data.token);
           sessionStorage.setItem("token", res.data.token);
           sessionStorage.setItem("user", JSON.stringify(res.data.user));
           Cache.set("token", res.data.token);
         } else {
-          // No token returned - use session-based auth
           console.log('No token in response, using session-based auth');
           commit("SET_TOKEN", "session");
           sessionStorage.setItem("token", "session");

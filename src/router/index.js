@@ -30,6 +30,18 @@ const routes = [
         name: "dashboard",
         component: () => import("@/application/modules/dashboard/Index.vue"),
         meta: { requiresAuth: true }
+      },
+      {
+        path: "map",
+        name: "map",
+        component: () => import("@/application/modules/map/Index.vue"),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: "settings",
+        name: "settings",
+        component: () => import("@/application/modules/settings/Index.vue"),
+        meta: { requiresAuth: true }
       }
     ]
   },

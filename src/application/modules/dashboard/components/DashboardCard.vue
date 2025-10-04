@@ -1,29 +1,29 @@
 <template>
   <q-card class="dashboard-card q-pa-none" :class="cardClass">
     <div class="accent-bar" :style="accentBarStyle"></div>
-    <q-card-section class="q-pb-none q-pt-md q-px-md">
+    <q-card-section class="q-pb-none q-pt-sm q-px-sm">
       <div class="row items-center no-wrap">
-        <div class="col-auto icon-bg q-mr-md" v-if="icon">
-          <q-icon :name="icon" :color="iconColor" size="32px" />
+        <div class="col-auto icon-bg q-mr-sm" v-if="icon">
+          <q-icon :name="icon" :color="iconColor" size="24px" />
         </div>
         <div class="col">
-          <div class="text-h6 text-weight-bold">{{ title }}</div>
-          <div class="text-subtitle2 text-grey-6">{{ subtitle }}</div>
+          <div class="text-subtitle1 text-weight-bold">{{ title }}</div>
+          <div class="text-caption text-grey-6">{{ subtitle }}</div>
         </div>
       </div>
     </q-card-section>
 
-    <q-card-section v-if="value !== null" class="q-pt-none q-px-md q-pb-md">
+    <q-card-section v-if="value !== null" class="q-pt-xs q-px-sm q-pb-sm">
       <div class="value-row row items-center no-wrap">
-        <div class="dashboard-value text-h3 text-weight-bold" :class="valueClass">{{ formattedValue }}</div>
-        <div v-if="change" class="change-indicator q-ml-md" :class="changeClass">
-          <q-icon :name="changeIcon" size="18px" class="q-mr-xs" />
-          <span>{{ change }}</span>
+        <div class="dashboard-value text-h4 text-weight-bold" :class="valueClass">{{ formattedValue }}</div>
+        <div v-if="change" class="change-indicator q-ml-sm" :class="changeClass">
+          <q-icon :name="changeIcon" size="14px" class="q-mr-xs" />
+          <span class="text-caption">{{ change }}</span>
         </div>
       </div>
     </q-card-section>
 
-    <q-card-section v-if="$slots.default" class="q-pt-none q-px-md q-pb-md">
+    <q-card-section v-if="$slots.default" class="q-pt-none q-px-sm q-pb-sm">
       <slot></slot>
     </q-card-section>
   </q-card>
@@ -129,40 +129,40 @@ export default {
 <style scoped>
 .dashboard-card {
   height: 100%;
-  border-radius: 18px;
-  box-shadow: 0 4px 24px 0 rgba(40, 60, 90, 0.10), 0 1.5px 4px 0 rgba(40, 60, 90, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px 0 rgba(40, 60, 90, 0.08), 0 1px 3px 0 rgba(40, 60, 90, 0.06);
   transition: box-shadow 0.2s, transform 0.2s;
   position: relative;
   overflow: hidden;
 }
 .dashboard-card:hover {
-  box-shadow: 0 8px 32px 0 rgba(40, 60, 90, 0.16), 0 3px 8px 0 rgba(40, 60, 90, 0.12);
-  transform: translateY(-2px) scale(1.012);
+  box-shadow: 0 4px 16px 0 rgba(40, 60, 90, 0.12), 0 2px 6px 0 rgba(40, 60, 90, 0.08);
+  transform: translateY(-1px) scale(1.01);
 }
 .dashboard-card-colored {
   color: #fff;
 }
 .accent-bar {
-  height: 5px;
+  height: 3px;
   width: 100%;
-  border-top-left-radius: 18px;
-  border-top-right-radius: 18px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
   background: var(--q-color-primary);
 }
 .icon-bg {
   background: rgba(0,0,0,0.04);
-  border-radius: 12px;
-  padding: 10px;
+  border-radius: 8px;
+  padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 48px;
-  min-height: 48px;
+  min-width: 36px;
+  min-height: 36px;
 }
 .dashboard-value {
-  font-size: 2.2rem;
+  font-size: 1.75rem;
   line-height: 1.1;
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
 }
 .value-row {
   align-items: flex-end;
@@ -170,10 +170,10 @@ export default {
 .change-indicator {
   display: flex;
   align-items: center;
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  border-radius: 12px;
-  padding: 2px 10px;
+  border-radius: 8px;
+  padding: 2px 6px;
   background: rgba(0,0,0,0.04);
   margin-bottom: 2px;
 }

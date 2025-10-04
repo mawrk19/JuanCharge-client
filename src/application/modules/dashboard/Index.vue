@@ -2,7 +2,7 @@
   <q-page class="dashboard-bg q-pa-lg">
     <div class="q-mb-lg">
       <div class="text-h5 text-weight-bold q-mb-xs">Key Metrics</div>
-      <div class="row q-col-gutter-xl q-row-gutter-md">
+      <div class="row q-col-gutter-md q-row-gutter-md">
         <div class="col-12 col-sm-6 col-md-3 q-mb-md">
           <DashboardCard
             title="Active Stations"
@@ -54,7 +54,7 @@
 
     <div class="q-mb-lg">
       <div class="text-h5 text-weight-bold q-mb-xs">Overview</div>
-      <div class="row q-col-gutter-xl q-row-gutter-md">
+      <div class="row q-col-gutter-md q-row-gutter-md">
         <div class="col-12 col-md-8 q-mb-md">
           <q-card class="dashboard-chart-card">
             <q-card-section>
@@ -92,7 +92,7 @@
 
     <div>
       <div class="text-h5 text-weight-bold q-mb-xs">Usage & Energy</div>
-      <div class="row q-col-gutter-xl q-row-gutter-md">
+      <div class="row q-col-gutter-md q-row-gutter-md">
         <div class="col-12 col-md-6 q-mb-md">
           <q-card class="dashboard-chart-card">
             <q-card-section>
