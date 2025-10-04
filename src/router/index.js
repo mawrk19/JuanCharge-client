@@ -58,22 +58,26 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-  // Get token and user from Cache or localStorage
-  const token = Cache.get('token') || localStorage.getItem('token');
+  // Get token and user from Cache or sessionStorage only
+  let token = Cache.get('token') || sessionStorage.getItem('token');
   let user = Cache.get('user');
   
-  if (!user && localStorage.getItem('user')) {
-    try {
-      user = JSON.parse(localStorage.getItem('user'));
-      if (user) Cache.set('user', user);
-    } catch (e) {
-      // Invalid user data, clear it
-      localStorage.removeItem('user');
-      user = null;
+  if (!user) {
+    // Only check sessionStorage
+    let userStr = sessionStorage.getItem('user');
+    if (userStr) {
+      try {
+        user = JSON.parse(userStr);
+        if (user) Cache.set('user', user);
+      } catch (e) {
+        // Invalid user data, clear it
+        sessionStorage.removeItem('user');
+        user = null;
+      }
     }
   }
 
-  // Sync token to cache if it exists in localStorage
+  // Sync token to cache if it exists
   if (token && !Cache.get('token')) {
     Cache.set('token', token);
   }

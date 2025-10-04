@@ -1,7 +1,7 @@
 const cache = new Map()
 
 function set(key, value) {
-  localStorage.setItem(`cache:${key}`, JSON.stringify(value))
+  sessionStorage.setItem(`cache:${key}`, JSON.stringify(value))
   cache.set(key, value)
 }
 
@@ -10,13 +10,13 @@ function get(key, defaultValue = null) {
     return cache.get(key)
   }
 
-  if (localStorage.getItem(`cache:${key}`)) {
+  if (sessionStorage.getItem(`cache:${key}`)) {
     try {
-      let value = JSON.parse(localStorage.getItem(`cache:${key}`))
+      let value = JSON.parse(sessionStorage.getItem(`cache:${key}`))
       cache.set(key, value)
       return value
     } catch (e) {
-      localStorage.removeItem(`cache:${key}`)
+      sessionStorage.removeItem(`cache:${key}`)
     }
   }
 
@@ -24,7 +24,7 @@ function get(key, defaultValue = null) {
 }
 
 function remove(key) {
-  localStorage.removeItem(`cache:${key}`)
+  sessionStorage.removeItem(`cache:${key}`)
   cache.delete(key)
 }
 
