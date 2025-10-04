@@ -1,189 +1,277 @@
 <template>
   <q-page class="map-page">
-    <!-- Search Filter Panel -->
-    <div class="search-panel tw-glass q-pa-md">
-      <div class="row q-col-gutter-sm">
-        <!-- Search Input with Autocomplete -->
-        <div class="col-12 col-md-4">
-          <q-input
-            v-model="searchQuery"
-            outlined
-            dense
-            placeholder="Search charging stations..."
-            bg-color="white"
-            @input="onSearchInput"
-            clearable
-            @clear="clearSearch"
-          >
-            <template v-slot:prepend>
-              <q-icon name="search" />
-            </template>
-            
-            <!-- Suggestions Menu -->
-            <q-menu
-              v-model="showSuggestions"
-              fit
-              no-parent-event
-            >
-              <q-list style="min-width: 100px; max-height: 400px; overflow-y: auto;">
-                <q-item
-                  v-for="suggestion in searchSuggestions"
-                  :key="suggestion.value"
-                  clickable
-                  v-close-popup
-                  @click="selectSuggestion(suggestion)"
+    <!-- Split Layout Container -->
+    <div class="split-container">
+      <!-- Left Side: Map -->
+      <div class="map-section">
+        <!-- Search Filter Panel -->
+        <div class="search-panel tw-glass q-pa-md">
+          <div class="row q-col-gutter-sm">
+            <!-- Search Input with Autocomplete -->
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="searchQuery"
+                outlined
+                dense
+                placeholder="Search charging stations..."
+                bg-color="white"
+                @input="onSearchInput"
+                clearable
+                @clear="clearSearch"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="search" />
+                </template>
+                
+                <!-- Suggestions Menu -->
+                <q-menu
+                  v-model="showSuggestions"
+                  fit
+                  no-parent-event
                 >
-                  <q-item-section avatar>
-                    <q-icon :name="suggestion.icon" :color="suggestion.iconColor" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>{{ suggestion.label }}</q-item-label>
-                    <q-item-label caption>{{ suggestion.caption }}</q-item-label>
-                  </q-item-section>
-                  <q-item-section side>
-                    <q-badge :color="suggestion.badgeColor" :label="suggestion.badge" />
-                  </q-item-section>
-                </q-item>
-                <q-item v-if="searchSuggestions.length === 0">
-                  <q-item-section class="text-grey text-center">
-                    No results found
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </q-input>
-        </div>
+                  <q-list style="min-width: 100px; max-height: 400px; overflow-y: auto;">
+                    <q-item
+                      v-for="suggestion in searchSuggestions"
+                      :key="suggestion.value"
+                      clickable
+                      v-close-popup
+                      @click="selectSuggestion(suggestion)"
+                    >
+                      <q-item-section avatar>
+                        <q-icon :name="suggestion.icon" :color="suggestion.iconColor" />
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-label>{{ suggestion.label }}</q-item-label>
+                        <q-item-label caption>{{ suggestion.caption }}</q-item-label>
+                      </q-item-section>
+                      <q-item-section side>
+                        <q-badge :color="suggestion.badgeColor" :label="suggestion.badge" />
+                      </q-item-section>
+                    </q-item>
+                    <q-item v-if="searchSuggestions.length === 0">
+                      <q-item-section class="text-grey text-center">
+                        No results found
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-input>
+            </div>
 
-        <!-- Status Filter -->
-        <div class="col-12 col-sm-6 col-md-3">
-          <q-select
-            v-model="selectedStatus"
-            :options="statusOptions"
-            outlined
-            dense
-            label="Status"
-            bg-color="white"
-            emit-value
-            map-options
-            @update:model-value="filterStations"
-          />
-        </div>
-
-        <!-- Connector Type Filter -->
-        <div class="col-12 col-sm-6 col-md-3">
-          <q-select
-            v-model="selectedConnector"
-            :options="connectorOptions"
-            outlined
-            dense
-            label="Connector Type"
-            bg-color="white"
-            emit-value
-            map-options
-            @update:model-value="filterStations"
-          />
-        </div>
-
-        <!-- Reset Button -->
-        <div class="col-12 col-md-2">
-          <q-btn
-            flat
-            dense
-            color="primary"
-            label="Reset Filters"
-            icon="refresh"
-            class="full-width"
-            @click="resetFilters"
-          />
-        </div>
-      </div>
-
-      <!-- Results Count -->
-      <div class="text-caption text-grey-7 q-mt-sm">
-        Showing {{ filteredStations.length }} of {{ allStations.length }} stations
-      </div>
-    </div>
-
-    <!-- Map Container -->
-    <div class="map-container">
-      <l-map
-        ref="map"
-        :zoom="zoom"
-        :center="center"
-        :options="mapOptions"
-        style="height: 100%; width: 100%;"
-        @ready="onMapReady"
-      >
-        <l-tile-layer
-          :url="tileLayerUrl"
-          :attribution="attribution"
-        />
-        
-        <!-- Markers for Charging Stations -->
-        <l-marker
-          v-for="station in filteredStations"
-          :key="station.id"
-          :lat-lng="[station.lat, station.lng]"
-          @click="selectStation(station)"
-        >
-          <l-icon
-            :icon-url="getMarkerIcon(station.status)"
-            :icon-size="[32, 32]"
-            :icon-anchor="[16, 32]"
-          />
-          <l-popup>
-            <div class="station-popup">
-              <div class="text-subtitle1 text-weight-bold">{{ station.name }}</div>
-              <div class="text-caption text-grey-7 q-mb-xs">{{ station.address }}</div>
-              <div class="row items-center q-mb-xs">
-                <q-badge :color="getStatusColor(station.status)" :label="station.status" />
-                <span class="q-ml-sm text-caption">{{ station.available }}/{{ station.total }} available</span>
-              </div>
-              <div class="text-caption">
-                <strong>Connector:</strong> {{ station.connectorType }}
-              </div>
-              <div class="text-caption">
-                <strong>Power:</strong> {{ station.power }} kW
-              </div>
-              <q-btn
-                color="primary"
-                size="sm"
-                label="View Details"
-                class="q-mt-sm full-width"
-                @click="viewStationDetails(station)"
+            <!-- Status Filter -->
+            <div class="col-12 col-sm-6 col-md-3">
+              <q-select
+                v-model="selectedStatus"
+                :options="statusOptions"
+                outlined
+                dense
+                label="Status"
+                bg-color="white"
+                emit-value
+                map-options
+                @update:model-value="filterStations"
               />
             </div>
-          </l-popup>
-        </l-marker>
 
-        <!-- User Location Marker -->
-        <l-marker
-          v-if="userLocation"
-          :lat-lng="[userLocation.lat, userLocation.lng]"
-        >
-          <l-icon
-            icon-url="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%234285F4' stroke='white' stroke-width='3'/%3E%3C/svg%3E"
-            :icon-size="[24, 24]"
-            :icon-anchor="[12, 12]"
-          />
-          <l-popup>
-            <div class="text-subtitle2 text-weight-bold">Your Location</div>
-          </l-popup>
-        </l-marker>
-      </l-map>
+            <!-- Connector Type Filter -->
+            <div class="col-12 col-sm-6 col-md-3">
+              <q-select
+                v-model="selectedConnector"
+                :options="connectorOptions"
+                outlined
+                dense
+                label="Connector Type"
+                bg-color="white"
+                emit-value
+                map-options
+                @update:model-value="filterStations"
+              />
+            </div>
+          </div>
+        </div>
 
-      <!-- Locate Me Button -->
-      <q-btn
-        round
-        color="white"
-        text-color="primary"
-        icon="my_location"
-        class="locate-btn"
-        @click="locateUser"
-        :loading="locating"
-      >
-        <q-tooltip>Find my location</q-tooltip>
-      </q-btn>
+        <!-- Map Container -->
+        <div class="map-container">
+          <l-map
+            ref="map"
+            :zoom="zoom"
+            :center="center"
+            :options="mapOptions"
+            style="height: 100%; width: 100%;"
+            @ready="onMapReady"
+          >
+            <l-tile-layer
+              :url="tileLayerUrl"
+              :attribution="attribution"
+            />
+            
+            <!-- Markers for Charging Stations -->
+            <l-marker
+              v-for="station in filteredStations"
+              :key="station.id"
+              :lat-lng="[station.lat, station.lng]"
+              @click="selectStation(station)"
+            >
+              <l-icon
+                :icon-url="getMarkerIcon(station.status)"
+                :icon-size="[32, 32]"
+                :icon-anchor="[16, 32]"
+              />
+              <l-popup>
+                <div class="station-popup">
+                  <div class="text-subtitle2 text-weight-bold">{{ station.name }}</div>
+                  <div class="text-caption">Click to view details →</div>
+                </div>
+              </l-popup>
+            </l-marker>
+
+            <!-- User Location Marker -->
+            <l-marker
+              v-if="userLocation"
+              :lat-lng="[userLocation.lat, userLocation.lng]"
+            >
+              <l-icon
+                icon-url="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%234285F4' stroke='white' stroke-width='3'/%3E%3C/svg%3E"
+                :icon-size="[24, 24]"
+                :icon-anchor="[12, 12]"
+              />
+              <l-popup>
+                <div class="text-subtitle2 text-weight-bold">Your Location</div>
+              </l-popup>
+            </l-marker>
+          </l-map>
+
+          <!-- Locate Me Button -->
+          <q-btn
+            round
+            color="white"
+            text-color="primary"
+            icon="my_location"
+            class="locate-btn"
+            @click="locateUser"
+            :loading="locating"
+          >
+            <q-tooltip>Find my location</q-tooltip>
+          </q-btn>
+        </div>
+      </div>
+
+      <!-- Right Side: Stations Catalog -->
+      <div class="stations-catalog">
+        <div class="catalog-header q-pa-md">
+          <div class="text-h6 text-white">Charging Stations</div>
+          <div class="text-caption text-grey-5">
+            {{ filteredStations.length }} station{{ filteredStations.length !== 1 ? 's' : '' }} found
+          </div>
+        </div>
+
+        <q-separator style="border-color: rgba(76, 175, 80, 0.3);" />
+
+        <div class="catalog-content">
+          <div v-if="filteredStations.length === 0" class="tw-text-center tw-p-8 tw-opacity-60">
+            <q-icon name="ev_station" size="48px" class="tw-mb-2" />
+            <div>No stations found</div>
+          </div>
+
+          <q-card
+            v-for="station in filteredStations"
+            :key="station.id"
+            class="station-card q-mb-md tw-cursor-pointer"
+            :class="{ 'selected': selectedStation && selectedStation.id === station.id }"
+            @click="selectStation(station)"
+          >
+            <q-card-section class="q-pa-md">
+              <div class="row items-center q-mb-sm">
+                <q-avatar size="40px" :color="getStatusColor(station.status)" text-color="white">
+                  <q-icon name="ev_station" />
+                </q-avatar>
+                <div class="col q-ml-sm">
+                  <div class="text-subtitle2 text-weight-bold text-white">{{ station.name }}</div>
+                  <div class="text-caption text-grey-5">{{ station.address }}</div>
+                </div>
+              </div>
+
+              <q-separator class="q-my-sm" style="border-color: rgba(76, 175, 80, 0.2);" />
+
+              <!-- Bin Level Indicator -->
+              <div class="q-mb-sm">
+                <div class="row items-center justify-between q-mb-xs">
+                  <span class="text-caption text-grey-4">Availability</span>
+                  <span class="text-caption text-weight-bold" :style="{ color: getStatusColor(station.status) }">
+                    {{ station.available }}/{{ station.total }} ports
+                  </span>
+                </div>
+                <q-linear-progress
+                  :value="station.available / station.total"
+                  :color="getStatusColor(station.status)"
+                  size="8px"
+                  rounded
+                  class="q-mb-xs"
+                />
+                <div class="text-caption text-grey-5">
+                  {{ Math.round((station.available / station.total) * 100) }}% available
+                </div>
+              </div>
+
+              <!-- Station Info -->
+              <div class="row q-col-gutter-sm q-mb-sm">
+                <div class="col-6">
+                  <div class="info-box q-pa-xs">
+                    <q-icon name="flash_on" size="16px" color="amber" />
+                    <span class="text-caption text-grey-4 q-ml-xs">{{ station.power }} kW</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="info-box q-pa-xs">
+                    <q-icon name="cable" size="16px" color="blue" />
+                    <span class="text-caption text-grey-4 q-ml-xs">{{ station.connectorType }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row q-col-gutter-sm">
+                <div class="col-6">
+                  <div class="info-box q-pa-xs">
+                    <q-icon name="attach_money" size="16px" color="green" />
+                    <span class="text-caption text-grey-4 q-ml-xs">${{ station.pricePerKwh }}/kWh</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <q-badge :color="getStatusColor(station.status)" :label="station.status" class="full-width" />
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="row q-col-gutter-xs q-mt-sm">
+                <div class="col-6">
+                  <q-btn
+                    flat
+                    dense
+                    size="sm"
+                    color="primary"
+                    label="Details"
+                    icon="info"
+                    class="full-width"
+                    @click.stop="viewStationDetails(station)"
+                  />
+                </div>
+                <div class="col-6">
+                  <q-btn
+                    flat
+                    dense
+                    size="sm"
+                    color="positive"
+                    label="Directions"
+                    icon="directions"
+                    class="full-width"
+                    @click.stop="getDirections(station)"
+                  />
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
     </div>
 
     <!-- Station Details Dialog -->
@@ -603,8 +691,19 @@ export default {
 .map-page {
   height: calc(100vh - 50px);
   position: relative;
+  overflow: hidden;
+}
+
+.split-container {
   display: flex;
-  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.map-section {
+  flex: 1;
+  position: relative;
+  min-width: 0;
 }
 
 .search-panel {
@@ -618,7 +717,8 @@ export default {
 }
 
 .map-container {
-  flex: 1;
+  height: 100%;
+  width: 100%;
   position: relative;
 }
 
@@ -631,10 +731,102 @@ export default {
 }
 
 .station-popup {
-  min-width: 200px;
+  min-width: 150px;
+}
+
+/* Stations Catalog */
+.stations-catalog {
+  width: 380px;
+  background-color: #1a1a1a;
+  border-left: 2px solid rgba(76, 175, 80, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.catalog-header {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.05) 100%);
+  border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+}
+
+.catalog-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* Custom Scrollbar for Catalog */
+.catalog-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.catalog-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.catalog-content::-webkit-scrollbar-thumb {
+  background: rgba(76, 175, 80, 0.3);
+  border-radius: 4px;
+}
+
+.catalog-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(76, 175, 80, 0.5);
+}
+
+/* Station Card */
+.station-card {
+  background: rgba(30, 30, 30, 0.9);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.station-card:hover {
+  border-color: rgba(76, 175, 80, 0.5);
+  background: rgba(40, 40, 40, 0.9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+.station-card.selected {
+  border-color: #4caf50;
+  background: rgba(50, 50, 50, 0.95);
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+}
+
+.info-box {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .stations-catalog {
+    width: 320px;
+  }
+}
+
+@media (max-width: 768px) {
+  .split-container {
+    flex-direction: column;
+  }
+  
+  .map-section {
+    height: 50%;
+  }
+  
+  .stations-catalog {
+    width: 100%;
+    height: 50%;
+    border-left: none;
+    border-top: 2px solid rgba(76, 175, 80, 0.3);
+  }
 }
 </style>
