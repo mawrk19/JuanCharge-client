@@ -24,7 +24,7 @@
     "apexcharts": "^5.3.5",
     "axios": "^1.12.2",
     "leaflet": "^1.9.4",
-    "quasar": "^1.22.10",
+    "quasar": "^1.0.0",
     "quasar-extras": "^2.0.9",
     "vite": "^4.5.14",
     "vite-plugin-pwa": "^1.0.3",

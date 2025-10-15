@@ -114,12 +114,12 @@
           <q-item-section>Map</q-item-section>
         </q-item>
 
-        <!-- <q-item clickable v-ripple @click="$router.push('/main/settings')">
+        <q-item clickable v-ripple @click="$router.push('/main/users')">
           <q-item-section avatar>
-            <q-icon name="settings" />
+            <q-icon name="people" />
           </q-item-section>
-          <q-item-section>Settings</q-item-section>
-        </q-item> -->
+          <q-item-section>Users</q-item-section>
+        </q-item>
       </q-list>
     </q-drawer>
 
