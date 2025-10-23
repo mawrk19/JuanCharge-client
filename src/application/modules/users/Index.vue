@@ -228,6 +228,36 @@
               </template>
             </q-input>
 
+            <!-- Birth Date Field -->
+            <q-input
+              v-model="userForm.birth_date"
+              label="Birth Date"
+              dark
+              outlined
+              dense
+              placeholder="YYYY-MM-DD or click calendar"
+            >
+              <template v-slot:prepend>
+                <q-icon name="cake" />
+              </template>
+              <template v-slot:append>
+                <q-icon name="event" class="cursor-pointer">
+                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                    <q-date
+                      v-model="userForm.birth_date"
+                      dark
+                      mask="YYYY-MM-DD"
+                      today-btn
+                    >
+                      <div class="row items-center justify-end">
+                        <q-btn v-close-popup label="Close" color="primary" flat />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+
             <!-- Action Buttons -->
             <div class="row q-gutter-sm justify-end q-mt-md">
               <q-btn
@@ -270,7 +300,8 @@ export default {
         name: '',
         role: null,
         phone_number: '',
-        email: ''
+        email: '',
+        birth_date: null
       },
 
       roleOptions: [
@@ -405,12 +436,19 @@ export default {
       return colors[role] || 'grey';
     },
 
+    dateOptions(date) {
+      // Allow dates from the past up to today (no future dates for birth date)
+      const today = new Date().toISOString().split('T')[0];
+      return date <= today;
+    },
+
     openCreateDialog() {
       this.userForm = {
         name: '',
         role: null,
         phone_number: '',
-        email: ''
+        email: '',
+        birth_date: null
       };
       this.showCreateDialog = true;
     },
@@ -447,13 +485,16 @@ export default {
           errorMessage = Object.values(errors).flat().join(', ');
         } else if (error.response?.data?.message) {
           errorMessage = error.response.data.message;
+        } else if (error.response?.data) {
+          errorMessage = JSON.stringify(error.response.data);
         }
 
         this.$q.notify({
           color: 'red',
           message: errorMessage,
           icon: 'error',
-          position: 'top'
+          position: 'top',
+          timeout: 5000
         });
       } finally {
         this.saving = false;

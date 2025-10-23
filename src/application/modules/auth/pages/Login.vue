@@ -188,10 +188,6 @@ export default {
         
         this.$router.push("/main/dashboard");
       } catch (e) {
-        console.error('Login error:', e);
-        console.error('Error response:', e.response?.data);
-        console.error('Error status:', e.response?.status);
-        
         // Show user-friendly error notification
         const errorMessage = e.response?.data?.message || 'Login failed. Please check your credentials.';
         this.$q.notify({
