@@ -165,8 +165,6 @@
           </div>
         </div>
 
-        <q-separator style="border-color: rgba(76, 175, 80, 0.3);" />
-
         <div class="catalog-content">
           <div v-if="filteredStations.length === 0" class="tw-text-center tw-p-8 tw-opacity-60">
             <q-icon name="ev_station" size="48px" class="tw-mb-2" />

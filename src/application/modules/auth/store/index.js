@@ -22,6 +22,10 @@ export default {
   actions: {
     async login({ commit }, payload) {
       try {
+        // First, get CSRF cookie from Laravel Sanctum
+        await api.get("/sanctum/csrf-cookie");
+        
+        // Now make the login request with CSRF protection
         const res = await api.post("/api/auth/login", payload);
         commit("SET_USER", res.data.user);
         
@@ -31,7 +35,6 @@ export default {
           sessionStorage.setItem("user", JSON.stringify(res.data.user));
           Cache.set("token", res.data.token);
         } else {
-          console.log('No token in response, using session-based auth');
           commit("SET_TOKEN", "session");
           sessionStorage.setItem("token", "session");
           sessionStorage.setItem("user", JSON.stringify(res.data.user));

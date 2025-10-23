@@ -25,6 +25,7 @@
             icon="add"
             label="Add Station"
             class="modern-btn"
+            @click="$router.push('main/kiosks/new')"
           />
         </div>
       </div>
