@@ -1,5 +1,4 @@
 import http from "@/service/axios";
-import { bind } from "leaflet";
 
 export default {
   namespaced: true,
@@ -60,7 +59,6 @@ export default {
           id: data.data.id,
           name: data.data.name,
           email: data.data.email,
-          birth_date: data.data.birth_date,
           phone: data.data.phone_number,
           roles: [data.data.role]
         };
@@ -102,7 +100,6 @@ export default {
           id: data.data.id,
           name: data.data.name,
           email: data.data.email,
-          birth_date: data.data.birth_date,
           phone: data.data.phone_number,
           roles: [data.data.role]
         };

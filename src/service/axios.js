@@ -9,17 +9,18 @@ const http = axios.create({
       'Content-Type': 'application/json',
       'Accept': 'application/json'
   },
-  withCredentials: true,
+  // withCredentials not needed for JWT - tokens sent via Authorization header
+  withCredentials: false,
 });
 
 
 http.interceptors.request.use(
   (config) => {
-
-    //Attach tokens if exists (skip if session-based)
-    const token = Cache.get('token')
-    if (token && token !== 'session') {
-      config.headers['Authorization'] = `Bearer ${token}`
+    // Get JWT token from localStorage or Cache
+    const token = localStorage.getItem('token') || Cache.get('token');
+    
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
 
     return config

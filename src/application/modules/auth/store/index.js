@@ -1,4 +1,4 @@
-import api from "@/boot/axios";
+import http from "@/service/axios";
 import { Cache } from "@/service/cache";
 
 export default {
@@ -22,27 +22,37 @@ export default {
   actions: {
     async login({ commit }, payload) {
       try {
-        const res = await api.post("/api/auth/login", payload);
-        commit("SET_USER", res.data.user);
+        // Convert to plain object to avoid Vue reactivity issues
+        const loginData = {
+          email: payload.email,
+          password: payload.password
+        };
         
-        if (res.data.token && res.data.token !== 'session') {
-          commit("SET_TOKEN", res.data.token);
-          sessionStorage.setItem("token", res.data.token);
-          sessionStorage.setItem("user", JSON.stringify(res.data.user));
-          Cache.set("token", res.data.token);
-        } else {
-          console.log('No token in response, using session-based auth');
-          commit("SET_TOKEN", "session");
-          sessionStorage.setItem("token", "session");
-          sessionStorage.setItem("user", JSON.stringify(res.data.user));
-          Cache.set("token", "session");
+        // Login with JWT authentication - uses /api prefix from axios baseURL
+        const res = await http.post("/auth/login", loginData);
+        
+        // Backend returns 'access_token', not 'token'
+        const token = res.data.access_token || res.data.token;
+        const user = res.data.user;
+        
+        if (!token) {
+          throw new Error('No token received from server');
         }
-
-        Cache.set("user", res.data.user);
-
+        
+        // Store JWT token in localStorage
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        
+        // Also update Vuex state
+        commit("SET_TOKEN", token);
+        commit("SET_USER", user);
+        
+        // Update cache
+        Cache.set("token", token);
+        Cache.set("user", user);
+        
         return res;
       } catch (err) {
-        console.error('Login error details:', err.response?.data);
         throw err;
       }
     },
@@ -56,27 +66,25 @@ export default {
       Cache.remove("user");
     },
     restoreSession({ commit }) {
-      // Only check sessionStorage for session-based auth
-      let token = Cache.get("token") || sessionStorage.getItem("token");
-      let user = Cache.get("user");
+      // Check localStorage for JWT token
+      let token = localStorage.getItem("token");
+      let user = null;
       
-      if (!user) {
-        const userStr = sessionStorage.getItem("user");
-        if (userStr) {
-          try {
-            user = JSON.parse(userStr);
-          } catch (e) {
-            user = null;
-          }
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          user = JSON.parse(userStr);
+        } catch (e) {
+          user = null;
         }
       }
 
-      // Only restore if we have both token and user in sessionStorage
+      // Restore session if we have both token and user
       if (token && user) {
         Cache.set("token", token);
         Cache.set("user", user);
         commit("SET_TOKEN", token);
-        commit("SET_USER", typeof user === 'string' ? JSON.parse(user) : user);
+        commit("SET_USER", user);
       }
     },
   },
