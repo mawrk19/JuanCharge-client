@@ -18,7 +18,7 @@
           JuanCharge
         </div>
         <div class="text-subtitle2 text-grey-5 q-mt-xs" style="letter-spacing: 1px; text-transform: uppercase;">
-          EV Charging Network
+         Powering Every Juan.
         </div>
       </q-card-section>
 
@@ -113,7 +113,7 @@
 
         <!-- Social Login Buttons -->
         <div class="row q-col-gutter-sm q-mb-md">
-          <div class="col-6">
+          <div class="col-12">
             <q-btn
               outline
               dense
@@ -123,7 +123,7 @@
               label="Google"
             />
           </div>
-          <div class="col-6">
+          <!-- <div class="col-6">
             <q-btn
               outline
               dense
@@ -132,7 +132,7 @@
               icon="img:https://www.facebook.com/favicon.ico"
               label="Facebook"
             />
-          </div>
+          </div> -->
         </div>
 
         <!-- Sign Up Link -->

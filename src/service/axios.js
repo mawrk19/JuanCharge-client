@@ -3,7 +3,7 @@ import { Cache } from './cache';
 
 
 const http = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api', // Your API base URL
+  baseURL: '/api', // Use Vite proxy instead of direct URL
   // timeout: 10000, // Timeout in milliseconds (optional)
   headers: {
       'Content-Type': 'application/json',

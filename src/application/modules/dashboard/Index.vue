@@ -42,7 +42,7 @@
             subtitle="Currently online"
             :value="metrics.activeStations"
             icon="ev_station"
-            iconColor="green"
+            iconColor="white"
             change="+12% from last month"
             changeType="positive"
           />
@@ -53,7 +53,7 @@
             subtitle="This month"
             :value="metrics.revenue"
             icon="attach_money"
-            iconColor="blue"
+            iconColor="white"
             format="currency"
             change="+8.5% from last month"
             changeType="positive"
@@ -65,7 +65,7 @@
             subtitle="Today"
             :value="metrics.sessionsToday"
             icon="battery_charging_full"
-            iconColor="orange"
+            iconColor="white"
             change="-3.2% from yesterday"
             changeType="negative"
           />
@@ -76,7 +76,7 @@
             subtitle="Average daily"
             :value="metrics.utilizationRate"
             icon="analytics"
-            iconColor="purple"
+            iconColor="white"
             format="percentage"
             change="+2.1% from last week"
             changeType="positive"
@@ -213,12 +213,12 @@ export default {
         },
         yaxis: {
           labels: {
-            formatter: (value) => `$${(value / 1000).toFixed(0)}k`
+            formatter: (value) => `₱${(value / 1000).toFixed(0)}k`
           }
         },
         tooltip: {
           y: {
-            formatter: (value) => `$${value.toLocaleString()}`
+            formatter: (value) => `₱${value.toLocaleString()}`
           }
         }
       },
