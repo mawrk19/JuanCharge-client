@@ -1,4 +1,5 @@
 import http from "@/service/axios";
+import { bind } from "leaflet";
 
 export default {
   namespaced: true,
@@ -36,11 +37,11 @@ export default {
       commit("SET_LOADING", true);
       commit("SET_ERROR", null);
       try {
-        const { data } = await http.get("/lgu-users");
+        const { data } = await http.get("/kiosk-users");
         commit("SET_USERS", data.data || data);
         return data;
       } catch (error) {
-        commit("SET_ERROR", error.response?.data?.message || "Failed to fetch users");
+        commit("SET_ERROR", error.response?.data?.message || "Failed to fetch kiosk users");
         throw error;
       } finally {
         commit("SET_LOADING", false);
@@ -52,13 +53,14 @@ export default {
       commit("SET_LOADING", true);
       commit("SET_ERROR", null);
       try {
-        const { data } = await http.post("/lgu-users", userData);
+        const { data } = await http.post("/kiosk-users", userData);
         
         // Transform data to match table format
         const newUser = {
           id: data.data.id,
           name: data.data.name,
           email: data.data.email,
+          birth_date: data.data.birth_date,
           phone: data.data.phone_number,
           roles: [data.data.role]
         };
@@ -66,7 +68,7 @@ export default {
         commit("ADD_USER", newUser);
         return data;
       } catch (error) {
-        commit("SET_ERROR", error.response?.data?.message || "Failed to create user");
+        commit("SET_ERROR", error.response?.data?.message || "Failed to create kiosk user");
         throw error;
       } finally {
         commit("SET_LOADING", false);
@@ -78,7 +80,7 @@ export default {
       commit("SET_LOADING", true);
       commit("SET_ERROR", null);
       try {
-        const { data } = await http.get(`/lgu-users/${userId}`);
+        const { data } = await http.get(`/kiosk-users/${userId}`);
         return data;
       } catch (error) {
         commit("SET_ERROR", error.response?.data?.message || "Failed to fetch user");
@@ -93,13 +95,14 @@ export default {
       commit("SET_LOADING", true);
       commit("SET_ERROR", null);
       try {
-        const { data } = await http.put(`/lgu-users/${id}`, userData);
+        const { data } = await http.put(`/kiosk-users/${id}`, userData);
         
         // Transform data to match table format
         const updatedUser = {
           id: data.data.id,
           name: data.data.name,
           email: data.data.email,
+          birth_date: data.data.birth_date,
           phone: data.data.phone_number,
           roles: [data.data.role]
         };
@@ -107,7 +110,7 @@ export default {
         commit("UPDATE_USER", updatedUser);
         return data;
       } catch (error) {
-        commit("SET_ERROR", error.response?.data?.message || "Failed to update user");
+        commit("SET_ERROR", error.response?.data?.message || "Failed to update kiosk user");
         throw error;
       } finally {
         commit("SET_LOADING", false);
@@ -119,11 +122,13 @@ export default {
       commit("SET_LOADING", true);
       commit("SET_ERROR", null);
       try {
-        const { data } = await http.delete(`/lgu-users/${userId}`);
-        commit("DELETE_USER", userId);
+        const { data } = await http.delete(`/kiosk-users/${userId}`);
+        if (data.success || data.status === 200) {
+          commit("DELETE_USER", userId);
+        }
         return data;
       } catch (error) {
-        commit("SET_ERROR", error.response?.data?.message || "Failed to delete user");
+        commit("SET_ERROR", error.response?.data?.message || "Failed to delete kiosk user");
         throw error;
       } finally {
         commit("SET_LOADING", false);
@@ -131,8 +136,8 @@ export default {
     },
   },
   getters: {
-    users: (state) => state.users,
-    isLoading: (state) => state.loading,
-    error: (state) => state.error,
+    kioskUsers: (state) => state.users,
+    kioskIsLoading: (state) => state.loading,
+    kioskError: (state) => state.error,
   },
 };

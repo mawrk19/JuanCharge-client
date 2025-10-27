@@ -228,6 +228,36 @@
               </template>
             </q-input>
 
+            <!-- Birth Date Field -->
+            <q-input
+              v-model="userForm.birth_date"
+              label="Birth Date"
+              dark
+              outlined
+              dense
+              placeholder="YYYY-MM-DD or click calendar"
+            >
+              <template v-slot:prepend>
+                <q-icon name="cake" />
+              </template>
+              <template v-slot:append>
+                <q-icon name="event" class="cursor-pointer">
+                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                    <q-date
+                      v-model="userForm.birth_date"
+                      dark
+                      mask="YYYY-MM-DD"
+                      today-btn
+                    >
+                      <div class="row items-center justify-end">
+                        <q-btn v-close-popup label="Close" color="primary" flat />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+
             <!-- Action Buttons -->
             <div class="row q-gutter-sm justify-end q-mt-md">
               <q-btn
@@ -270,7 +300,8 @@ export default {
         name: '',
         role: null,
         phone_number: '',
-        email: ''
+        email: '',
+        birth_date: null  // Add this line
       },
 
       roleOptions: [
@@ -332,10 +363,10 @@ export default {
 
   computed: {
     isLoading() {
-      return this.$store.getters['users/isLoading'];
+      return this.$store.getters['kiosks/kioskIsLoading'];
     },
     error() {
-      return this.$store.getters['users/error'];
+      return this.$store.getters['kiosks/kioskError'];
     }
   },
 
@@ -346,9 +377,8 @@ export default {
   methods: {
     async loadUsers() {
       try {
-        const response = await this.$store.dispatch('users/fetchUsers');
+        const response = await this.$store.dispatch('kiosks/fetchUsers');
         
-        // Handle the API response structure: {success: true, data: [...]}
         let usersData = null;
         
         if (response && response.data) {
@@ -366,14 +396,12 @@ export default {
             roles: [user.role]
           }));
           
-          // Force reactivity
           this.users = [];
           this.$nextTick(() => {
             this.users = mappedUsers;
             this.$forceUpdate();
           });
         }
-        
       } catch (error) {
         this.$q.notify({
           color: 'red',
@@ -410,7 +438,8 @@ export default {
         name: '',
         role: null,
         phone_number: '',
-        email: ''
+        email: '',
+        birth_date: null  // Add this line
       };
       this.showCreateDialog = true;
     },
@@ -419,28 +448,21 @@ export default {
       this.saving = true;
       
       try {
-        const response = await this.$store.dispatch('users/createUser', this.userForm);
+        const response = await this.$store.dispatch('kiosks/createUser', this.userForm);
         
         if (response.success) {
           this.$q.notify({
             color: 'green',
-            message: response.message || 'User created successfully',
+            message: response.message || 'Kiosk user created successfully',
             icon: 'check_circle',
             position: 'top'
           });
 
-          this.users.unshift({
-            id: response.data.id,
-            name: response.data.name,
-            email: response.data.email,
-            phone: response.data.phone_number,
-            roles: [response.data.role]
-          });
-
           this.showCreateDialog = false;
+          await this.loadUsers(); // Reload the full list after creation
         }
       } catch (error) {
-        let errorMessage = 'Failed to create user';
+        let errorMessage = 'Failed to create kiosk user';
         
         if (error.response?.data?.errors) {
           const errors = error.response.data.errors;
@@ -473,25 +495,32 @@ export default {
         dark: true
       }).onOk(async () => {
         try {
-          await this.$store.dispatch('users/deleteUser', user.id);
+          const response = await this.$store.dispatch('kiosks/deleteUser', user.id);
+          // Remove user from local state immediately after successful deletion
           this.users = this.users.filter(u => u.id !== user.id);
           
           this.$q.notify({
             color: 'green',
-            message: 'User deleted successfully',
+            message: 'Kiosk user deleted successfully',
             icon: 'check_circle',
             position: 'top'
           });
         } catch (error) {
           this.$q.notify({
             color: 'red',
-            message: 'Failed to delete user',
+            message: 'Failed to delete kiosk user',
             icon: 'error',
             position: 'top'
           });
         }
       });
-    }
+    },
+
+    dateOptions(date) {
+      // Allow dates from the past up to today (no future dates for birth date)
+      const today = new Date().toISOString().split('T')[0];
+      return date <= today;
+    },
   }
 };
 </script>
