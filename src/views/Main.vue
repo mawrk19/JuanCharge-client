@@ -77,6 +77,14 @@
         <q-btn flat round dense icon="account_circle" class="tw-ml-2">
           <q-menu>
             <q-list style="min-width: 150px">
+              <!-- Show user info -->
+              <q-item>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold">{{ userName }}</q-item-label>
+                  <q-item-label caption>{{ userType === 'admin' ? 'Administrator' : 'LGU User' }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-separator />
               <q-item clickable v-close-popup @click="logout">
                 <q-item-section avatar>
                   <q-icon name="logout" />
@@ -100,34 +108,63 @@
       class="text-white"
     >
       <q-list style="background-color: #142221; height: 100vh;">
-        <q-item clickable v-ripple @click="$router.push('/main/dashboard')" style="background-color: #142221;" >
+        <!-- Dashboard - Available to all -->
+        <q-item 
+          clickable 
+          v-ripple 
+          @click="$router.push('/main/dashboard')" 
+          :active="$route.path === '/main/dashboard'"
+          active-class="bg-green-9"
+        >
           <q-item-section avatar>
-            <q-icon name="ev_station" />
+            <q-icon name="dashboard" />
           </q-item-section>
           <q-item-section>Dashboard</q-item-section>
         </q-item>
 
-        <q-item clickable v-ripple @click="$router.push('/main/map')">
+        <!-- Map - Available to all -->
+        <q-item 
+          clickable 
+          v-ripple 
+          @click="$router.push('/main/map')"
+          :active="$route.path === '/main/map'"
+          active-class="bg-green-9"
+        >
           <q-item-section avatar>
-            <q-icon name="analytics" />
+            <q-icon name="map" />
           </q-item-section>
           <q-item-section>Map</q-item-section>
         </q-item>
 
-        <q-item clickable v-ripple @click="$router.push('/main/users')">
-          <q-item-section avatar>
-            <q-icon name="people" />
-          </q-item-section>
-          <q-item-section>Users</q-item-section>
-        </q-item>
-
-        <q-item clickable v-ripple @click="$router.push('/main/kiosks')">
+        <!-- Kiosks - Available to all -->
+        <q-item 
+          clickable 
+          v-ripple 
+          @click="$router.push('/main/kiosks')"
+          :active="$route.path === '/main/kiosks'"
+          active-class="bg-green-9"
+        >
           <q-item-section avatar>
             <q-icon name="ev_station" />
           </q-item-section>
           <q-item-section>Kiosks</q-item-section>
         </q-item>
 
+        <!-- Admin-only sections -->
+        <template v-if="isAdmin">
+          <q-item 
+            clickable 
+            v-ripple 
+            @click="$router.push('/main/users')"
+            :active="$route.path === '/main/users'"
+            active-class="bg-green-9"
+          >
+            <q-item-section avatar>
+              <q-icon name="people" />
+            </q-item-section>
+            <q-item-section>Users</q-item-section>
+          </q-item>
+        </template>
       </q-list>
     </q-drawer>
 
@@ -135,14 +172,23 @@
     <q-page-container>
       <router-view />
     </q-page-container>
+
+    <!-- Change Password Modal -->
+    <change-password-modal v-model="showChangePasswordModal" />
   </q-layout>
 </template>
 
 <script>
+import ChangePasswordModal from '@/components/ChangePasswordModal.vue';
+
 export default {
+  components: {
+    ChangePasswordModal
+  },
   data () {
     return {
       leftDrawerOpen: true,  // drawer always visible
+      showChangePasswordModal: false,
       notifications: [
         {
           id: 1,
@@ -190,6 +236,23 @@ export default {
   computed: {
     unreadCount() {
       return this.notifications.filter(n => !n.read).length;
+    },
+    isAdmin() {
+      return this.$store.getters['auth/isAdmin'];
+    },
+    userType() {
+      return this.$store.state.auth.userType || 'admin';
+    },
+    userName() {
+      return this.$store.state.auth.user?.name || 'User';
+    }
+  },
+  mounted() {
+    // Check if first login from query params
+    if (this.$route.query.first_login === 'true') {
+      this.showChangePasswordModal = true;
+      // Remove query param
+      this.$router.replace({ query: {} });
     }
   },
   methods: {
