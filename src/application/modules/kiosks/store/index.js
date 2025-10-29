@@ -1,28 +1,27 @@
 import http from "@/service/axios";
-import { bind } from "leaflet";
 
 export default {
   namespaced: true,
   state: {
-    users: [],
+    kiosks: [],
     loading: false,
     error: null,
   },
   mutations: {
-    SET_USERS(state, users) {
-      state.users = users;
+    SET_KIOSKS(state, kiosks) {
+      state.kiosks = kiosks;
     },
-    ADD_USER(state, user) {
-      state.users.unshift(user);
+    ADD_KIOSK(state, kiosk) {
+      state.kiosks.unshift(kiosk);
     },
-    UPDATE_USER(state, updatedUser) {
-      const index = state.users.findIndex(u => u.id === updatedUser.id);
+    UPDATE_KIOSK(state, updatedKiosk) {
+      const index = state.kiosks.findIndex(k => k.id === updatedKiosk.id);
       if (index !== -1) {
-        state.users.splice(index, 1, updatedUser);
+        state.kiosks.splice(index, 1, updatedKiosk);
       }
     },
-    DELETE_USER(state, userId) {
-      state.users = state.users.filter(u => u.id !== userId);
+    DELETE_KIOSK(state, kioskId) {
+      state.kiosks = state.kiosks.filter(k => k.id !== kioskId);
     },
     SET_LOADING(state, val) {
       state.loading = val;
@@ -32,111 +31,98 @@ export default {
     },
   },
   actions: {
-    // Fetch all LGU users
-    async fetchUsers({ commit }) {
+    async fetchKiosks({ commit }) {
       commit("SET_LOADING", true);
       commit("SET_ERROR", null);
       try {
-        const { data } = await http.get("/kiosk-users");
-        commit("SET_USERS", data.data || data);
+        const { data } = await http.get("/kiosks");
+        commit("SET_KIOSKS", data.data || data);
         return data;
       } catch (error) {
-        commit("SET_ERROR", error.response?.data?.message || "Failed to fetch kiosk users");
+        const errorMessage = error.response?.data?.message || "Failed to fetch kiosks";
+        commit("SET_ERROR", errorMessage);
         throw error;
       } finally {
         commit("SET_LOADING", false);
       }
     },
 
-    // Create new LGU user
-    async createUser({ commit }, userData) {
+    async createKiosk({ commit }, kioskData) {
       commit("SET_LOADING", true);
       commit("SET_ERROR", null);
       try {
-        const { data } = await http.post("/kiosk-users", userData);
-        
-        // Transform data to match table format
-        const newUser = {
-          id: data.data.id,
-          name: data.data.name,
-          email: data.data.email,
-          birth_date: data.data.birth_date,
-          phone: data.data.phone_number,
-          roles: [data.data.role]
-        };
-        
-        commit("ADD_USER", newUser);
-        return data;
-      } catch (error) {
-        commit("SET_ERROR", error.response?.data?.message || "Failed to create kiosk user");
-        throw error;
-      } finally {
-        commit("SET_LOADING", false);
-      }
-    },
-
-    // Get single LGU user
-    async getUser({ commit }, userId) {
-      commit("SET_LOADING", true);
-      commit("SET_ERROR", null);
-      try {
-        const { data } = await http.get(`/kiosk-users/${userId}`);
-        return data;
-      } catch (error) {
-        commit("SET_ERROR", error.response?.data?.message || "Failed to fetch user");
-        throw error;
-      } finally {
-        commit("SET_LOADING", false);
-      }
-    },
-
-    // Update LGU user
-    async updateUser({ commit }, { id, userData }) {
-      commit("SET_LOADING", true);
-      commit("SET_ERROR", null);
-      try {
-        const { data } = await http.put(`/kiosk-users/${id}`, userData);
-        
-        // Transform data to match table format
-        const updatedUser = {
-          id: data.data.id,
-          name: data.data.name,
-          email: data.data.email,
-          birth_date: data.data.birth_date,
-          phone: data.data.phone_number,
-          roles: [data.data.role]
-        };
-        
-        commit("UPDATE_USER", updatedUser);
-        return data;
-      } catch (error) {
-        commit("SET_ERROR", error.response?.data?.message || "Failed to update kiosk user");
-        throw error;
-      } finally {
-        commit("SET_LOADING", false);
-      }
-    },
-
-    // Delete LGU user
-    async deleteUser({ commit }, userId) {
-      commit("SET_LOADING", true);
-      commit("SET_ERROR", null);
-      try {
-        const { data } = await http.delete(`/kiosk-users/${userId}`);
-        if (data.success || data.status === 200) {
-          commit("DELETE_USER", userId);
+        const { data } = await http.post("/kiosks", kioskData);
+        if (data.kiosk) {
+          commit("ADD_KIOSK", data.kiosk);
+          return {
+            success: true,
+            message: data.message,
+            kiosk: data.kiosk
+          };
         }
-        return data;
+        throw new Error("Invalid response format");
       } catch (error) {
-        commit("SET_ERROR", error.response?.data?.message || "Failed to delete kiosk user");
-        throw error;
+        const errorMessage = error.response?.data?.message || "Failed to create kiosk";
+        commit("SET_ERROR", errorMessage);
+        return {
+          success: false,
+          message: errorMessage
+        };
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    },
+
+    async updateKiosk({ commit }, { id, data }) {
+      commit("SET_LOADING", true);
+      commit("SET_ERROR", null);
+      try {
+        const response = await http.put(`/kiosks/${id}`, data);
+        if (response.data.kiosk) {
+          commit("UPDATE_KIOSK", response.data.kiosk);
+          return {
+            success: true,
+            message: response.data.message,
+            kiosk: response.data.kiosk
+          };
+        }
+        throw new Error("Invalid response format");
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || "Failed to update kiosk";
+        commit("SET_ERROR", errorMessage);
+        return {
+          success: false,
+          message: errorMessage
+        };
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    },
+
+    async deleteKiosk({ commit }, kioskId) {
+      commit("SET_LOADING", true);
+      commit("SET_ERROR", null);
+      try {
+        const { data } = await http.delete(`/kiosks/${kioskId}`);
+        commit("DELETE_KIOSK", kioskId);
+        return {
+          success: true,
+          message: data.message
+        };
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || "Failed to delete kiosk";
+        commit("SET_ERROR", errorMessage);
+        return {
+          success: false,
+          message: errorMessage
+        };
       } finally {
         commit("SET_LOADING", false);
       }
     },
   },
   getters: {
-    kioskUsers: (state) => state.users,
+    kiosks: (state) => state.kiosks,
     kioskIsLoading: (state) => state.loading,
     kioskError: (state) => state.error,
   },
