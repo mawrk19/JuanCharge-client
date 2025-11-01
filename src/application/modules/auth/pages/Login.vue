@@ -125,37 +125,19 @@ export default {
     async loginUser() {
       try {
         this.loading = true;
-        const response = await this.$store.dispatch("auth/login", this.form);
+        await this.$store.dispatch("auth/login", this.form);
         
-        // Check if first time login
-        const isFirstLogin = this.$store.getters['auth/isFirstLogin'];
+        // Success notification
+        this.$q.notify({
+          type: 'positive',
+          message: 'Login successful!',
+          icon: 'check_circle',
+          position: 'top'
+        });
         
-        if (isFirstLogin) {
-          // Show change password modal
-          this.$q.notify({
-            type: 'info',
-            message: 'First time login detected. Please change your password.',
-            icon: 'info',
-            position: 'top'
-          });
-          
-          // Redirect to main with flag to show modal
-          this.$router.push({ 
-            path: "/main/dashboard",
-            query: { first_login: 'true' }
-          });
-        } else {
-          // Normal login flow
-          this.$q.notify({
-            type: 'positive',
-            message: 'Login successful!',
-            icon: 'check_circle',
-            position: 'top'
-          });
-          
-          this.$router.push("/main/dashboard");
-        }
+        this.$router.push("/main/dashboard");
       } catch (e) {
+        // Show user-friendly error notification
         const errorMessage = e.response?.data?.message || 'Login failed. Please check your credentials.';
         this.$q.notify({
           type: 'negative',

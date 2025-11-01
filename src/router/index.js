@@ -81,25 +81,57 @@ const router = new Router({
   routes,
 });
 
-// Route guard to check authentication and handle first login
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token');
-  const isFirstLogin = localStorage.getItem('is_first_login') === 'true';
+  // Get token and user from Cache or sessionStorage only
+  let token = Cache.get('token') || sessionStorage.getItem('token');
+  let user = Cache.get('user');
   
-  // Public routes
-  const publicPages = ['/login', '/register'];
-  const authRequired = !publicPages.includes(to.path);
+  if (!user) {
+    // Only check sessionStorage
+    let userStr = sessionStorage.getItem('user');
+    if (userStr) {
+      try {
+        user = JSON.parse(userStr);
+        if (user) Cache.set('user', user);
+      } catch (e) {
+        // Invalid user data, clear it
+        sessionStorage.removeItem('user');
+        user = null;
+      }
+    }
+  }
+
+  // Sync token to cache if it exists
+  if (token && !Cache.get('token')) {
+    Cache.set('token', token);
+  }
+
+  // Simple authentication check - just need a valid token
+  const isAuthenticated = !!token;
   
-  if (authRequired && !token) {
-    // Redirect to login if not authenticated
-    return next('/login');
+  // If going to login and already authenticated, redirect to dashboard
+  if (to.path === "/login" && isAuthenticated) {
+    next({ path: "/main/dashboard" });
+    return;
+  }
+
+  // Check if route requires authentication
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!isAuthenticated) {
+      // Clear any invalid session data and go to login
+      if (token || user) {
+        store.dispatch("auth/logout");
+      }
+      next({ path: "/login" });
+      return;
+    }
+    
+    // If authenticated, allow access
+    next();
+    return;
   }
   
-  // If user is authenticated and on login page, redirect to dashboard
-  if (token && publicPages.includes(to.path)) {
-    return next('/main/dashboard');
-  }
-  
+  // For non-protected routes, allow access
   next();
 });
 

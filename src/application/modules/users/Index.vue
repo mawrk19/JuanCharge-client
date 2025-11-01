@@ -460,7 +460,13 @@ export default {
         const response = await this.$store.dispatch('users/createUser', this.userForm);
         
         if (response.success) {
-          // Add user to the list
+          this.$q.notify({
+            color: 'green',
+            message: response.message || 'User created successfully',
+            icon: 'check_circle',
+            position: 'top'
+          });
+
           this.users.unshift({
             id: response.data.id,
             name: response.data.name,
@@ -470,38 +476,6 @@ export default {
           });
 
           this.showCreateDialog = false;
-
-          // Show success dialog with default password
-          this.$q.dialog({
-            title: 'User Created Successfully',
-            message: `
-              <div class="text-body1">
-                <p><strong>Email:</strong> ${response.data.email}</p>
-                <p><strong>Name:</strong> ${response.data.name}</p>
-                <p class="text-red"><strong>Default Password:</strong> ${response.default_password}</p>
-                <p class="text-caption text-grey">Please share this password securely with the user. They will be required to change it on first login.</p>
-              </div>
-            `,
-            html: true,
-            persistent: true,
-            ok: {
-              label: 'Copy Password',
-              color: 'green'
-            },
-            cancel: {
-              label: 'Close',
-              flat: true
-            }
-          }).onOk(() => {
-            // Copy password to clipboard
-            navigator.clipboard.writeText(response.default_password);
-            this.$q.notify({
-              type: 'positive',
-              message: 'Password copied to clipboard!',
-              icon: 'content_copy',
-              position: 'top'
-            });
-          });
         }
       } catch (error) {
         let errorMessage = 'Failed to create user';
