@@ -114,7 +114,7 @@
           v-ripple 
           @click="$router.push('/main/dashboard')" 
           :active="$route.path === '/main/dashboard'"
-          active-class="bg-green-9"
+        
         >
           <q-item-section avatar>
             <q-icon name="dashboard" />
@@ -128,7 +128,7 @@
           v-ripple 
           @click="$router.push('/main/map')"
           :active="$route.path === '/main/map'"
-          active-class="bg-green-9"
+          
         >
           <q-item-section avatar>
             <q-icon name="map" />
@@ -142,7 +142,6 @@
           v-ripple 
           @click="$router.push('/main/kiosks')"
           :active="$route.path === '/main/kiosks'"
-          active-class="bg-green-9"
         >
           <q-item-section avatar>
             <q-icon name="ev_station" />
@@ -157,7 +156,6 @@
             v-ripple 
             @click="$router.push('/main/users')"
             :active="$route.path === '/main/users'"
-            active-class="bg-green-9"
           >
             <q-item-section avatar>
               <q-icon name="people" />
@@ -294,3 +292,17 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* Make active drawer item label and icon blue, with a subtle active background */
+.q-drawer .q-item.q-item--active .q-item__section {
+  color: #ffffff !important; /* blue - adjust as needed */
+}
+.q-drawer .q-item.q-item--active .q-icon {
+  color: #ffffff !important;
+}
+/* Optional: subtle background for the active item to improve contrast */
+.q-drawer .q-item.q-item--active {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+</style>
