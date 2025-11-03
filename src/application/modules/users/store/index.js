@@ -1,5 +1,4 @@
 import http from "@/service/axios";
-import { bind } from "leaflet";
 
 export default {
   namespaced: true,
@@ -91,7 +90,7 @@ export default {
     },
 
     // Update LGU user
-    async updateUser({ commit }, { id, userData }) {
+    async updateUser({ commit }, { id, data: userData }) {
       commit("SET_LOADING", true);
       commit("SET_ERROR", null);
       try {

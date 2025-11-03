@@ -36,7 +36,8 @@ export default {
       commit("SET_ERROR", null);
       try {
         const { data } = await http.get("/kiosks");
-        commit("SET_KIOSKS", data.data || data);
+        const kiosksData = data.data || data;
+        commit("SET_KIOSKS", kiosksData);
         return data;
       } catch (error) {
         const errorMessage = error.response?.data?.message || "Failed to fetch kiosks";
@@ -52,48 +53,42 @@ export default {
       commit("SET_ERROR", null);
       try {
         const { data } = await http.post("/kiosks", kioskData);
-        if (data.kiosk) {
-          commit("ADD_KIOSK", data.kiosk);
-          return {
-            success: true,
-            message: data.message,
-            kiosk: data.kiosk
-          };
-        }
-        throw new Error("Invalid response format");
+        const newKiosk = data.data || data;
+        commit("ADD_KIOSK", newKiosk);
+        return data;
       } catch (error) {
-        const errorMessage = error.response?.data?.message || "Failed to create kiosk";
-        commit("SET_ERROR", errorMessage);
-        return {
-          success: false,
-          message: errorMessage
-        };
+        commit("SET_ERROR", error.response?.data?.message || "Failed to create kiosk");
+        throw error;
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    },
+    
+    async getKiosk({ commit }, kioskId) {
+      commit("SET_LOADING", true);
+      commit("SET_ERROR", null);
+      try {
+        const { data } = await http.get(`/kiosks/${kioskId}`);
+        return data;
+      } catch (error) {
+        commit("SET_ERROR", error.response?.data?.message || "Failed to fetch kiosk");
+        throw error;
       } finally {
         commit("SET_LOADING", false);
       }
     },
 
-    async updateKiosk({ commit }, { id, data }) {
+    async updateKiosk({ commit }, { id, data: kioskData }) {
       commit("SET_LOADING", true);
       commit("SET_ERROR", null);
       try {
-        const response = await http.put(`/kiosks/${id}`, data);
-        if (response.data.kiosk) {
-          commit("UPDATE_KIOSK", response.data.kiosk);
-          return {
-            success: true,
-            message: response.data.message,
-            kiosk: response.data.kiosk
-          };
-        }
-        throw new Error("Invalid response format");
+        const { data } = await http.put(`/kiosks/${id}`, kioskData);
+        const updatedKiosk = data.data || data;
+        commit("UPDATE_KIOSK", updatedKiosk);
+        return data;
       } catch (error) {
-        const errorMessage = error.response?.data?.message || "Failed to update kiosk";
-        commit("SET_ERROR", errorMessage);
-        return {
-          success: false,
-          message: errorMessage
-        };
+        commit("SET_ERROR", error.response?.data?.message || "Failed to update kiosk");
+        throw error;
       } finally {
         commit("SET_LOADING", false);
       }
@@ -105,17 +100,10 @@ export default {
       try {
         const { data } = await http.delete(`/kiosks/${kioskId}`);
         commit("DELETE_KIOSK", kioskId);
-        return {
-          success: true,
-          message: data.message
-        };
+        return data;
       } catch (error) {
-        const errorMessage = error.response?.data?.message || "Failed to delete kiosk";
-        commit("SET_ERROR", errorMessage);
-        return {
-          success: false,
-          message: errorMessage
-        };
+        commit("SET_ERROR", error.response?.data?.message || "Failed to delete kiosk");
+        throw error;
       } finally {
         commit("SET_LOADING", false);
       }

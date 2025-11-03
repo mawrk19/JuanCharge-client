@@ -1,5 +1,5 @@
 <template>
-  <q-page class="users-page q-pa-lg">
+  <q-page class="kiosks-page q-pa-lg">
     <!-- Animated Background -->
     <div class="animated-bg">
       <div class="blob blob-1"></div>
@@ -26,7 +26,7 @@
           row-key="id"
           :pagination.sync="pagination"
           :filter="filter"
-          :loading="isLoading"
+          :loading="kioskIsLoading"
           bordered
           class="modern-table"
         >
@@ -34,7 +34,7 @@
           <template v-slot:no-data>
             <div class="full-width row flex-center text-grey-5 q-gutter-sm q-py-xl">
               <q-icon size="2em" name="warning" />
-              <span>No users found</span>
+              <span>No kiosks found</span>
             </div>
           </template>
 
@@ -54,7 +54,7 @@
                   v-model="filter"
                   outlined
                   dense
-                  placeholder="Search users..."
+                  placeholder="Search kiosks..."
                   dark
                   class="search-input"
                   style="min-width: 300px;"
@@ -78,47 +78,77 @@
             </q-td>
           </template>
 
-          <!-- Name Column -->
-          <template v-slot:body-cell-name="props">
+          <!-- Kiosk_Code Column -->
+          <template v-slot:body-cell-kiosk_code="props">
             <q-td :props="props">
               <div class="row items-center no-wrap">
                 <q-avatar size="32px" color="green" text-color="white" class="q-mr-sm">
-                  {{ getInitials(props.row.name) }}
+                  {{ getInitials(props.row.kiosk_code) }}
                 </q-avatar>
-                <span class="text-white text-weight-medium">{{ props.row.name }}</span>
+                <span class="text-white text-weight-medium">{{ props.row.kiosk_code }}</span>
               </div>
             </q-td>
           </template>
 
-          <!-- Roles Column -->
-          <template v-slot:body-cell-roles="props">
+          <!-- Status Column -->
+          <template v-slot:body-cell-status="props">
             <q-td :props="props">
               <q-badge
-                v-for="role in props.row.roles"
-                :key="role"
-                :color="getRoleColor(role)"
-                :label="role"
+                v-for="status in props.row.status"
+                :key="status"
+                :color="getStatusColor(status)"
+                :label="status"
                 class="q-mr-xs"
               />
             </q-td>
           </template>
 
-          <!-- Phone Number Column -->
-          <template v-slot:body-cell-phone="props">
+          <!-- Serial Number Column -->
+          <template v-slot:body-cell-serial_number="props">
             <q-td :props="props">
               <div class="row items-center no-wrap">
-                <q-icon name="phone" size="16px" color="grey-5" class="q-mr-xs" />
-                <span class="text-grey-4">{{ props.row.phone }}</span>
+                <q-icon name="dialpad" size="16px" color="grey-5" class="q-mr-xs" />
+                <span class="text-grey-4">{{ props.row.serial_number }}</span>
               </div>
             </q-td>
           </template>
 
-          <!-- Email Column -->
-          <template v-slot:body-cell-email="props">
+          <!-- MAC Address Column -->
+          <template v-slot:body-cell-mac_address="props">
             <q-td :props="props">
               <div class="row items-center no-wrap">
-                <q-icon name="email" size="16px" color="grey-5" class="q-mr-xs" />
-                <span class="text-grey-4">{{ props.row.email }}</span>
+                <q-icon name="device_hub" size="16px" color="grey-5" class="q-mr-xs" />
+                <span class="text-grey-4">{{ props.row.mac_address }}</span>
+              </div>
+            </q-td>
+          </template>
+
+          <!-- IP Address Column -->
+          <template v-slot:body-cell-ip_address="props">
+            <q-td :props="props">
+              <div class="row items-center no-wrap">
+                <q-icon name="wifi" size="16px" color="grey-5" class="q-mr-xs" />
+                <span class="text-grey-4">{{ props.row.ip_address }}</span>
+              </div>
+            </q-td>
+          </template>
+
+          <!-- Software Version Column -->
+          <template v-slot:body-cell-software_version="props">
+            <q-td :props="props">
+              <div class="row items-center no-wrap">
+                <q-icon name="update" size="16px" color="grey-5" class="q-mr-xs" />
+                <span class="text-grey-4">{{ props.row.software_version }}</span>
+              </div>
+            </q-td>
+          </template>
+
+          <!-- Assigned To Column -->
+          <template v-slot:body-cell-assigned_to="props">
+            <q-td :props="props">
+              <div class="row items-center no-wrap">
+                <q-icon name="person" size="16px" color="grey-5" class="q-mr-xs" />
+                <span class="text-grey-4">{{ props.row.assigned_to }}</span>
               </div>
             </q-td>
           </template>
@@ -155,20 +185,20 @@
       </q-card-section>
     </q-card>
 
-    <!-- Create User Dialog -->
+    <!-- Create/Edit Kiosk Dialog -->
     <q-dialog v-model="showCreateDialog" persistent>
       <q-card class="dialog-card" style="min-width: 500px;">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white">Add New Kiosk</div>
+          <div class="text-h6 text-white">{{ editingId ? 'Edit Kiosk' : 'Add New Kiosk' }}</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
         <q-card-section>
-          <q-form @submit="editingId ? updateKioskHandler : createKioskHandler" class="q-gutter-md">
+          <q-form @submit="editingId ? updateKioskHandler() : createKioskHandler()" class="q-gutter-md">
             <!-- Kiosk Code Field -->
             <q-input
-              v-model="userForm.kiosk_code"
+              v-model="kioskForm.kiosk_code"
               label="Kiosk Code"
               dark
               outlined
@@ -182,7 +212,7 @@
 
             <!-- Location Field -->
             <q-input
-              v-model="userForm.location"
+              v-model="kioskForm.location"
               label="Location"
               dark
               outlined
@@ -196,7 +226,7 @@
 
             <!-- Status Field -->
             <q-select
-              v-model="userForm.status"
+              v-model="kioskForm.status"
               :options="statusOptions"
               option-value="value"
               option-label="label"
@@ -214,7 +244,7 @@
 
             <!-- Serial Number Field -->
             <q-input
-              v-model="userForm.serial_number"
+              v-model="kioskForm.serial_number"
               label="Serial Number"
               dark
               outlined
@@ -222,13 +252,13 @@
               :rules="[val => !!val || 'Serial number is required']"
             >
               <template v-slot:prepend>
-                <q-icon name="pin" />
+                <q-icon name="dialpad" />
               </template>
             </q-input>
 
             <!-- MAC Address Field -->
             <q-input
-              v-model="userForm.mac_address"
+              v-model="kioskForm.mac_address"
               label="MAC Address"
               dark
               outlined
@@ -242,7 +272,7 @@
 
             <!-- IP Address Field -->
             <q-input
-              v-model="userForm.ip_address"
+              v-model="kioskForm.ip_address"
               label="IP Address"
               dark
               outlined
@@ -256,7 +286,7 @@
 
             <!-- Software Version Field -->
             <q-input
-              v-model="userForm.software_version"
+              v-model="kioskForm.software_version"
               label="Software Version"
               dark
               outlined
@@ -270,12 +300,17 @@
 
             <!-- Assigned To Field -->
             <q-select
-              v-model="userForm.assigned_to"
+              v-model="kioskForm.assigned_to"
               :options="userOptions"
+              option-value="value"
+              option-label="label"
+              emit-value
+              map-options
               label="Assigned To"
               dark
               outlined
               dense
+              clearable
             >
               <template v-slot:prepend>
                 <q-icon name="person" />
@@ -284,7 +319,7 @@
 
             <!-- Notes Field -->
             <q-input
-              v-model="userForm.notes"
+              v-model="kioskForm.notes"
               label="Notes"
               type="textarea"
               dark
@@ -306,7 +341,7 @@
                 :disable="saving"
               />
               <q-btn
-                label="Create Kiosk"
+                :label="editingId ? 'Update Kiosk' : 'Create Kiosk'"
                 type="submit"
                 color="green"
                 class="modern-btn"
@@ -323,7 +358,7 @@
 
 <script>
 export default {
-  name: "UsersIndex",
+  name: "KiosksIndex",
   data() {
     return {
       filter: '',
@@ -334,8 +369,8 @@ export default {
       pagination: {
         rowsPerPage: 10
       },
-      
-      userForm: {
+
+      kioskForm: {
         kiosk_code: '',
         location: '',
         status: null,
@@ -347,20 +382,12 @@ export default {
         notes: ''
       },
 
-      userOptions: [], // This will need to be populated with available users
+      userOptions: [], // Will be populated with LGU users
 
       statusOptions: [
         { label: 'Active', value: 'active' },
         { label: 'Inactive', value: 'inactive' },
         { label: 'Maintenance', value: 'maintenance' }
-      ],
-
-      roleOptions: [
-        'Admin',
-        'Manager',
-        'Operator',
-        'Support',
-        'User'
       ],
 
       columns: [
@@ -423,14 +450,7 @@ export default {
         {
           name: 'assigned_to',
           label: 'Assigned To',
-          field: row => row.user ? row.user.name : '-',
-          align: 'left',
-          sortable: true
-        },
-        {
-          name: 'last_active',
-          label: 'Last Active',
-          field: 'last_active',
+          field: 'assigned_to',
           align: 'left',
           sortable: true
         },
@@ -443,36 +463,60 @@ export default {
         }
       ],
 
-      users: []
+      kiosks: []
     };
   },
 
   computed: {
-    kiosks() {
-      return this.$store.getters['kiosks/kiosks'];
-    },
-    isLoading() {
+    kioskIsLoading() {
       return this.$store.getters['kiosks/kioskIsLoading'];
     },
-    error() {
+    kioskError() {
       return this.$store.getters['kiosks/kioskError'];
-    },
-    userOptions() {
-      return this.users.map(user => ({
-        label: user.name,
-        value: user.id
-      }));
     }
   },
 
   mounted() {
-    this.loadKiosks(); // Changed from loadUsers
+    this.loadKiosks();
+    this.loadUsers();
   },
 
   methods: {
+    async loadUsers() {
+      try {
+        const response = await this.$store.dispatch('users/fetchUsers');
+        let usersData = response?.data || response;
+        
+        if (Array.isArray(usersData)) {
+          this.userOptions = usersData.map(user => ({
+            label: user.name,
+            value: user.id
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to load users:', error);
+      }
+    },
     async loadKiosks() {
       try {
-        await this.$store.dispatch('kiosks/fetchKiosks');
+        const response = await this.$store.dispatch('kiosks/fetchKiosks');
+        const kiosksData = response.data || response;
+
+        if (Array.isArray(kiosksData)) {
+          this.kiosks = kiosksData.map(kiosk => ({
+            id: kiosk.id,
+            kiosk_code: kiosk.kiosk_code,
+            location: kiosk.location,
+            status: [kiosk.status],
+            serial_number: kiosk.serial_number,
+            mac_address: kiosk.mac_address,
+            ip_address: kiosk.ip_address,
+            software_version: kiosk.software_version,
+            assigned_to: kiosk.assigned_user_name || '-',
+            assigned_to_id: kiosk.assigned_to,
+            notes: kiosk.notes
+          }));
+        }
       } catch (error) {
         this.$q.notify({
           color: 'red',
@@ -492,20 +536,18 @@ export default {
         .slice(0, 2);
     },
 
-    getRoleColor(role) {
+    getStatusColor(status) {
       const colors = {
-        'Admin': 'red',
-        'Manager': 'orange',
-        'Operator': 'blue',
-        'Support': 'purple',
-        'User': 'grey',
-        'Administrator': 'red'
+        'active': 'green',
+        'inactive': 'grey',
+        'maintenance': 'orange',
       };
-      return colors[role] || 'grey';
+      return colors[status] || 'grey';
     },
 
     openCreateDialog() {
-      this.userForm = {
+      this.editingId = null;
+      this.kioskForm = {
         kiosk_code: '',
         location: '',
         status: null,
@@ -513,7 +555,7 @@ export default {
         mac_address: '',
         ip_address: '',
         software_version: '',
-        assigned_to: null,
+        assigned_to: '',
         notes: ''
       };
       this.showCreateDialog = true;
@@ -522,13 +564,19 @@ export default {
     async createKioskHandler() {
       this.saving = true;
       try {
-        // Changed from 'createUser' to 'createKiosk'
-        const response = await this.$store.dispatch('kiosks/createKiosk', {
-          ...this.userForm,
-          status: this.userForm.status?.toLowerCase()
-        });
+        // Prepare the data with correct field name for API
+        const payload = {
+  ...this.kioskForm,
+  assigned_to: this.kioskForm.assigned_to, // Keep the same name used in backend
+};
+
         
-        if (response.success) {
+        const response = await this.$store.dispatch('kiosks/createKiosk', payload);
+        
+        // Handle different response structures
+        const kioskData = response.data?.data || response.data || response;
+        
+        if (response.success !== false && kioskData) {
           this.$q.notify({
             color: 'green',
             message: response.message || 'Kiosk created successfully',
@@ -536,13 +584,113 @@ export default {
             position: 'top'
           });
 
+          // Add to local array with proper structure
+          this.kiosks.unshift({
+            id: kioskData.id,
+            kiosk_code: kioskData.kiosk_code,
+            location: kioskData.location,
+            status: [kioskData.status],
+            serial_number: kioskData.serial_number,
+            mac_address: kioskData.mac_address,
+            ip_address: kioskData.ip_address,
+            software_version: kioskData.software_version,
+            assigned_to: kioskData.assigned_to?.name || kioskData.assigned_to || '-',
+            assigned_to_id: kioskData.assigned_to?.id || null,
+            notes: kioskData.notes || ''
+          });
+          
           this.showCreateDialog = false;
-          await this.loadKiosks(); // Changed from loadUsers
-        } else {
-          throw new Error(response.message);
         }
       } catch (error) {
         let errorMessage = 'Failed to create kiosk';
+        
+        if (error.response?.data?.errors) {
+          const errors = error.response.data.errors;
+          errorMessage = Object.values(errors).flat().join(', ');
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        this.$q.notify({
+          color: 'red',
+          message: errorMessage,
+          icon: 'error',
+          position: 'top',
+          timeout: 5000
+        });
+      } finally {
+        this.saving = false;
+      }
+    },
+
+    editKiosk(kiosk) {
+      this.editingId = kiosk.id;
+      this.kioskForm = {
+        kiosk_code: kiosk.kiosk_code,
+        location: kiosk.location,
+        status: kiosk.status[0],
+        serial_number: kiosk.serial_number,
+        mac_address: kiosk.mac_address,
+        ip_address: kiosk.ip_address,
+        software_version: kiosk.software_version,
+        assigned_to: kiosk.assigned_to_id || null,
+        notes: kiosk.notes || ''
+      };
+      this.showCreateDialog = true;
+    },
+
+    async updateKioskHandler() {
+      this.saving = true;
+      
+      try {
+        // Prepare the data with correct field name for API
+        const payload = {
+  ...this.kioskForm,
+  assigned_to: this.kioskForm.assigned_to, // Keep the same name used in backend
+};
+
+        
+        const response = await this.$store.dispatch('kiosks/updateKiosk', {
+          id: this.editingId,
+          data: payload
+        });
+        
+        // Handle different response structures
+        const kioskData = response.data?.data || response.data || response;
+        
+        if (response.success !== false && kioskData) {
+          this.$q.notify({
+            color: 'green',
+            message: response.message || 'Kiosk updated successfully',
+            icon: 'check_circle',
+            position: 'top'
+          });
+
+          // Update the kiosk in the local array
+          const index = this.kiosks.findIndex(k => k.id === this.editingId);
+          if (index !== -1) {
+            this.kiosks.splice(index, 1, {
+              id: kioskData.id,
+              kiosk_code: kioskData.kiosk_code,
+              location: kioskData.location,
+              status: [kioskData.status],
+              serial_number: kioskData.serial_number,
+              mac_address: kioskData.mac_address,
+              ip_address: kioskData.ip_address,
+              software_version: kioskData.software_version,
+              assigned_to: kioskData.assigned_to?.name || kioskData.assigned_to || '-',
+              assigned_to_id: kioskData.assigned_to?.id || null,
+              notes: kioskData.notes || ''
+            });
+          }
+
+          this.showCreateDialog = false;
+          this.editingId = null;
+        }
+      } catch (error) {
+        let errorMessage = 'Failed to update kiosk';
         
         if (error.response?.data?.errors) {
           const errors = error.response.data.errors;
@@ -564,95 +712,40 @@ export default {
       }
     },
 
-    editKiosk(kiosk) {
-      this.editingId = kiosk.id;
-      this.userForm = { ...kiosk };
-      this.showCreateDialog = true;
-    },
-
-    async updateKioskHandler() {
-      this.saving = true;
-      
-      try {
-        const response = await this.$store.dispatch('kiosks/updateUser', {
-          id: this.editingId,
-          data: this.userForm
-        });
-        
-        if (response.success) {
-          this.$q.notify({
-            color: 'green',
-            message: response.message || 'Kiosk user updated successfully',
-            icon: 'check_circle',
-            position: 'top'
-          });
-
-          this.showCreateDialog = false;
-          this.editingId = null;
-          await this.loadUsers(); // Reload the full list after update
-        }
-      } catch (error) {
-        let errorMessage = 'Failed to update kiosk user';
-        
-        if (error.response?.data?.errors) {
-          const errors = error.response.data.errors;
-          errorMessage = Object.values(errors).flat().join(', ');
-        } else if (error.response?.data?.message) {
-          errorMessage = error.response.data.message;
-        }
-
-        this.$q.notify({
-          color: 'red',
-          message: errorMessage,
-          icon: 'error',
-          position: 'top'
-        });
-      } finally {
-        this.saving = false;
-      }
-    },
-
     async deleteKioskHandler(kiosk) {
       this.$q.dialog({
         title: 'Confirm Delete',
-        message: `Are you sure you want to delete ${kiosk.name}?`,
+        message: `Are you sure you want to delete kiosk ${kiosk.kiosk_code}?`,
         cancel: true,
         persistent: true,
         dark: true
       }).onOk(async () => {
         try {
-          const response = await this.$store.dispatch('kiosks/deleteUser', kiosk.id);
-          // Remove user from local state immediately after successful deletion
-          this.users = this.users.filter(u => u.id !== kiosk.id);
-          
+          const response = await this.$store.dispatch('kiosks/deleteKiosk', kiosk.id);
+          this.kiosks = this.kiosks.filter(k => k.id !== kiosk.id);
+
           this.$q.notify({
             color: 'green',
-            message: 'Kiosk user deleted successfully',
+            message: 'Kiosk deleted successfully',
             icon: 'check_circle',
             position: 'top'
           });
         } catch (error) {
           this.$q.notify({
             color: 'red',
-            message: 'Failed to delete kiosk user',
+            message: 'Failed to delete kiosk',
             icon: 'error',
             position: 'top'
           });
         }
       });
-    },
-
-    dateOptions(date) {
-      // Allow dates from the past up to today (no future dates for birth date)
-      const today = new Date().toISOString().split('T')[0];
-      return date <= today;
-    },
+    }
   }
 };
 </script>
 
 <style scoped>
-.users-page {
+.kiosks-page {
   background: linear-gradient(135deg, #0a0f0d 0%, #142221 50%, #1a2c28 100%);
   min-height: 100vh;
   position: relative;
@@ -788,7 +881,6 @@ export default {
   background: rgba(76, 175, 80, 0.1);
 }
 
-/* Odd rows - no column borders */
 .modern-table >>> tbody tr:nth-child(odd) td {
   color: rgba(255, 255, 255, 0.95);
   border-left: none;
@@ -800,7 +892,6 @@ export default {
   background: rgba(0, 0, 0, 0.05);
 }
 
-/* Even rows - with column borders */
 .modern-table >>> tbody tr:nth-child(even) td {
   color: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(76, 175, 80, 0.15);
@@ -809,7 +900,6 @@ export default {
   background: rgba(0, 0, 0, 0.15);
 }
 
-/* Remove old styles */
 .modern-table >>> tbody td {
   color: rgba(255, 255, 255, 0.95);
   padding: 12px;
