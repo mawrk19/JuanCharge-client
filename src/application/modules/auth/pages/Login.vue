@@ -10,7 +10,7 @@
     <!-- Login Card -->
     <q-card class="login-card tw-glass">
       <!-- Logo & Header -->
-      <q-card-section class="text-center q-pb-none">
+      <q-card-section class="text-center q-pb-20px">
         <div class="logo-container">
           <q-icon name="ev_station" size="64px" class="logo-icon" />
         </div>
@@ -23,7 +23,6 @@
       </q-card-section>
 
       <q-card-section class="q-pt-lg q-px-lg">
-        <div class="text-h6 text-white q-mb-md">Welcome Back</div>
         
         <!-- Email Input -->
         <q-input
@@ -98,56 +97,6 @@
           </template>
         </q-btn>
 
-        <!-- Divider -->
-        <div class="row items-center q-my-lg">
-          <div class="col">
-            <q-separator dark />
-          </div>
-          <div class="col-auto q-px-md">
-            <span class="text-grey-5 text-caption">OR</span>
-          </div>
-          <div class="col">
-            <q-separator dark />
-          </div>
-        </div>
-
-        <!-- Social Login Buttons -->
-        <div class="row q-col-gutter-sm q-mb-md">
-          <div class="col-12">
-            <q-btn
-              outline
-              dense
-              color="grey-5"
-              class="full-width social-btn"
-              icon="img:https://www.google.com/favicon.ico"
-              label="Google"
-            />
-          </div>
-          <!-- <div class="col-6">
-            <q-btn
-              outline
-              dense
-              color="grey-5"
-              class="full-width social-btn"
-              icon="img:https://www.facebook.com/favicon.ico"
-              label="Facebook"
-            />
-          </div> -->
-        </div>
-
-        <!-- Sign Up Link -->
-        <div class="text-center q-mt-md q-mb-sm">
-          <span class="text-grey-5">Don't have an account? </span>
-          <q-btn
-            flat
-            dense
-            size="sm"
-            label="Sign Up"
-            color="green"
-            class="text-capitalize text-weight-bold"
-            @click="$router.push('/register')"
-          />
-        </div>
       </q-card-section>
     </q-card>
 
@@ -176,19 +125,37 @@ export default {
     async loginUser() {
       try {
         this.loading = true;
-        await this.$store.dispatch("auth/login", this.form);
+        const response = await this.$store.dispatch("auth/login", this.form);
         
-        // Success notification
-        this.$q.notify({
-          type: 'positive',
-          message: 'Login successful!',
-          icon: 'check_circle',
-          position: 'top'
-        });
+        // Check if first time login
+        const isFirstLogin = this.$store.getters['auth/isFirstLogin'];
         
-        this.$router.push("/main/dashboard");
+        if (isFirstLogin) {
+          // Show change password modal
+          this.$q.notify({
+            type: 'info',
+            message: 'First time login detected. Please change your password.',
+            icon: 'info',
+            position: 'top'
+          });
+          
+          // Redirect to main with flag to show modal
+          this.$router.push({ 
+            path: "/main/dashboard",
+            query: { first_login: 'true' }
+          });
+        } else {
+          // Normal login flow
+          this.$q.notify({
+            type: 'positive',
+            message: 'Login successful!',
+            icon: 'check_circle',
+            position: 'top'
+          });
+          
+          this.$router.push("/main/dashboard");
+        }
       } catch (e) {
-        // Show user-friendly error notification
         const errorMessage = e.response?.data?.message || 'Login failed. Please check your credentials.';
         this.$q.notify({
           type: 'negative',

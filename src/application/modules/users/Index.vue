@@ -280,6 +280,131 @@
       </q-card>
     </q-dialog>
 
+    <!-- Edit User Dialog -->
+    <q-dialog v-model="showEditDialog" persistent>
+      <q-card class="dialog-card" style="min-width: 500px;">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 text-white">Edit User</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section>
+          <q-form @submit="updateUserHandler" class="q-gutter-md">
+            <!-- Name Field -->
+            <q-input
+              v-model="userForm.name"
+              label="Name"
+              dark
+              outlined
+              dense
+              :rules="[val => !!val || 'Name is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="person" />
+              </template>
+            </q-input>
+
+            <!-- Role Dropdown -->
+            <q-select
+              v-model="userForm.role"
+              :options="roleOptions"
+              label="Role"
+              dark
+              outlined
+              dense
+              :rules="[val => !!val || 'Role is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="badge" />
+              </template>
+            </q-select>
+
+            <!-- Phone Number Field -->
+            <q-input
+              v-model="userForm.phone_number"
+              label="Phone Number"
+              dark
+              outlined
+              dense
+              :rules="[val => !!val || 'Phone number is required']"
+              placeholder="+63 XXX XXX XXXX"
+            >
+              <template v-slot:prepend>
+                <q-icon name="phone" />
+              </template>
+            </q-input>
+
+            <!-- Email Field -->
+            <q-input
+              v-model="userForm.email"
+              label="Email Address"
+              type="email"
+              dark
+              outlined
+              dense
+              :rules="[
+                val => !!val || 'Email is required',
+                val => /.+@.+\..+/.test(val) || 'Email must be valid'
+              ]"
+            >
+              <template v-slot:prepend>
+                <q-icon name="email" />
+              </template>
+            </q-input>
+
+            <!-- Birth Date Field -->
+            <q-input
+              v-model="userForm.birth_date"
+              label="Birth Date"
+              dark
+              outlined
+              dense
+              placeholder="YYYY-MM-DD or click calendar"
+            >
+              <template v-slot:prepend>
+                <q-icon name="cake" />
+              </template>
+              <template v-slot:append>
+                <q-icon name="event" class="cursor-pointer">
+                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                    <q-date
+                      v-model="userForm.birth_date"
+                      dark
+                      mask="YYYY-MM-DD"
+                      today-btn
+                    >
+                      <div class="row items-center justify-end">
+                        <q-btn v-close-popup label="Close" color="primary" flat />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+
+            <!-- Action Buttons -->
+            <div class="row q-gutter-sm justify-end q-mt-md">
+              <q-btn
+                label="Cancel"
+                color="grey"
+                flat
+                v-close-popup
+                :disable="saving"
+              />
+              <q-btn
+                label="Update User"
+                type="submit"
+                color="green"
+                class="modern-btn"
+                :loading="saving"
+              />
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
@@ -290,8 +415,9 @@ export default {
     return {
       filter: '',
       showCreateDialog: false,
+      showEditDialog: false, // NEW: for edit modal
       saving: false,
-      editingId: null,
+      editingUserId: null, // NEW: track which user is being edited
       
       pagination: {
         rowsPerPage: 10
@@ -455,13 +581,7 @@ export default {
         const response = await this.$store.dispatch('users/createUser', this.userForm);
         
         if (response.success) {
-          this.$q.notify({
-            color: 'green',
-            message: response.message || 'User created successfully',
-            icon: 'check_circle',
-            position: 'top'
-          });
-
+          // Add user to the list
           this.users.unshift({
             id: response.data.id,
             name: response.data.name,
@@ -472,6 +592,38 @@ export default {
           });
 
           this.showCreateDialog = false;
+
+          // Show success dialog with default password
+          this.$q.dialog({
+            title: 'User Created Successfully',
+            message: `
+              <div class="text-body1">
+                <p><strong>Email:</strong> ${response.data.email}</p>
+                <p><strong>Name:</strong> ${response.data.name}</p>
+                <p class="text-red"><strong>Default Password:</strong> ${response.default_password}</p>
+                <p class="text-caption text-grey">Please share this password securely with the user. They will be required to change it on first login.</p>
+              </div>
+            `,
+            html: true,
+            persistent: true,
+            ok: {
+              label: 'Copy Password',
+              color: 'green'
+            },
+            cancel: {
+              label: 'Close',
+              flat: true
+            }
+          }).onOk(() => {
+            // Copy password to clipboard
+            navigator.clipboard.writeText(response.default_password);
+            this.$q.notify({
+              type: 'positive',
+              message: 'Password copied to clipboard!',
+              icon: 'content_copy',
+              position: 'top'
+            });
+          });
         }
       } catch (error) {
         let errorMessage = 'Failed to create user';
@@ -497,16 +649,37 @@ export default {
       }
     },
 
-    editUser(user) {
-      this.editingId = user.id;
-      this.userForm = {
-        name: user.name,
-        role: user.roles[0],
-        phone_number: user.phone,
-        email: user.email,
-        birth_date: user.birth_date
-      };
-      this.showCreateDialog = true;
+    async editUser(user) {
+      // Fetch full user data from API to get birth_date
+      this.editingUserId = user.id;
+      
+      try {
+        // Fetch complete user data from backend
+        const response = await this.$store.dispatch('users/getUser', user.id);
+        
+        if (response.data) {
+          const fullUserData = response.data;
+          this.userForm = {
+            name: fullUserData.name,
+            role: fullUserData.role,
+            phone_number: fullUserData.phone_number,
+            email: fullUserData.email,
+            birth_date: fullUserData.birth_date // Now we have birth_date!
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        // Fallback to table data if API call fails
+        this.userForm = {
+          name: user.name,
+          role: user.roles[0],
+          phone_number: user.phone,
+          email: user.email,
+          birth_date: null
+        };
+      }
+      
+      this.showEditDialog = true;
     },
 
     async updateUserHandler() {
@@ -514,8 +687,8 @@ export default {
       
       try {
         const response = await this.$store.dispatch('users/updateUser', {
-          id: this.editingId,
-          data: this.userForm
+          id: this.editingUserId,
+          userData: this.userForm  // FIX: changed 'data' to 'userData'
         });
         
         if (response.success) {
@@ -526,21 +699,23 @@ export default {
             position: 'top'
           });
 
-          // Update the user in the local array
-          const index = this.users.findIndex(u => u.id === this.editingId);
+          // Update user in the table immediately (no refresh needed!)
+          const index = this.users.findIndex(u => u.id === this.editingUserId);
           if (index !== -1) {
-            this.users.splice(index, 1, {
+            // Use $set to ensure Vue detects the change
+            this.$set(this.users, index, {
               id: response.data.id,
               name: response.data.name,
               email: response.data.email,
               phone: response.data.phone_number,
-              birth_date: response.data.birth_date,
               roles: [response.data.role]
             });
           }
 
-          this.showCreateDialog = false;
-          this.editingId = null;
+          this.showEditDialog = false;
+          
+          // Force Vue to update the table
+          this.$forceUpdate();
         }
       } catch (error) {
         let errorMessage = 'Failed to update user';
@@ -550,8 +725,6 @@ export default {
           errorMessage = Object.values(errors).flat().join(', ');
         } else if (error.response?.data?.message) {
           errorMessage = error.response.data.message;
-        } else if (error.response?.data) {
-          errorMessage = JSON.stringify(error.response.data);
         }
 
         this.$q.notify({
