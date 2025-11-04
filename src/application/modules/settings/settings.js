@@ -1,5 +1,5 @@
 export default {
-  moduleName: "map",
-  title: "Map",
-  icon: "map",
+  moduleName: "settings",
+  title: "Settings",
+  icon: "settings",
 };

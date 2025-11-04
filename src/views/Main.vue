@@ -76,6 +76,12 @@
         <!-- Account Button -->
         <q-btn flat round dense icon="account_circle" class="tw-ml-2">
           <q-menu>
+              <q-item clickable v-close-popup @click="$router.push('/main/settings')">
+                <q-item-section avatar>
+                  <q-icon name="settings" />
+                </q-item-section>
+                <q-item-section>Settings</q-item-section>
+              </q-item>
             <q-list style="min-width: 150px">
               <q-item clickable v-close-popup @click="logout">
                 <q-item-section avatar>
@@ -100,28 +106,28 @@
       class="text-white"
     >
       <q-list style="background-color: #142221; height: 100vh;">
-        <q-item clickable v-ripple @click="$router.push('/main/dashboard')" style="background-color: #142221;" >
+        <q-item clickable v-ripple="false" @click="$router.push('/main/dashboard')"  class="menu-item q-pa-sm" :class="{ 'active-menu-item': $route.path === '/main/dashboard' }">
           <q-item-section avatar>
             <q-icon name="ev_station" />
           </q-item-section>
           <q-item-section>Dashboard</q-item-section>
         </q-item>
 
-        <q-item clickable v-ripple @click="$router.push('/main/map')">
+        <q-item clickable v-ripple="false" @click="$router.push('/main/map')" class="menu-item":class="{ 'active-menu-item': $route.path === '/main/map' }">
           <q-item-section avatar>
             <q-icon name="analytics" />
           </q-item-section>
           <q-item-section>Map</q-item-section>
         </q-item>
 
-        <q-item clickable v-ripple @click="$router.push('/main/users')">
+        <q-item clickable v-ripple="false" @click="$router.push('/main/users')" class="menu-item" :class="{ 'active-menu-item': $route.path === '/main/users' }">
           <q-item-section avatar>
             <q-icon name="people" />
           </q-item-section>
           <q-item-section>Users</q-item-section>
         </q-item>
 
-        <q-item clickable v-ripple @click="$router.push('/main/kiosks')">
+        <q-item clickable v-ripple="false" @click="$router.push('/main/kiosks')" class="menu-item" :class="{ 'active-menu-item': $route.path === '/main/kiosks' }">
           <q-item-section avatar>
             <q-icon name="ev_station" />
           </q-item-section>
@@ -231,3 +237,22 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.menu-item {
+  padding: 8px;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.menu-item:hover {
+  background: rgba(56, 255, 62, 0.1);
+  color: #ffffff;
+}
+
+.active-menu-item {
+  background: rgba(44, 163, 48, 0.241);
+  color: #ffffff;
+  font-weight: 600;
+}
+</style>

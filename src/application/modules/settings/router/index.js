@@ -1,7 +1,7 @@
 export default [
   {
-    name: "map",
-    path: "/main/map",
+    name: "settings",
+    path: "/main/settings",
     component: () => import("../Index.vue"),
   },
 ];
