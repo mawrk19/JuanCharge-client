@@ -166,17 +166,31 @@
 
         <q-card-section>
           <q-form @submit="editingId ? updateUserHandler() : createUserHandler()" class="q-gutter-md">
-            <!-- Name Field -->
+            <!-- First Name Field -->
             <q-input
-              v-model="userForm.name"
-              label="Name"
+              v-model="userForm.first_name"
+              label="First Name"
               dark
               outlined
               dense
-              :rules="[val => !!val || 'Name is required']"
+              :rules="[val => !!val || 'First name is required']"
             >
               <template v-slot:prepend>
                 <q-icon name="person" />
+              </template>
+            </q-input>
+
+            <!-- Last Name Field -->
+            <q-input
+              v-model="userForm.last_name"
+              label="Last Name"
+              dark
+              outlined
+              dense
+              :rules="[val => !!val || 'Last name is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="person_outline" />
               </template>
             </q-input>
 
@@ -291,17 +305,31 @@
 
         <q-card-section>
           <q-form @submit="updateUserHandler" class="q-gutter-md">
-            <!-- Name Field -->
+            <!-- First Name Field -->
             <q-input
-              v-model="userForm.name"
-              label="Name"
+              v-model="userForm.first_name"
+              label="First Name"
               dark
               outlined
               dense
-              :rules="[val => !!val || 'Name is required']"
+              :rules="[val => !!val || 'First name is required']"
             >
               <template v-slot:prepend>
                 <q-icon name="person" />
+              </template>
+            </q-input>
+
+            <!-- Last Name Field -->
+            <q-input
+              v-model="userForm.last_name"
+              label="Last Name"
+              dark
+              outlined
+              dense
+              :rules="[val => !!val || 'Last name is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="person_outline" />
               </template>
             </q-input>
 
@@ -424,7 +452,8 @@ export default {
       },
       
       userForm: {
-        name: '',
+        first_name: '',
+        last_name: '',
         role: null,
         phone_number: '',
         email: '',
@@ -517,7 +546,11 @@ export default {
         if (Array.isArray(usersData) && usersData.length > 0) {
           const mappedUsers = usersData.map(user => ({
             id: user.id,
-            name: user.name,
+            name: user.first_name && user.last_name 
+              ? `${user.first_name} ${user.last_name}` 
+              : user.name || 'N/A',
+            first_name: user.first_name,
+            last_name: user.last_name,
             email: user.email,
             phone: user.phone_number,
             birth_date: user.birth_date,
@@ -565,7 +598,8 @@ export default {
     openCreateDialog() {
       this.editingId = null;
       this.userForm = {
-        name: '',
+        first_name: '',
+        last_name: '',
         role: null,
         phone_number: '',
         email: '',
@@ -584,7 +618,9 @@ export default {
           // Add user to the list
           this.users.unshift({
             id: response.data.id,
-            name: response.data.name,
+            name: `${response.data.first_name} ${response.data.last_name}`,
+            first_name: response.data.first_name,
+            last_name: response.data.last_name,
             email: response.data.email,
             phone: response.data.phone_number,
             birth_date: response.data.birth_date,
@@ -593,36 +629,12 @@ export default {
 
           this.showCreateDialog = false;
 
-          // Show success dialog with default password
-          this.$q.dialog({
-            title: 'User Created Successfully',
-            message: `
-              <div class="text-body1">
-                <p><strong>Email:</strong> ${response.data.email}</p>
-                <p><strong>Name:</strong> ${response.data.name}</p>
-                <p class="text-red"><strong>Default Password:</strong> ${response.default_password}</p>
-                <p class="text-caption text-grey">Please share this password securely with the user. They will be required to change it on first login.</p>
-              </div>
-            `,
-            html: true,
-            persistent: true,
-            ok: {
-              label: 'Copy Password',
-              color: 'green'
-            },
-            cancel: {
-              label: 'Close',
-              flat: true
-            }
-          }).onOk(() => {
-            // Copy password to clipboard
-            navigator.clipboard.writeText(response.default_password);
-            this.$q.notify({
-              type: 'positive',
-              message: 'Password copied to clipboard!',
-              icon: 'content_copy',
-              position: 'top'
-            });
+          // Show success notification
+          this.$q.notify({
+            color: 'green',
+            message: 'User created successfully',
+            icon: 'check_circle',
+            position: 'top'
           });
         }
       } catch (error) {
@@ -660,18 +672,20 @@ export default {
         if (response.data) {
           const fullUserData = response.data;
           this.userForm = {
-            name: fullUserData.name,
+            first_name: fullUserData.first_name || '',
+            last_name: fullUserData.last_name || '',
             role: fullUserData.role,
             phone_number: fullUserData.phone_number,
             email: fullUserData.email,
-            birth_date: fullUserData.birth_date // Now we have birth_date!
+            birth_date: fullUserData.birth_date
           };
         }
       } catch (error) {
         console.error('Error fetching user details:', error);
         // Fallback to table data if API call fails
         this.userForm = {
-          name: user.name,
+          first_name: '',
+          last_name: '',
           role: user.roles[0],
           phone_number: user.phone,
           email: user.email,
@@ -705,7 +719,9 @@ export default {
             // Use $set to ensure Vue detects the change
             this.$set(this.users, index, {
               id: response.data.id,
-              name: response.data.name,
+              name: `${response.data.first_name} ${response.data.last_name}`,
+              first_name: response.data.first_name,
+              last_name: response.data.last_name,
               email: response.data.email,
               phone: response.data.phone_number,
               roles: [response.data.role]

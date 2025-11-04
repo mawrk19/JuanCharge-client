@@ -20,19 +20,35 @@ http.interceptors.request.use(
     const token = localStorage.getItem('token') || Cache.get('token');
     
     if (token) {
+      // Always set Authorization header if token exists
       config.headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      // If no token, remove Authorization header
+      delete config.headers['Authorization'];
     }
 
-    return config
+    return config;
   },
-  error => Promise.reject(error)
-)
+  error => {
+    return Promise.reject(error);
+  }
+);
 
 http.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401)  {
-      localStorage.removeItem('token')
+      // Clear all auth data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('user_type');
+      localStorage.removeItem('is_first_login');
+      Cache.remove('token');
+      Cache.remove('user');
+      Cache.remove('user_type');
+      
+      // Redirect to login
+      window.location.href = '/login';
     }
     return Promise.reject(error)
   }

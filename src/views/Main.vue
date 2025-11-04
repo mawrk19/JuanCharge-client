@@ -246,12 +246,7 @@ export default {
     }
   },
   mounted() {
-    // Check if first login from query params
-    if (this.$route.query.first_login === 'true') {
-      this.showChangePasswordModal = true;
-      // Remove query param
-      this.$router.replace({ query: {} });
-    }
+    // Component mounted
   },
   methods: {
     toggleMini () {

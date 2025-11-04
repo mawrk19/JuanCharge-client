@@ -57,7 +57,9 @@ export default {
         // Transform data to match table format
         const newUser = {
           id: data.data.id,
-          name: data.data.name,
+          name: `${data.data.first_name} ${data.data.last_name}`,
+          first_name: data.data.first_name,
+          last_name: data.data.last_name,
           email: data.data.email,
           birth_date: data.data.birth_date,
           phone: data.data.phone_number,
@@ -90,7 +92,7 @@ export default {
     },
 
     // Update LGU user
-    async updateUser({ commit }, { id, data: userData }) {
+    async updateUser({ commit }, { id, userData }) {
       commit("SET_LOADING", true);
       commit("SET_ERROR", null);
       try {
@@ -99,7 +101,9 @@ export default {
         // Transform data to match table format
         const updatedUser = {
           id: data.data.id,
-          name: data.data.name,
+          name: `${data.data.first_name} ${data.data.last_name}`,
+          first_name: data.data.first_name,
+          last_name: data.data.last_name,
           email: data.data.email,
           birth_date: data.data.birth_date,
           phone: data.data.phone_number,

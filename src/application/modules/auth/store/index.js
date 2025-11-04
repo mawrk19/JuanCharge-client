@@ -44,15 +44,43 @@ export default {
         
         const res = await http.post("/auth/login", loginData);
         
+        console.log('Login response:', res.data);
+        
         if (!res.data.success) {
           throw new Error(res.data.message || 'Login failed');
         }
         
-        const { token, user, user_type, is_first_login } = res.data;
+        // Handle different response structures - check both res.data and res.data.data
+        const responseData = res.data.data || res.data;
+        
+        // Extract token from various possible locations
+        const token = res.data.token || 
+                     res.data.access_token || 
+                     responseData.token || 
+                     responseData.access_token;
+        
+        // Extract user - it might be in data.user or we need to fetch it
+        let user = res.data.user || responseData.user;
+        const user_type = res.data.user_type || responseData.user_type;
+        const is_first_login = res.data.is_first_login || responseData.is_first_login;
         
         if (!token) {
+          console.error('Login response:', res.data);
           throw new Error('No token received from server');
         }
+        
+        // If no user object in response, create a minimal one with email
+        if (!user) {
+          console.log('No user object in response, creating minimal user data');
+          user = {
+            email: payload.email,
+            user_type: user_type
+          };
+        }
+        
+        console.log('Token found:', token);
+        console.log('User found:', user);
+        console.log('User type:', user_type);
         
         // Store in localStorage
         localStorage.setItem("token", token);
@@ -75,6 +103,8 @@ export default {
         
         return res;
       } catch (err) {
+        console.error('Login error in store:', err);
+        console.error('Error response:', err.response?.data);
         throw err;
       }
     },

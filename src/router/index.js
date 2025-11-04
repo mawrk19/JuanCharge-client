@@ -84,19 +84,22 @@ const router = new Router({
 // Route guard to check authentication and handle first login
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
-  const isFirstLogin = localStorage.getItem('is_first_login') === 'true';
+  const storeToken = store.state.auth?.token;
+  
+  // Use token from localStorage OR Vuex store
+  const hasToken = token || storeToken;
   
   // Public routes
   const publicPages = ['/login', '/register'];
   const authRequired = !publicPages.includes(to.path);
   
-  if (authRequired && !token) {
+  if (authRequired && !hasToken) {
     // Redirect to login if not authenticated
     return next('/login');
   }
   
   // If user is authenticated and on login page, redirect to dashboard
-  if (token && publicPages.includes(to.path)) {
+  if (hasToken && publicPages.includes(to.path)) {
     return next('/main/dashboard');
   }
   

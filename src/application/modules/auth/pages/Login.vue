@@ -127,41 +127,49 @@ export default {
         this.loading = true;
         const response = await this.$store.dispatch("auth/login", this.form);
         
-        // Check if first time login
-        const isFirstLogin = this.$store.getters['auth/isFirstLogin'];
+        // Verify token was stored
+        const storedToken = localStorage.getItem('token');
+        const storeToken = this.$store.state.auth.token;
         
-        if (isFirstLogin) {
-          // Show change password modal
-          this.$q.notify({
-            type: 'info',
-            message: 'First time login detected. Please change your password.',
-            icon: 'info',
-            position: 'top'
-          });
-          
-          // Redirect to main with flag to show modal
-          this.$router.push({ 
-            path: "/main/dashboard",
-            query: { first_login: 'true' }
-          });
-        } else {
-          // Normal login flow
-          this.$q.notify({
-            type: 'positive',
-            message: 'Login successful!',
-            icon: 'check_circle',
-            position: 'top'
-          });
-          
-          this.$router.push("/main/dashboard");
+        if (!storedToken || !storeToken) {
+          console.error('Token not stored properly!', { storedToken, storeToken, response: response.data });
+          throw new Error('Authentication failed: Token not stored');
         }
+        
+        // Login successful
+        this.$q.notify({
+          type: 'positive',
+          message: 'Login successful!',
+          icon: 'check_circle',
+          position: 'top'
+        });
+        
+        // Small delay to ensure state is fully updated
+        setTimeout(() => {
+          this.$router.push("/main/dashboard");
+        }, 100);
       } catch (e) {
-        const errorMessage = e.response?.data?.message || 'Login failed. Please check your credentials.';
+        console.error('Login error:', e);
+        console.error('Error response data:', e.response?.data);
+        
+        let errorMessage = 'Login failed. Please check your credentials.';
+        
+        // Check for 401 specifically
+        if (e.response?.status === 401) {
+          errorMessage = e.response?.data?.message || 
+                        'Invalid credentials or unauthorized access. Please check your email and password.';
+        } else if (e.message) {
+          errorMessage = e.message;
+        } else if (e.response?.data?.message) {
+          errorMessage = e.response.data.message;
+        }
+        
         this.$q.notify({
           type: 'negative',
           message: errorMessage,
           icon: 'error',
-          position: 'top'
+          position: 'top',
+          timeout: 5000
         });
       } finally {
         this.loading = false;
