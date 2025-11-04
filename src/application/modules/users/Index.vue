@@ -465,7 +465,6 @@ export default {
         'Manager',
         'Operator',
         'Support',
-        'User'
       ],
 
       columns: [
