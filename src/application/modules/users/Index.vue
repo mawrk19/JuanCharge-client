@@ -155,17 +155,17 @@
       </q-card-section>
     </q-card>
 
-    <!-- Create User Dialog -->
+    <!-- Create/Edit User Dialog -->
     <q-dialog v-model="showCreateDialog" persistent>
       <q-card class="dialog-card" style="min-width: 500px;">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white">Create New User</div>
+          <div class="text-h6 text-white">{{ editingId ? 'Edit User' : 'Create New User' }}</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
         <q-card-section>
-          <q-form @submit="createUserHandler" class="q-gutter-md">
+          <q-form @submit="editingId ? updateUserHandler() : createUserHandler()" class="q-gutter-md">
             <!-- Name Field -->
             <q-input
               v-model="userForm.name"
@@ -268,7 +268,7 @@
                 :disable="saving"
               />
               <q-btn
-                label="Create User"
+                :label="editingId ? 'Update User' : 'Create User'"
                 type="submit"
                 color="green"
                 class="modern-btn"
@@ -506,7 +506,6 @@ export default {
       try {
         const response = await this.$store.dispatch('users/fetchUsers');
         
-        // Handle the API response structure: {success: true, data: [...]}
         let usersData = null;
         
         if (response && response.data) {
@@ -521,10 +520,10 @@ export default {
             name: user.name,
             email: user.email,
             phone: user.phone_number,
+            birth_date: user.birth_date,
             roles: [user.role]
           }));
           
-          // Force reactivity
           this.users = [];
           this.$nextTick(() => {
             this.users = mappedUsers;
@@ -563,13 +562,8 @@ export default {
       return colors[role] || 'grey';
     },
 
-    dateOptions(date) {
-      // Allow dates from the past up to today (no future dates for birth date)
-      const today = new Date().toISOString().split('T')[0];
-      return date <= today;
-    },
-
     openCreateDialog() {
+      this.editingId = null;
       this.userForm = {
         name: '',
         role: null,
@@ -593,6 +587,7 @@ export default {
             name: response.data.name,
             email: response.data.email,
             phone: response.data.phone_number,
+            birth_date: response.data.birth_date,
             roles: [response.data.role]
           });
 
@@ -647,7 +642,7 @@ export default {
           message: errorMessage,
           icon: 'error',
           position: 'top',
-          timeout: 5000
+          timeout: 5000,
         });
       } finally {
         this.saving = false;
@@ -913,7 +908,6 @@ export default {
   background: rgba(76, 175, 80, 0.1);
 }
 
-/* Odd rows - no column borders */
 .modern-table >>> tbody tr:nth-child(odd) td {
   color: rgba(255, 255, 255, 0.95);
   border-left: none;
@@ -925,7 +919,6 @@ export default {
   background: rgba(0, 0, 0, 0.05);
 }
 
-/* Even rows - with column borders */
 .modern-table >>> tbody tr:nth-child(even) td {
   color: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(76, 175, 80, 0.15);
@@ -934,7 +927,6 @@ export default {
   background: rgba(0, 0, 0, 0.15);
 }
 
-/* Remove old styles */
 .modern-table >>> tbody td {
   color: rgba(255, 255, 255, 0.95);
   padding: 12px;
