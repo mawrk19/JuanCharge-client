@@ -25,7 +25,7 @@
             icon="add"
             label="Add Station"
             class="modern-btn"
-            @click="$router.push('main/kiosks/new')"
+            @click="$router.push('../main/kiosks')"
           />
         </div>
       </div>
@@ -89,15 +89,15 @@
 
     <div class="q-mb-lg">
       <div class="section-header q-mb-md">
-        <q-icon name="bar_chart" size="28px" color="green" class="q-mr-sm" />
-        <span class="text-h5 text-white text-weight-bold">Revenue Overview</span>
+        <q-icon name="restore_from_trash" size="28px" color="green" class="q-mr-sm" />
+        <span class="text-h5 text-white text-weight-bold">Collection Overview</span>
       </div>
       <div class="row q-col-gutter-md q-row-gutter-md">
         <div class="col-12 col-md-8 q-mb-md">
           <q-card class="dashboard-chart-card">
             <q-card-section>
-              <div class="text-h6">Revenue Overview</div>
-              <div class="text-subtitle2 text-grey-7">Monthly revenue for the past 6 months</div>
+              <div class="text-h6">Bin Collection Insights</div>
+              <div class="text-subtitle2 text-grey-7">Monthly kiosk bin collection for the past 6 months</div>
             </q-card-section>
             <q-card-section>
               <apexchart

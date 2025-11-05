@@ -84,6 +84,9 @@
               </q-item>
             <q-list style="min-width: 150px">
               <q-item clickable v-close-popup @click="logout">
+=======
+              <q-item clickable v-close-popup @click="confirmLogout">
+>>>>>>> Stashed changes
                 <q-item-section avatar>
                   <q-icon name="logout" />
                 </q-item-section>
@@ -228,6 +231,21 @@ export default {
     toggleMini () {
       this.miniState = !this.miniState
     },
+
+    confirmLogout(){
+      this.$q.dialog({
+        title: 'Confirm Logout',
+        message: 'Are you sure you want to logout?',
+        cancel: true,
+        persistent: true,
+        dark: true,
+        class: 'logout-dialog',
+        ok: {label: 'Logout', color: 'green' },
+        cancel: {label: 'Cancel', flat: true, color :'grey-5'}
+      }).onOk(() => {
+        this.logout();
+      })
+    },
     async logout() {
       await this.$store.dispatch('auth/logout');
       // Force reload to clear all in-memory state
@@ -281,16 +299,32 @@ export default {
   color: #ffffff;
   font-weight: 600;
 }
-</style>
-/* Make active drawer item label and icon blue, with a subtle active background */
-.q-drawer .q-item.q-item--active .q-item__section {
-  color: #ffffff !important; /* blue - adjust as needed */
+
+.logout-dialog{
+  background: rgba(20, 34, 33, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 16px;
+  color: #ffffff;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 30px rgba(76, 175, 80, 0.1);
 }
-.q-drawer .q-item.q-item--active .q-icon {
-  color: #ffffff !important;
+
+.logout-dialog .q-card__section {
+  color: #ffffff;
 }
-/* Optional: subtle background for the active item to improve contrast */
-.q-drawer .q-item.q-item--active {
-  background-color: rgba(255, 255, 255, 0.1) !important;
+
+.logout-dialog .q-btn--standard.q-btn--rectangle {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
+.logout-dialog .q-btn--standard.q-btn--rectangle.bg-green {
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+.logout-dialog .q-btn--standard.q-btn--rectangle.bg-green:hover {
+  box-shadow:
+    0 6px 20px rgba(76, 175, 80, 0.5),
+    0 0 20px rgba(76, 175, 80, 0.15);
+  transform: translateY(-1px);
+  }
 </style>

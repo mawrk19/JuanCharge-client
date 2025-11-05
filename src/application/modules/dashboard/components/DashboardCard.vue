@@ -103,13 +103,6 @@ export default {
     formattedValue() {
       if (this.value === null) return '';
       switch (this.format) {
-        case 'currency':
-          return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-          }).format(this.value);
         case 'percentage':
           return `${this.value} %`;
         case 'minutes':
