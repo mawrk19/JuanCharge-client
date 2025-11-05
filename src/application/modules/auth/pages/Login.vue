@@ -12,12 +12,12 @@
       <!-- Logo & Header -->
       <q-card-section class="text-center q-pb-20px">
         <div class="logo-container">
-          <q-icon name="ev_station" size="64px" class="logo-icon" />
+          <img src="/image/logo.png" alt="JuanCharge Logo" class="logo-image" />
         </div>
-        <div class="text-h4 text-white q-mt-md" style="font-weight: 700; letter-spacing: 0.5px;">
-          JuanCharge
-        </div>
-        <div class="text-subtitle2 text-grey-5 q-mt-xs" style="letter-spacing: 1px; text-transform: uppercase;">
+        <div class="text-3xl text-grey-5 q-mt-xs" style="letter-spacing: 1px; text-transform: uppercase;">
+         JuanCharge
+        </div>  
+        <div class="text-xs text-grey-5 q-mt-xs" style="letter-spacing: 1px; text-transform: uppercase;">
          Powering Every Juan.
         </div>
       </q-card-section>
@@ -144,7 +144,7 @@ export default {
         const storeToken = this.$store.state.auth.token;
         
         if (!storedToken || !storeToken) {
-          console.error('Token not stored properly!', { storedToken, storeToken, response: response.data });
+          // console.error('Token not stored properly!', { storedToken, storeToken, response: response.data });
           throw new Error('Authentication failed: Token not stored');
         }
         
@@ -168,8 +168,8 @@ export default {
           }
         }, 100);
       } catch (e) {
-        console.error('Login error:', e);
-        console.error('Error response data:', e.response?.data);
+        // console.error('Login error:', e);
+        // console.error('Error response data:', e.response?.data);
         
         let errorMessage = 'Login failed. Please check your credentials.';
         
@@ -285,10 +285,10 @@ export default {
 
 /* Logo Container */
 .logo-container {
-  width: 100px;
-  height: 100px;
+  width: 150px;
+  height: 150px;
   margin: 0 auto;
-  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  /* background: linear-gradient(135deg, #339436 0%, #66bb6a 100%); */
   border-radius: 24px;
   display: flex;
   align-items: center;
@@ -308,6 +308,12 @@ export default {
 
 .logo-icon {
   color: white;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+.logo-image {
+  width: 120px;
+  height: auto;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
 }
 

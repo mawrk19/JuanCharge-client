@@ -4,12 +4,23 @@ export default {
   namespaced: true,
   state: {
     users: [],
+    pagination: {
+      current_page: 1,
+      last_page: 1,
+      per_page: 15,
+      total: 0,
+      from: 0,
+      to: 0
+    },
     loading: false,
     error: null,
   },
   mutations: {
     SET_USERS(state, users) {
       state.users = users;
+    },
+    SET_PAGINATION(state, pagination) {
+      state.pagination = pagination;
     },
     ADD_USER(state, user) {
       state.users.unshift(user);
@@ -31,13 +42,21 @@ export default {
     },
   },
   actions: {
-    // Fetch all Kiosk users
-    async fetchUsers({ commit }) {
+    // Fetch all kiosk users with pagination
+    async fetchUsers({ commit }, { page = 1, per_page = 10 } = {}) {
       commit("SET_LOADING", true);
       commit("SET_ERROR", null);
       try {
-        const { data } = await http.get("/kiosk-users");
-        commit("SET_USERS", data.data || data);
+        const { data } = await http.get("/kiosk-users", {
+          params: { page, per_page }
+        });
+        
+        commit("SET_USERS", data.data || []);
+        
+        if (data.pagination) {
+          commit("SET_PAGINATION", data.pagination);
+        }
+        
         return data;
       } catch (error) {
         commit("SET_ERROR", error.response?.data?.message || "Failed to fetch kiosk users");

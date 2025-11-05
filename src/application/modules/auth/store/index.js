@@ -42,7 +42,7 @@ export default {
         // Login with JWT authentication - uses /api prefix from axios baseURL
         const res = await http.post("/auth/login", loginData);
         
-        console.log('Login response:', res.data);
+        // console.log('Login response:', res.data);
         
         if (!res.data.success) {
           throw new Error(res.data.message || 'Login failed');
@@ -63,13 +63,13 @@ export default {
         const is_first_login = res.data.is_first_login || responseData.is_first_login;
         
         if (!token) {
-          console.error('Login response:', res.data);
+          // console.error('Login response:', res.data);
           throw new Error('No token received from server');
         }
         
         // If no user object in response, create a minimal one with email
         if (!user) {
-          console.log('No user object in response, creating minimal user data');
+          // console.log('No user object in response, creating minimal user data');
           user = {
             email: payload.email,
             user_type: user_type
@@ -79,9 +79,9 @@ export default {
           user.user_type = user_type;
         }
         
-        console.log('Token found:', token);
-        console.log('User found:', user);
-        console.log('User type:', user_type);
+        // console.log('Token found:', token);
+        // console.log('User found:', user);
+        // console.log('User type:', user_type);
         
         // Store in localStorage
         localStorage.setItem("token", token);
@@ -99,8 +99,8 @@ export default {
         
         return res;
       } catch (err) {
-        console.error('Login error in store:', err);
-        console.error('Error response:', err.response?.data);
+        // console.error('Login error in store:', err);
+        // console.error('Error response:', err.response?.data);
         throw err;
       }
     },

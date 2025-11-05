@@ -7,7 +7,7 @@ export default async ({ store, router }) => {
       // await store.dispatch('auth/validateToken')
     }
   } catch (e) {
-    console.error('Auto-restore failed:', e)
+    // console.error('Auto-restore failed:', e)
     localStorage.removeItem('token')
     store.commit('auth/CLEAR_AUTH')
   }

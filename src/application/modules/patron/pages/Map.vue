@@ -432,7 +432,7 @@ export default {
           this.center = [this.allStations[0].lat, this.allStations[0].lng];
         }
       } catch (error) {
-        console.error('Error loading kiosks:', error);
+        // console.error('Error loading kiosks:', error);
         this.$q.notify({
           type: 'negative',
           message: 'Failed to load charging stations',
@@ -482,7 +482,7 @@ export default {
     },
 
     onMapReady() {
-      console.log('Map is ready');
+      // console.log('Map is ready');
     },
     
     filterStations() {
@@ -569,7 +569,7 @@ export default {
             });
           },
           (error) => {
-            console.error('Error getting location:', error);
+            // console.error('Error getting location:', error);
             this.locating = false;
             this.$q.notify({
               color: 'negative',

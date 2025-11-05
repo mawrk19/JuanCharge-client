@@ -10,10 +10,10 @@
     <!-- Page Header -->
     <div class="page-header q-mb-lg">
       <div class="text-h4 text-white text-weight-bold q-mb-xs">
-        Kiosk User Management
+        Patron Management
       </div>
       <div class="text-subtitle1 text-grey-5">
-        Manage kiosk users and their points
+        Manage patrons and their points
       </div>
     </div>
 
@@ -27,6 +27,7 @@
           :pagination.sync="pagination"
           :filter="filter"
           :loading="isLoading"
+          @request="onRequest"
           bordered
           class="modern-table"
         >
@@ -34,19 +35,19 @@
           <template v-slot:no-data>
             <div class="full-width row flex-center text-grey-5 q-gutter-sm q-py-xl">
               <q-icon size="2em" name="warning" />
-              <span>No kiosk users found</span>
+              <span>No patrons found</span>
             </div>
           </template>
 
           <!-- Table Header Slot -->
           <template v-slot:top>
               <div class="row full-width items-center q-pa-md">
-                <div class="text-h6 text-white">Kiosk Users List</div>
+                <div class="text-h6 text-white">Patron List</div>
                 <q-space />
                 <q-btn
                   color="green"
                   icon="add"
-                  label="Create Kiosk User"
+                  label="Create Patron"
                   @click="openCreateDialog"
                   class="modern-btn q-mr-md"
                 />
@@ -54,7 +55,7 @@
                   v-model="filter"
                   outlined
                   dense
-                  placeholder="Search kiosk users..."
+                  placeholder="Search patrons..."
                   dark
                   class="search-input"
                   style="min-width: 300px;"
@@ -155,7 +156,7 @@
     <q-dialog v-model="showCreateDialog" persistent>
       <q-card class="dialog-card" style="min-width: 500px;">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white">{{ editingId ? 'Edit Kiosk User' : 'Create New Kiosk User' }}</div>
+          <div class="text-h6 text-white">{{ editingId ? 'Edit Patron' : 'Create New Patron' }}</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
@@ -248,7 +249,7 @@
                 :disable="saving"
               />
               <q-btn
-                :label="editingId ? 'Update Kiosk User' : 'Create Kiosk User'"
+                :label="editingId ? 'Update Patron' : 'Create Patron'"
                 type="submit"
                 color="green"
                 class="modern-btn"
@@ -265,7 +266,7 @@
     <q-dialog v-model="showEditDialog" persistent>
       <q-card class="dialog-card" style="min-width: 500px;">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white">Edit Kiosk User</div>
+          <div class="text-h6 text-white">Edit Patron</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
@@ -358,7 +359,7 @@
                 :disable="saving"
               />
               <q-btn
-                label="Update Kiosk User"
+                label="Update Patron"
                 type="submit"
                 color="green"
                 class="modern-btn"
@@ -386,7 +387,9 @@ export default {
       editingUserId: null, // NEW: track which user is being edited
       
       pagination: {
-        rowsPerPage: 10
+        page: 1,
+        rowsPerPage: 10,
+        rowsNumber: 0
       },
       
       userForm: {
@@ -460,9 +463,16 @@ export default {
   },
 
   methods: {
-    async loadUsers() {
+    async onRequest(props) {
+      const { page, rowsPerPage } = props.pagination;
+      
+      this.isLoading = true;
+      
       try {
-        const response = await this.$store.dispatch('kiosks_user/fetchUsers');
+        const response = await this.$store.dispatch('kiosks_user/fetchUsers', {
+          page: page,
+          per_page: rowsPerPage
+        });
         
         let usersData = null;
         
@@ -478,28 +488,42 @@ export default {
             name: user.first_name && user.last_name 
               ? `${user.first_name} ${user.last_name}` 
               : user.name || 'N/A',
-            first_name: user.first_name,
-            last_name: user.last_name,
-            email: user.email,
-            contact_number: user.contact_number,
-            points_balance: user.points_balance || 0
+            email: user.email || 'N/A',
+            contact_number: user.contact_number || 'N/A',
+            points_balance: user.points_balance !== undefined ? user.points_balance : 0,
+            first_name: user.first_name || '',
+            last_name: user.last_name || ''
           }));
           
+          this.users = mappedUsers;
+          
+          // Update pagination
+          if (response.pagination) {
+            this.pagination.page = response.pagination.current_page;
+            this.pagination.rowsPerPage = response.pagination.per_page;
+            this.pagination.rowsNumber = response.pagination.total;
+          }
+        } else {
           this.users = [];
-          this.$nextTick(() => {
-            this.users = mappedUsers;
-            this.$forceUpdate();
-          });
+          this.pagination.rowsNumber = 0;
         }
-        
       } catch (error) {
+        console.error('Error loading users:', error);
         this.$q.notify({
-          color: 'red',
-          message: 'Failed to load kiosk users',
-          icon: 'error',
+          type: 'negative',
+          message: 'Failed to load patrons',
           position: 'top'
         });
+        this.users = [];
+      } finally {
+        this.isLoading = false;
       }
+    },
+    
+    async loadUsers() {
+      await this.onRequest({
+        pagination: this.pagination
+      });
     },
 
     getInitials(name) {
@@ -558,13 +582,13 @@ export default {
           // Show success notification
           this.$q.notify({
             color: 'green',
-            message: 'Kiosk user created successfully',
+            message: 'Patron created successfully',
             icon: 'check_circle',
             position: 'top'
           });
         }
       } catch (error) {
-        let errorMessage = 'Failed to create kiosk user';
+        let errorMessage = 'Failed to create patron';
         
         if (error.response?.data?.errors) {
           const errors = error.response.data.errors;
@@ -605,7 +629,7 @@ export default {
           };
         }
       } catch (error) {
-        console.error('Error fetching kiosk user details:', error);
+        // console.error('Error fetching patron details:', error);
         // Fallback to table data if API call fails
         this.userForm = {
           first_name: user.first_name || '',
@@ -631,7 +655,7 @@ export default {
         if (response.success) {
           this.$q.notify({
             color: 'green',
-            message: response.message || 'Kiosk user updated successfully',
+            message: response.message || 'Patron updated successfully',
             icon: 'check_circle',
             position: 'top'
           });
@@ -654,8 +678,7 @@ export default {
           this.$forceUpdate();
         }
       } catch (error) {
-        let errorMessage = 'Failed to update kiosk user';
-        
+        let errorMessage = 'Failed to update patron';
         if (error.response?.data?.errors) {
           const errors = error.response.data.errors;
           errorMessage = Object.values(errors).flat().join(', ');
@@ -689,14 +712,14 @@ export default {
           
           this.$q.notify({
             color: 'green',
-            message: 'Kiosk user deleted successfully',
+            message: 'Patron deleted successfully',
             icon: 'check_circle',
             position: 'top'
           });
         } catch (error) {
           this.$q.notify({
             color: 'red',
-            message: 'Failed to delete kiosk user',
+            message: 'Failed to delete patron',
             icon: 'error',
             position: 'top'
           });

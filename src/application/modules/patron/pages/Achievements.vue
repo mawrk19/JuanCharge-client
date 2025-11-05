@@ -298,7 +298,7 @@ export default {
     },
     loadData() {
       // TODO: Load achievements and leaderboard from API
-      console.log('Loading achievements and leaderboard...');
+      // console.log('Loading achievements and leaderboard...');
     }
   },
   mounted() {

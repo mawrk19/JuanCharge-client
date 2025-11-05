@@ -27,6 +27,7 @@
           :pagination.sync="pagination"
           :filter="filter"
           :loading="isLoading"
+          @request="onRequest"
           bordered
           class="modern-table"
         >
@@ -448,7 +449,9 @@ export default {
       editingUserId: null, // NEW: track which user is being edited
       
       pagination: {
-        rowsPerPage: 10
+        page: 1,
+        rowsPerPage: 10,
+        rowsNumber: 0
       },
       
       userForm: {
@@ -545,19 +548,26 @@ export default {
     },
 
     async loadUsers() {
+      await this.onRequest({
+        pagination: this.pagination
+      });
+    },
+
+    // Handle table pagination requests
+    async onRequest(props) {
+      const { page, rowsPerPage } = props.pagination;
+      
       try {
-        const response = await this.$store.dispatch('users/fetchUsers');
+        this.isLoading = true;
         
-        let usersData = null;
+        const response = await this.$store.dispatch('users/fetchUsers', {
+          page,
+          per_page: rowsPerPage
+        });
         
+        // Map the response data to table format
         if (response && response.data) {
-          usersData = response.data;
-        } else if (Array.isArray(response)) {
-          usersData = response;
-        }
-        
-        if (Array.isArray(usersData) && usersData.length > 0) {
-          const mappedUsers = usersData.map(user => ({
+          const mappedUsers = response.data.map(user => ({
             id: user.id,
             name: user.first_name && user.last_name 
               ? `${user.first_name} ${user.last_name}` 
@@ -570,12 +580,17 @@ export default {
             roles: [user.role]
           }));
           
-          this.users = [];
-          this.$nextTick(() => {
-            this.users = mappedUsers;
-            this.$forceUpdate();
-          });
+          this.users = mappedUsers;
+          
+          // Update pagination
+          if (response.pagination) {
+            this.pagination.rowsNumber = response.pagination.total;
+          }
         }
+        
+        // Update local pagination
+        this.pagination.page = page;
+        this.pagination.rowsPerPage = rowsPerPage;
         
       } catch (error) {
         this.$q.notify({
@@ -584,6 +599,8 @@ export default {
           icon: 'error',
           position: 'top'
         });
+      } finally {
+        this.isLoading = false;
       }
     },
 
@@ -700,7 +717,7 @@ export default {
           };
         }
       } catch (error) {
-        console.error('Error fetching user details:', error);
+        // console.error('Error fetching user details:', error);
         // Fallback to table data if API call fails
         this.userForm = {
           first_name: '',
