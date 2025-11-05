@@ -1,7 +1,7 @@
 <template>
   <q-page class="achievements-page q-pa-md">
     <!-- Page Header -->
-    <div class="page-header q-mb-lg">
+    <!-- <div class="page-header q-mb-lg">
       <div class="text-h4 text-white text-weight-bold">
         <q-icon name="emoji_events" color="amber" size="40px" class="q-mr-md" />
         Achievements & Leaderboard
@@ -9,133 +9,188 @@
       <div class="text-subtitle1 text-grey-5 q-mt-sm">
         Track your progress and compete with the community
       </div>
-    </div>
+    </div> -->
 
-    <!-- Achievements and Leaderboard Section -->
-    <div class="row q-col-gutter-md">
-      <!-- Achievements Section (Left Side - 3 columns) -->
-      <div class="col-12 col-md-5">
-        <q-card class="achievements-card full-height">
-          <q-card-section>
-            <div class="text-h6 text-white q-mb-md">
-              <q-icon name="military_tech" color="amber" size="24px" class="q-mr-sm" />
-              Your Achievements
-            </div>
+    <!-- Community Leaderboard Section -->
+    <q-card class="leaderboard-card q-mb-lg">
+      <q-card-section>
+        <div class="text-h6 text-white q-mb-md">
+          <q-icon name="emoji_events" color="amber" size="24px" class="q-mr-sm" />
+          Community Leaderboard
+        </div>
 
-            <div class="text-subtitle2 text-grey-5 q-mb-sm">
-              {{ unlockedCount }}/{{ allAchievements.length }} Unlocked
-            </div>
-
-            <q-linear-progress 
-              :value="unlockedCount / allAchievements.length" 
-              color="amber"
-              size="12px"
-              rounded
-              class="q-mb-md"
-            />
-
-            <q-scroll-area style="height: calc(100vh - 350px); min-height: 500px;">
-              <div class="achievement-list">
-                <div 
-                  v-for="achievement in allAchievements" 
-                  :key="achievement.id"
-                  class="achievement-item-compact q-mb-sm"
-                  :class="{ 'unlocked': achievement.unlocked }"
-                >
-                  <q-card 
-                    class="achievement-detail-card-compact"
-                    @click="showAchievementDetails(achievement)"
-                  >
-                    <q-card-section class="row items-center q-pa-sm">
-                      <q-avatar size="50px" :color="achievement.unlocked ? achievement.color : 'grey-8'">
-                        <q-icon :name="achievement.icon" size="24px" color="white" />
-                      </q-avatar>
-                      
-                      <div class="col q-ml-sm">
-                        <div class="text-subtitle2 text-white text-weight-bold">{{ achievement.name }}</div>
-                        <div class="text-caption text-grey-5">{{ achievement.description }}</div>
-                        
-                        <div v-if="!achievement.unlocked" class="q-mt-xs">
-                          <q-linear-progress 
-                            :value="achievement.progressPercent / 100" 
-                            :color="achievement.color"
-                            size="4px"
-                            rounded
-                          />
-                          <div class="text-caption text-grey-6 q-mt-xs">{{ achievement.progress }}</div>
-                        </div>
-                        
-                        <div v-else class="q-mt-xs">
-                          <q-badge color="green" outline size="xs">
-                            <q-icon name="check" size="12px" class="q-mr-xs" />
-                            Unlocked
-                          </q-badge>
-                        </div>
-                      </div>
-                      
-                      <div class="text-caption text-amber">+{{ achievement.points }}</div>
-                    </q-card-section>
-                  </q-card>
-                </div>
+        <!-- Top 3 Podium -->
+        <div class="podium-container q-mb-xl">
+          <!-- 2nd Place -->
+          <div class="podium-item podium-second">
+            <div class="podium-card">
+              <q-avatar size="80px" class="podium-avatar">
+                <img :src="leaderboard[1]?.avatar || `https://cdn.quasar.dev/img/avatar2.jpg`" />
+              </q-avatar>
+              <div class="podium-rank silver">
+                <q-icon name="emoji_events" size="20px" />
+                <span class="rank-number">2</span>
               </div>
-            </q-scroll-area>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <!-- Community Leaderboard Section (Right Side - 2 columns) -->
-      <div class="col-12 col-md-7">
-        <q-card class="leaderboard-card full-height">
-          <q-card-section>
-            <div class="text-h6 text-white q-mb-md">
-              <q-icon name="emoji_events" color="amber" size="24px" class="q-mr-sm" />
-              Community Leaderboard
+              <div class="podium-name text-white text-weight-bold q-mt-sm">{{ leaderboard[1]?.name }}</div>
+              <div class="podium-points text-grey-5">{{ leaderboard[1]?.points }} pts</div>
+              <div class="podium-charges text-grey-6 text-caption">
+                <q-icon name="ev_station" size="12px" />
+                {{ leaderboard[1]?.chargesCount }} charges
+              </div>
             </div>
+            <div class="podium-base podium-base-second">
+              <div class="podium-height-label">#2</div>
+            </div>
+          </div>
 
-            <q-scroll-area style="height: calc(100vh - 350px); min-height: 500px;">
-              <q-list class="leaderboard-list-compact">
-                <q-item 
-                  v-for="(user, index) in leaderboard" 
-                  :key="user.id"
-                  class="leaderboard-item-compact q-mb-sm"
-                  :class="{ 'current-user': user.isCurrentUser, 'top-three': index < 3 }"
-                >
-                  <q-item-section avatar>
-                    <q-avatar size="50px">
-                      <img :src="user.avatar || `https://cdn.quasar.dev/img/avatar${index + 1}.jpg`" />
-                      <q-badge 
-                        v-if="index < 3" 
-                        :color="index === 0 ? 'amber' : index === 1 ? 'grey-7' : 'orange'" 
-                        floating
-                      >
-                        <q-icon v-if="index === 0" name="emoji_events" size="14px" />
-                        <span v-else>{{ index + 1 }}</span>
-                      </q-badge>
-                    </q-avatar>
-                  </q-item-section>
+          <!-- 1st Place -->
+          <div class="podium-item podium-first">
+            <div class="podium-card">
+              <q-avatar size="100px" class="podium-avatar">
+                <img :src="leaderboard[0]?.avatar || `https://cdn.quasar.dev/img/avatar1.jpg`" />
+                <q-icon name="emoji_events" color="amber" size="32px" class="crown-icon" />
+              </q-avatar>
+              <div class="podium-rank gold">
+                <q-icon name="emoji_events" size="24px" />
+                <span class="rank-number">1</span>
+              </div>
+              <div class="podium-name text-white text-weight-bold q-mt-sm">{{ leaderboard[0]?.name }}</div>
+              <div class="podium-points text-amber text-weight-bold">{{ leaderboard[0]?.points }} pts</div>
+              <div class="podium-charges text-grey-6 text-caption">
+                <q-icon name="ev_station" size="12px" />
+                {{ leaderboard[0]?.chargesCount }} charges
+              </div>
+            </div>
+            <div class="podium-base podium-base-first">
+              <div class="podium-height-label">#1</div>
+            </div>
+          </div>
+
+          <!-- 3rd Place -->
+          <div class="podium-item podium-third">
+            <div class="podium-card">
+              <q-avatar size="70px" class="podium-avatar">
+                <img :src="leaderboard[2]?.avatar || `https://cdn.quasar.dev/img/avatar3.jpg`" />
+              </q-avatar>
+              <div class="podium-rank bronze">
+                <q-icon name="emoji_events" size="18px" />
+                <span class="rank-number">3</span>
+              </div>
+              <div class="podium-name text-white text-weight-bold q-mt-sm">{{ leaderboard[2]?.name }}</div>
+              <div class="podium-points text-grey-5">{{ leaderboard[2]?.points }} pts</div>
+              <div class="podium-charges text-grey-6 text-caption">
+                <q-icon name="ev_station" size="12px" />
+                {{ leaderboard[2]?.chargesCount }} charges
+              </div>
+            </div>
+            <div class="podium-base podium-base-third">
+              <div class="podium-height-label">#3</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Remaining Users List (4-8) -->
+        <div class="remaining-users">
+          <div class="text-subtitle2 text-grey-5 q-mb-md">Rest of the Leaderboard</div>
+          <q-list class="leaderboard-list-compact">
+            <q-item 
+              v-for="(user, index) in leaderboard.slice(3)" 
+              :key="user.id"
+              class="leaderboard-item-compact q-mb-sm"
+              :class="{ 'current-user': user.isCurrentUser }"
+            >
+              <q-item-section avatar>
+                <q-avatar size="50px">
+                  <img :src="user.avatar || `https://cdn.quasar.dev/img/avatar${index + 4}.jpg`" />
+                </q-avatar>
+              </q-item-section>
+              
+              <q-item-section>
+                <q-item-label class="text-white text-weight-bold">
+                  {{ user.name }}
+                  <q-badge v-if="user.isCurrentUser" color="green" outline class="q-ml-sm">You</q-badge>
+                </q-item-label>
+                <q-item-label caption class="text-grey-5">
+                  <q-icon name="ev_station" size="14px" class="q-mr-xs" />
+                  {{ user.chargesCount }} charges completed
+                </q-item-label>
+              </q-item-section>
+              
+              <q-item-section side>
+                <div class="text-h6 text-white">#{{ index + 4 }}</div>
+                <div class="text-caption text-green text-weight-bold">{{ user.points }} pts</div>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </div>
+      </q-card-section>
+    </q-card>
+
+    <!-- Achievements Section (Bottom) -->
+    <q-card class="achievements-card">
+      <q-card-section>
+        <div class="text-h6 text-white q-mb-md">
+          <q-icon name="military_tech" color="amber" size="24px" class="q-mr-sm" />
+          Your Achievements
+        </div>
+
+        <div class="text-subtitle2 text-grey-5 q-mb-sm">
+          {{ unlockedCount }}/{{ allAchievements.length }} Unlocked
+        </div>
+
+        <q-linear-progress 
+          :value="unlockedCount / allAchievements.length" 
+          color="amber"
+          size="12px"
+          rounded
+          class="q-mb-md"
+        />
+
+        <div class="achievement-list">
+          <div 
+            v-for="achievement in allAchievements" 
+            :key="achievement.id"
+            class="achievement-item-compact q-mb-sm"
+            :class="{ 'unlocked': achievement.unlocked }"
+          >
+            <q-card 
+              class="achievement-detail-card-compact"
+              @click="showAchievementDetails(achievement)"
+            >
+              <q-card-section class="row items-center q-pa-sm">
+                <q-avatar size="50px" :color="achievement.unlocked ? achievement.color : 'grey-8'">
+                  <q-icon :name="achievement.icon" size="24px" color="white" />
+                </q-avatar>
+                
+                <div class="col q-ml-sm">
+                  <div class="text-subtitle2 text-white text-weight-bold">{{ achievement.name }}</div>
+                  <div class="text-caption text-grey-5">{{ achievement.description }}</div>
                   
-                  <q-item-section>
-                    <q-item-label class="text-white text-weight-bold">
-                      {{ user.name }}
-                      <q-badge v-if="user.isCurrentUser" color="green" outline class="q-ml-sm">You</q-badge>
-                    </q-item-label>
-                    <q-item-label caption class="text-grey-5">
-                      <q-icon name="ev_station" size="14px" class="q-mr-xs" />
-                      {{ user.chargesCount }} charges completed
-                    </q-item-label>
-                  </q-item-section>
+                  <div v-if="!achievement.unlocked" class="q-mt-xs">
+                    <q-linear-progress 
+                      :value="achievement.progressPercent / 100" 
+                      :color="achievement.color"
+                      size="4px"
+                      rounded
+                    />
+                    <div class="text-caption text-grey-6 q-mt-xs">{{ achievement.progress }}</div>
+                  </div>
                   
-                  <q-item-section side>
-                    <div class="text-h6 text-white">#{{ index + 1 }}</div>
-                    <div class="text-caption text-green text-weight-bold">{{ user.points }} pts</div>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-scroll-area>
-          </q-card-section>
-        </q-card>
-      </div>
-    </div>
+                  <div v-else class="q-mt-xs">
+                    <q-badge color="green" outline size="xs">
+                      <q-icon name="check" size="12px" class="q-mr-xs" />
+                      Unlocked
+                    </q-badge>
+                  </div>
+                </div>
+                
+                <div class="text-caption text-amber">+{{ achievement.points }}</div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
   </q-page>
 </template>
 
@@ -317,43 +372,7 @@ export default {
   padding: 1rem 0;
 }
 
-/* Achievements Section - Inline */
-.achievements-card {
-  background: rgba(30, 30, 30, 0.8);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  border-radius: 12px;
-}
-
-.achievements-card .full-height {
-  height: 100%;
-}
-
-.achievement-item-compact {
-  transition: all 0.3s ease;
-}
-
-.achievement-item-compact.unlocked .achievement-detail-card-compact {
-  border-color: rgba(76, 175, 80, 0.4);
-  background: rgba(40, 40, 40, 0.9);
-}
-
-.achievement-detail-card-compact {
-  background: rgba(30, 30, 30, 0.8);
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.achievement-detail-card-compact:hover {
-  background: rgba(40, 40, 40, 0.95);
-  border-color: rgba(76, 175, 80, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-/* Leaderboard Section - Inline */
+/* Leaderboard Card */
 .leaderboard-card {
   background: rgba(30, 30, 30, 0.8);
   backdrop-filter: blur(10px);
@@ -361,8 +380,194 @@ export default {
   border-radius: 12px;
 }
 
-.leaderboard-card .full-height {
-  height: 100%;
+/* Podium Container */
+.podium-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 40px 0;
+  margin-top: 20px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.podium-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* Podium Cards */
+.podium-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  background: rgba(40, 40, 40, 0.8);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  min-width: 140px;
+}
+
+.podium-first .podium-card {
+  border-color: rgba(255, 193, 7, 0.6);
+  background: rgba(255, 193, 7, 0.1);
+  box-shadow: 0 8px 24px rgba(255, 193, 7, 0.3);
+}
+
+.podium-second .podium-card {
+  border-color: rgba(189, 189, 189, 0.6);
+  background: rgba(189, 189, 189, 0.08);
+}
+
+.podium-third .podium-card {
+  border-color: rgba(205, 127, 50, 0.6);
+  background: rgba(205, 127, 50, 0.08);
+}
+
+.podium-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(76, 175, 80, 0.3);
+}
+
+/* Podium Avatar */
+.podium-avatar {
+  position: relative;
+  border: 3px solid;
+}
+
+.podium-first .podium-avatar {
+  border-color: #ffc107;
+  box-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+}
+
+.podium-second .podium-avatar {
+  border-color: #bdbdbd;
+}
+
+.podium-third .podium-avatar {
+  border-color: #cd7f32;
+}
+
+/* Crown Icon for 1st Place */
+.crown-icon {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 2px 8px rgba(255, 193, 7, 0.6));
+}
+
+/* Podium Rank Badge */
+.podium-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin-top: 12px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.podium-rank.gold {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #000;
+}
+
+.podium-rank.silver {
+  background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+  color: #000;
+}
+
+.podium-rank.bronze {
+  background: linear-gradient(135deg, #cd7f32, #e8a76f);
+  color: #000;
+}
+
+.rank-number {
+  font-weight: 900;
+}
+
+/* Podium Info */
+.podium-name {
+  font-size: 16px;
+  text-align: center;
+  margin-top: 8px;
+}
+
+.podium-points {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.podium-charges {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Podium Base (Stage) */
+.podium-base {
+  width: 140px;
+  background: linear-gradient(to bottom, rgba(76, 175, 80, 0.3), rgba(76, 175, 80, 0.1));
+  border: 2px solid rgba(76, 175, 80, 0.4);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.podium-base-first {
+  height: 120px;
+  background: linear-gradient(to bottom, rgba(255, 193, 7, 0.3), rgba(255, 193, 7, 0.1));
+  border-color: rgba(255, 193, 7, 0.5);
+}
+
+.podium-base-second {
+  height: 90px;
+  background: linear-gradient(to bottom, rgba(189, 189, 189, 0.3), rgba(189, 189, 189, 0.1));
+  border-color: rgba(189, 189, 189, 0.5);
+}
+
+.podium-base-third {
+  height: 70px;
+  background: linear-gradient(to bottom, rgba(205, 127, 50, 0.3), rgba(205, 127, 50, 0.1));
+  border-color: rgba(205, 127, 50, 0.5);
+}
+
+.podium-height-label {
+  font-size: 32px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Podium Size Variations */
+.podium-first {
+  order: 2;
+}
+
+.podium-second {
+  order: 1;
+}
+
+.podium-third {
+  order: 3;
+}
+
+/* Remaining Users List */
+.remaining-users {
+  margin-top: 20px;
 }
 
 .leaderboard-list-compact {
@@ -390,22 +595,84 @@ export default {
   box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
 }
 
-.leaderboard-item-compact.top-three {
-  border-width: 2px;
+/* Achievements Section */
+.achievements-card {
+  background: rgba(30, 30, 30, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 12px;
 }
 
-.leaderboard-item-compact.top-three:nth-child(1) {
-  border-color: rgba(255, 193, 7, 0.6);
-  background: rgba(255, 193, 7, 0.08);
+.achievement-item-compact {
+  transition: all 0.3s ease;
 }
 
-.leaderboard-item-compact.top-three:nth-child(2) {
-  border-color: rgba(158, 158, 158, 0.6);
-  background: rgba(158, 158, 158, 0.08);
+.achievement-item-compact.unlocked .achievement-detail-card-compact {
+  border-color: rgba(76, 175, 80, 0.4);
+  background: rgba(40, 40, 40, 0.9);
 }
 
-.leaderboard-item-compact.top-three:nth-child(3) {
-  border-color: rgba(255, 152, 0, 0.6);
-  background: rgba(255, 152, 0, 0.08);
+.achievement-detail-card-compact {
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.achievement-detail-card-compact:hover {
+  background: rgba(40, 40, 40, 0.95);
+  border-color: rgba(76, 175, 80, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .podium-container {
+    gap: 12px;
+    padding: 20px 10px;
+  }
+  
+  .podium-card {
+    padding: 12px;
+  }
+  
+  .podium-first .podium-avatar {
+    width: 70px !important;
+    height: 70px !important;
+    font-size: 28px !important;
+  }
+  
+  .podium-second .podium-avatar,
+  .podium-third .podium-avatar {
+    width: 60px !important;
+    height: 60px !important;
+    font-size: 24px !important;
+  }
+  
+  .podium-base {
+    width: 100px;
+  }
+  
+  .podium-base-first {
+    height: 80px;
+  }
+  
+  .podium-base-second {
+    height: 60px;
+  }
+  
+  .podium-base-third {
+    height: 50px;
+  }
+  
+  .podium-name {
+    font-size: 13px;
+  }
+  
+  .podium-points {
+    font-size: 14px;
+  }
 }
 </style>
