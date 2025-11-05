@@ -97,6 +97,18 @@
           </template>
         </q-btn>
 
+        <!-- Register Link -->
+<div class="text-center q-mt-lg text-white">
+  <span>Don’t have an account? </span>
+  <span
+    class="text-green cursor-pointer text-decoration-underline"
+    @click="$router.push('/register')"
+  >
+    Register
+  </span>
+</div>
+
+
       </q-card-section>
     </q-card>
 
