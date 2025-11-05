@@ -81,7 +81,6 @@ const router = new Router({
   routes,
 });
 
-// Route guard to check authentication and handle first login
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
   const storeToken = store.state.auth?.token;
@@ -97,12 +96,16 @@ router.beforeEach((to, from, next) => {
     // Redirect to login if not authenticated
     return next('/login');
   }
+
+  // Simple authentication check - just need a valid token
+  const isAuthenticated = !!token;
   
   // If user is authenticated and on login page, redirect to dashboard
   if (hasToken && publicPages.includes(to.path)) {
     return next('/main/dashboard');
   }
   
+  // For non-protected routes, allow access
   next();
 });
 
