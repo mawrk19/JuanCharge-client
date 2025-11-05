@@ -614,7 +614,13 @@ export default {
         const response = await this.$store.dispatch('users/createUser', this.userForm);
         
         if (response.success) {
-          // Add user to the list
+          this.$q.notify({
+            color: 'green',
+            message: response.message || 'User created successfully',
+            icon: 'check_circle',
+            position: 'top'
+          });
+
           this.users.unshift({
             id: response.data.id,
             name: `${response.data.first_name} ${response.data.last_name}`,

@@ -125,7 +125,7 @@ export default {
     async loginUser() {
       try {
         this.loading = true;
-        const response = await this.$store.dispatch("auth/login", this.form);
+        await this.$store.dispatch("auth/login", this.form);
         
         // Verify token was stored
         const storedToken = localStorage.getItem('token');

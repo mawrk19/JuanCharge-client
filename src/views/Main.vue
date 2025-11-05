@@ -76,15 +76,13 @@
         <!-- Account Button -->
         <q-btn flat round dense icon="account_circle" class="tw-ml-2">
           <q-menu>
-            <q-list style="min-width: 150px">
-              <!-- Show user info -->
-              <q-item>
-                <q-item-section>
-                  <q-item-label class="text-weight-bold">{{ userName }}</q-item-label>
-                  <q-item-label caption>{{ userType === 'admin' ? 'Administrator' : 'LGU User' }}</q-item-label>
+              <q-item clickable v-close-popup @click="$router.push('/main/settings')">
+                <q-item-section avatar>
+                  <q-icon name="settings" />
                 </q-item-section>
+                <q-item-section>Settings</q-item-section>
               </q-item>
-              <q-separator />
+            <q-list style="min-width: 150px">
               <q-item clickable v-close-popup @click="logout">
                 <q-item-section avatar>
                   <q-icon name="logout" />
@@ -108,41 +106,28 @@
       class="text-white"
     >
       <q-list style="background-color: #142221; height: 100vh;">
-        <!-- Dashboard - Available to all -->
-        <q-item 
-          clickable 
-          v-ripple 
-          @click="$router.push('/main/dashboard')" 
-          :active="$route.path === '/main/dashboard'"
-        
-        >
+        <q-item clickable v-ripple="false" @click="$router.push('/main/dashboard')"  class="menu-item q-pa-sm" :class="{ 'active-menu-item': $route.path === '/main/dashboard' }">
           <q-item-section avatar>
-            <q-icon name="dashboard" />
+            <q-icon name="ev_station" />
           </q-item-section>
           <q-item-section>Dashboard</q-item-section>
         </q-item>
 
-        <!-- Map - Available to all -->
-        <q-item 
-          clickable 
-          v-ripple 
-          @click="$router.push('/main/map')"
-          :active="$route.path === '/main/map'"
-          
-        >
+        <q-item clickable v-ripple="false" @click="$router.push('/main/map')" class="menu-item":class="{ 'active-menu-item': $route.path === '/main/map' }">
           <q-item-section avatar>
-            <q-icon name="map" />
+            <q-icon name="analytics" />
           </q-item-section>
           <q-item-section>Map</q-item-section>
         </q-item>
 
-        <!-- Kiosks - Available to all -->
-        <q-item 
-          clickable 
-          v-ripple 
-          @click="$router.push('/main/kiosks')"
-          :active="$route.path === '/main/kiosks'"
-        >
+        <q-item clickable v-ripple="false" @click="$router.push('/main/users')" class="menu-item" :class="{ 'active-menu-item': $route.path === '/main/users' }">
+          <q-item-section avatar>
+            <q-icon name="people" />
+          </q-item-section>
+          <q-item-section>Users</q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple="false" @click="$router.push('/main/kiosks')" class="menu-item" :class="{ 'active-menu-item': $route.path === '/main/kiosks' }">
           <q-item-section avatar>
             <q-icon name="ev_station" />
           </q-item-section>
@@ -170,23 +155,14 @@
     <q-page-container>
       <router-view />
     </q-page-container>
-
-    <!-- Change Password Modal -->
-    <change-password-modal v-model="showChangePasswordModal" />
   </q-layout>
 </template>
 
 <script>
-import ChangePasswordModal from '@/components/ChangePasswordModal.vue';
-
 export default {
-  components: {
-    ChangePasswordModal
-  },
   data () {
     return {
       leftDrawerOpen: true,  // drawer always visible
-      showChangePasswordModal: false,
       notifications: [
         {
           id: 1,
@@ -289,6 +265,23 @@ export default {
 </script>
 
 <style scoped>
+.menu-item {
+  padding: 8px;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.menu-item:hover {
+  background: rgba(56, 255, 62, 0.1);
+  color: #ffffff;
+}
+
+.active-menu-item {
+  background: rgba(44, 163, 48, 0.241);
+  color: #ffffff;
+  font-weight: 600;
+}
+</style>
 /* Make active drawer item label and icon blue, with a subtle active background */
 .q-drawer .q-item.q-item--active .q-item__section {
   color: #ffffff !important; /* blue - adjust as needed */

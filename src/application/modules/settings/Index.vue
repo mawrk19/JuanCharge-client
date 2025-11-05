@@ -1,640 +1,304 @@
 <template>
-  <q-page class="map-page">
-    <!-- Search Filter Panel -->
-    <div class="search-panel tw-glass q-pa-md">
-      <div class="row q-col-gutter-sm">
-        <!-- Search Input with Autocomplete -->
-        <div class="col-12 col-md-4">
-          <q-input
-            v-model="searchQuery"
-            outlined
-            dense
-            placeholder="Search charging stations..."
-            bg-color="white"
-            @input="onSearchInput"
-            clearable
-            @clear="clearSearch"
-          >
-            <template v-slot:prepend>
-              <q-icon name="search" />
-            </template>
-            
-            <!-- Suggestions Menu -->
-            <q-menu
-              v-model="showSuggestions"
-              fit
-              no-parent-event
-            >
-              <q-list style="min-width: 100px; max-height: 400px; overflow-y: auto;">
-                <q-item
-                  v-for="suggestion in searchSuggestions"
-                  :key="suggestion.value"
-                  clickable
-                  v-close-popup
-                  @click="selectSuggestion(suggestion)"
-                >
-                  <q-item-section avatar>
-                    <q-icon :name="suggestion.icon" :color="suggestion.iconColor" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>{{ suggestion.label }}</q-item-label>
-                    <q-item-label caption>{{ suggestion.caption }}</q-item-label>
-                  </q-item-section>
-                  <q-item-section side>
-                    <q-badge :color="suggestion.badgeColor" :label="suggestion.badge" />
-                  </q-item-section>
-                </q-item>
-                <q-item v-if="searchSuggestions.length === 0">
-                  <q-item-section class="text-grey text-center">
-                    No results found
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </q-input>
-        </div>
+	<q-page class="settings-bg">
+		<div class="animated-bg">
+			<div class="blob blob-1"></div>
+			<div class="blob blob-2"></div>
+			<div class="blob blob-3"></div>
+		</div>
+			<div class="settings-header">
+				<div class="row items-center justify-between">
+					<div>
+					<div class="text-h3 text-white text-weight-bold ">
+						Settings
+					</div>
+					<div class="text-subtitle1 text-grey-5">
+						Settings and Configurations
+					</div>
+					</div>
+				</div>
+				</div>
 
-        <!-- Status Filter -->
-        <div class="col-12 col-sm-6 col-md-3">
-          <q-select
-            v-model="selectedStatus"
-            :options="statusOptions"
-            outlined
-            dense
-            label="Status"
-            bg-color="white"
-            emit-value
-            map-options
-            @update:model-value="filterStations"
-          />
-        </div>
+		<div class="content-container q-pa-md">
+			<q-card class="floating-drawer">
+				<q-list class="navigation-menu">
+					<q-item clickable class="menu-item" :class="{ 'active-menu-item': activeSection === 'profile' }"
+						@click="setActive('profile')">
+						<q-item-section avatar><q-icon name="person" /></q-item-section>
+						<q-item-section><q-item-label>Profile</q-item-label></q-item-section>
+					</q-item>
 
-        <!-- Connector Type Filter -->
-        <div class="col-12 col-sm-6 col-md-3">
-          <q-select
-            v-model="selectedConnector"
-            :options="connectorOptions"
-            outlined
-            dense
-            label="Connector Type"
-            bg-color="white"
-            emit-value
-            map-options
-            @update:model-value="filterStations"
-          />
-        </div>
+					<q-item clickable class="menu-item" :class="{ 'active-menu-item': activeSection === 'preferences' }"
+						@click="setActive('preferences')">
+						<q-item-section avatar><q-icon name="tune" /></q-item-section>
+						<q-item-section><q-item-label>Preferences</q-item-label></q-item-section>
+					</q-item>
 
-        <!-- Reset Button -->
-        <div class="col-12 col-md-2">
-          <q-btn
-            flat
-            dense
-            color="primary"
-            label="Reset Filters"
-            icon="refresh"
-            class="full-width"
-            @click="resetFilters"
-          />
-        </div>
-      </div>
+					<q-item clickable class="menu-item" :class="{ 'active-menu-item': activeSection === 'other' }"
+						@click="setActive('other')">
+						<q-item-section avatar><q-icon name="more_horiz" /></q-item-section>
+						<q-item-section><q-item-label>Other Settings</q-item-label></q-item-section>
+					</q-item>
+				</q-list>
+			</q-card>
 
-      <!-- Results Count -->
-      <div class="text-caption text-grey-7 q-mt-sm">
-        Showing {{ filteredStations.length }} of {{ allStations.length }} stations
-      </div>
-    </div>
+			<q-card class="content-panel-card">
+				<q-card-section v-if="activeSection === 'profile'" class="section-content">
+					<header class="active-panel-header text-white">Profile Setting</header>
+				</q-card-section>
 
-    <!-- Map Container -->
-    <div class="map-container">
-      <l-map
-        ref="map"
-        :zoom="zoom"
-        :center="center"
-        :options="mapOptions"
-        style="height: 100%; width: 100%;"
-        @ready="onMapReady"
-      >
-        <l-tile-layer
-          :url="tileLayerUrl"
-          :attribution="attribution"
-        />
-        
-        <!-- Markers for Charging Stations -->
-        <l-marker
-          v-for="station in filteredStations"
-          :key="station.id"
-          :lat-lng="[station.lat, station.lng]"
-          @click="selectStation(station)"
-        >
-          <l-icon
-            :icon-url="getMarkerIcon(station.status)"
-            :icon-size="[32, 32]"
-            :icon-anchor="[16, 32]"
-          />
-          <l-popup>
-            <div class="station-popup">
-              <div class="text-subtitle1 text-weight-bold">{{ station.name }}</div>
-              <div class="text-caption text-grey-7 q-mb-xs">{{ station.address }}</div>
-              <div class="row items-center q-mb-xs">
-                <q-badge :color="getStatusColor(station.status)" :label="station.status" />
-                <span class="q-ml-sm text-caption">{{ station.available }}/{{ station.total }} available</span>
-              </div>
-              <div class="text-caption">
-                <strong>Connector:</strong> {{ station.connectorType }}
-              </div>
-              <div class="text-caption">
-                <strong>Power:</strong> {{ station.power }} kW
-              </div>
-              <q-btn
-                color="primary"
-                size="sm"
-                label="View Details"
-                class="q-mt-sm full-width"
-                @click="viewStationDetails(station)"
-              />
-            </div>
-          </l-popup>
-        </l-marker>
+				<q-card-section v-if="activeSection === 'preferences'" class="section-content">
+					<header class="active-panel-header text-white">Preference Settings</header>
+				</q-card-section>
 
-        <!-- User Location Marker -->
-        <l-marker
-          v-if="userLocation"
-          :lat-lng="[userLocation.lat, userLocation.lng]"
-        >
-          <l-icon
-            icon-url="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%234285F4' stroke='white' stroke-width='3'/%3E%3C/svg%3E"
-            :icon-size="[24, 24]"
-            :icon-anchor="[12, 12]"
-          />
-          <l-popup>
-            <div class="text-subtitle2 text-weight-bold">Your Location</div>
-          </l-popup>
-        </l-marker>
-      </l-map>
-
-      <!-- Locate Me Button -->
-      <q-btn
-        round
-        color="white"
-        text-color="primary"
-        icon="my_location"
-        class="locate-btn"
-        @click="locateUser"
-        :loading="locating"
-      >
-        <q-tooltip>Find my location</q-tooltip>
-      </q-btn>
-    </div>
-
-    <!-- Station Details Dialog -->
-    <q-dialog v-model="showDetailsDialog">
-      <q-card style="min-width: 350px">
-        <q-card-section v-if="selectedStation">
-          <div class="text-h6">{{ selectedStation.name }}</div>
-          <div class="text-subtitle2 text-grey-7">{{ selectedStation.address }}</div>
-        </q-card-section>
-
-        <q-separator />
-
-        <q-card-section v-if="selectedStation">
-          <div class="q-mb-sm">
-            <strong>Status:</strong>
-            <q-badge :color="getStatusColor(selectedStation.status)" :label="selectedStation.status" class="q-ml-sm" />
-          </div>
-          <div class="q-mb-sm">
-            <strong>Available Ports:</strong> {{ selectedStation.available }} / {{ selectedStation.total }}
-          </div>
-          <div class="q-mb-sm">
-            <strong>Connector Type:</strong> {{ selectedStation.connectorType }}
-          </div>
-          <div class="q-mb-sm">
-            <strong>Power Output:</strong> {{ selectedStation.power }} kW
-          </div>
-          <div class="q-mb-sm">
-            <strong>Pricing:</strong> ${{ selectedStation.pricePerKwh }}/kWh
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Close" color="primary" v-close-popup />
-          <q-btn label="Get Directions" color="primary" @click="getDirections(selectedStation)" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-  </q-page>
+				<q-card-section v-if="activeSection === 'other'" class="section-content">
+					<header class="active-panel-header text-white">Other Settings</header>
+				</q-card-section>
+			</q-card>
+		</div>
+	</q-page>
 </template>
 
 <script>
-import { LMap, LTileLayer, LMarker, LPopup, LIcon } from 'vue2-leaflet';
-import 'leaflet/dist/leaflet.css';
-
 export default {
-  name: 'MapView',
-  components: {
-    LMap,
-    LTileLayer,
-    LMarker,
-    LPopup,
-    LIcon
-  },
-  data() {
-    return {
-      // Map Settings
-      zoom: 13,
-      center: [14.5995, 120.9842], // Manila, Philippines (default)
-      mapOptions: {
-        zoomControl: true,
-        attributionControl: true,
-        zoomSnap: 0.5
-      },
-      tileLayerUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-
-      // Search and Filter
-      searchQuery: '',
-      searchSuggestions: [],
-      allSuggestions: [],
-      showSuggestions: false,
-      selectedStatus: 'all',
-      selectedConnector: 'all',
-      
-      // Filter Options
-      statusOptions: [
-        { label: 'All Status', value: 'all' },
-        { label: 'Available', value: 'available' },
-        { label: 'Occupied', value: 'occupied' },
-        { label: 'Offline', value: 'offline' }
-      ],
-      connectorOptions: [
-        { label: 'All Types', value: 'all' },
-        { label: 'Type 2', value: 'Type 2' },
-        { label: 'CCS', value: 'CCS' },
-        { label: 'CHAdeMO', value: 'CHAdeMO' },
-        { label: 'Tesla', value: 'Tesla' }
-      ],
-
-      // Stations Data
-      allStations: [
-        {
-          id: 1,
-          name: 'SM Mall of Asia Charging Station',
-          address: 'Seaside Blvd, Pasay City',
-          lat: 14.5350,
-          lng: 120.9825,
-          status: 'available',
-          available: 4,
-          total: 6,
-          connectorType: 'Type 2',
-          power: 50,
-          pricePerKwh: 12.5
-        },
-        {
-          id: 2,
-          name: 'BGC Central Square Station',
-          address: '11th Ave, Taguig City',
-          lat: 14.5510,
-          lng: 121.0470,
-          status: 'occupied',
-          available: 1,
-          total: 4,
-          connectorType: 'CCS',
-          power: 150,
-          pricePerKwh: 15.0
-        },
-        {
-          id: 3,
-          name: 'Makati CBD Fast Charger',
-          address: 'Ayala Avenue, Makati City',
-          lat: 14.5547,
-          lng: 121.0244,
-          status: 'available',
-          available: 3,
-          total: 5,
-          connectorType: 'CHAdeMO',
-          power: 100,
-          pricePerKwh: 13.5
-        },
-        {
-          id: 4,
-          name: 'Ortigas Center Charging Hub',
-          address: 'EDSA, Mandaluyong City',
-          lat: 14.5846,
-          lng: 121.0569,
-          status: 'available',
-          available: 2,
-          total: 3,
-          connectorType: 'Type 2',
-          power: 75,
-          pricePerKwh: 14.0
-        },
-        {
-          id: 5,
-          name: 'Quezon City Memorial Circle',
-          address: 'Elliptical Road, Quezon City',
-          lat: 14.6517,
-          lng: 121.0494,
-          status: 'offline',
-          available: 0,
-          total: 4,
-          connectorType: 'Tesla',
-          power: 120,
-          pricePerKwh: 16.0
-        },
-        {
-          id: 6,
-          name: 'Alabang Town Center',
-          address: 'Commerce Ave, Muntinlupa',
-          lat: 14.4205,
-          lng: 121.0396,
-          status: 'available',
-          available: 5,
-          total: 6,
-          connectorType: 'CCS',
-          power: 150,
-          pricePerKwh: 15.5
-        }
-      ],
-      filteredStations: [],
-
-      // User Location
-      userLocation: null,
-      locating: false,
-
-      // Selected Station
-      selectedStation: null,
-      showDetailsDialog: false
-    };
-  },
-  mounted() {
-    this.filteredStations = [...this.allStations];
-    this.generateSearchSuggestions();
-    this.locateUser();
-  },
-  methods: {
-    generateSearchSuggestions() {
-      // Generate suggestions from all stations
-      this.allSuggestions = this.allStations.map(station => ({
-        label: station.name,
-        value: station.id,
-        caption: station.address,
-        icon: 'ev_station',
-        iconColor: this.getStatusColor(station.status),
-        badge: station.status,
-        badgeColor: this.getStatusColor(station.status),
-        station: station
-      }));
-      this.searchSuggestions = [...this.allSuggestions];
-    },
-
-    onSearchInput(val) {
-      // Show suggestions when user types
-      if (val && val.length > 0) {
-        const needle = val.toLowerCase();
-        this.searchSuggestions = this.allSuggestions.filter(v => 
-          v.label.toLowerCase().includes(needle) || 
-          v.caption.toLowerCase().includes(needle)
-        );
-        this.showSuggestions = true;
-      } else {
-        this.searchSuggestions = [...this.allSuggestions];
-        this.showSuggestions = false;
-      }
-      // Filter stations as user types
-      this.filterStations();
-    },
-
-    selectSuggestion(suggestion) {
-      this.searchQuery = suggestion.label;
-      this.showSuggestions = false;
-      if (suggestion.station) {
-        this.selectStation(suggestion.station);
-      }
-      this.filterStations();
-    },
-
-    filterSearch(val, update) {
-      update(() => {
-        if (val === '') {
-          this.searchSuggestions = [...this.allSuggestions];
-        } else {
-          const needle = val.toLowerCase();
-          this.searchSuggestions = this.allSuggestions.filter(v => 
-            v.label.toLowerCase().includes(needle) || 
-            v.caption.toLowerCase().includes(needle)
-          );
-        }
-      });
-    },
-
-    updateSearchQuery(val) {
-      // Update the search query as user types
-      if (typeof val === 'string') {
-        this.searchQuery = val;
-        this.filterStationsByText(val);
-      }
-    },
-
-    onSearchSelect(stationId) {
-      if (stationId) {
-        const station = this.allStations.find(s => s.id === stationId);
-        if (station) {
-          this.selectStation(station);
-          this.filterStations();
-        }
-      } else {
-        this.filterStations();
-      }
-    },
-
-    filterStationsByText(query) {
-      let filtered = [...this.allStations];
-
-      // Filter by search query
-      if (query && query.trim()) {
-        const needle = query.toLowerCase();
-        filtered = filtered.filter(station => 
-          station.name.toLowerCase().includes(needle) ||
-          station.address.toLowerCase().includes(needle)
-        );
-      }
-
-      // Apply status filter
-      if (this.selectedStatus !== 'all') {
-        filtered = filtered.filter(station => station.status === this.selectedStatus);
-      }
-
-      // Apply connector filter
-      if (this.selectedConnector !== 'all') {
-        filtered = filtered.filter(station => station.connectorType === this.selectedConnector);
-      }
-
-      this.filteredStations = filtered;
-    },
-
-    onMapReady() {
-      console.log('Map is ready');
-    },
-    
-    filterStations() {
-      let filtered = [...this.allStations];
-
-      // Filter by search query - handle both string and number (station ID)
-      if (this.searchQuery) {
-        if (typeof this.searchQuery === 'number') {
-          // If it's a station ID from selection
-          filtered = filtered.filter(station => station.id === this.searchQuery);
-        } else if (typeof this.searchQuery === 'string' && this.searchQuery.trim()) {
-          // If it's a text search
-          const query = this.searchQuery.toLowerCase();
-          filtered = filtered.filter(station => 
-            station.name.toLowerCase().includes(query) ||
-            station.address.toLowerCase().includes(query)
-          );
-        }
-      }
-
-      // Filter by status
-      if (this.selectedStatus !== 'all') {
-        filtered = filtered.filter(station => station.status === this.selectedStatus);
-      }
-
-      // Filter by connector type
-      if (this.selectedConnector !== 'all') {
-        filtered = filtered.filter(station => station.connectorType === this.selectedConnector);
-      }
-
-      this.filteredStations = filtered;
-    },
-
-    clearSearch() {
-      this.searchQuery = '';
-      this.showSuggestions = false;
-      this.filterStations();
-    },
-
-    resetFilters() {
-      this.searchQuery = '';
-      this.selectedStatus = 'all';
-      this.selectedConnector = 'all';
-      this.showSuggestions = false;
-      this.filterStations();
-      this.searchSuggestions = [...this.allSuggestions];
-    },
-
-    selectStation(station) {
-      this.selectedStation = station;
-      this.center = [station.lat, station.lng];
-      this.zoom = 16;
-    },
-
-    viewStationDetails(station) {
-      this.selectedStation = station;
-      this.showDetailsDialog = true;
-    },
-
-    getStatusColor(status) {
-      switch (status) {
-        case 'available':
-          return 'green';
-        case 'occupied':
-          return 'orange';
-        case 'offline':
-          return 'red';
-        default:
-          return 'grey';
-      }
-    },
-
-    getMarkerIcon(status) {
-      const color = status === 'available' ? '%2322c55e' : 
-                    status === 'occupied' ? '%23f97316' : 
-                    '%23ef4444';
-      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='${color}' d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E`;
-    },
-
-    locateUser() {
-      this.locating = true;
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            this.userLocation = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            };
-            this.center = [this.userLocation.lat, this.userLocation.lng];
-            this.zoom = 14;
-            this.locating = false;
-            this.$q.notify({
-              color: 'positive',
-              message: 'Location found!',
-              icon: 'check_circle'
-            });
-          },
-          (error) => {
-            console.error('Error getting location:', error);
-            this.locating = false;
-            this.$q.notify({
-              color: 'negative',
-              message: 'Unable to get your location',
-              icon: 'error'
-            });
-          }
-        );
-      } else {
-        this.locating = false;
-        this.$q.notify({
-          color: 'warning',
-          message: 'Geolocation is not supported by your browser',
-          icon: 'warning'
-        });
-      }
-    },
-
-    getDirections(station) {
-      const destination = `${station.lat},${station.lng}`;
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
-      window.open(url, '_blank');
-    }
-  }
-};
+	name: 'SettingsIndex',
+	data() {
+		return {
+			activeSection: 'profile'
+		}
+	},
+	methods: {
+		setActive(section) {
+			this.activeSection = section
+		}
+	},
+	mounted() {
+		// correct console.log syntax
+		console.log('Settings mounted, activeSection:', this.activeSection)
+	}
+}
 </script>
 
 <style scoped>
-.map-page {
-  height: calc(100vh - 50px);
-  position: relative;
-  display: flex;
-  flex-direction: column;
+.settings-bg {
+	background: linear-gradient(135deg, #0a0f0d 0%, #142221 50%, #1a2c28 100%);
+	min-height: 100vh;
+	position: relative;
+	overflow-y: auto;
 }
 
-.search-panel {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  right: 16px;
-  z-index: 1000;
+.animated-bg {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	z-index: 0;
+	pointer-events: none;
+}
+
+.blob {
+	position: absolute;
+	border-radius: 50%;
+	filter: blur(100px);
+	opacity: 0.2;
+	animation: float 25s infinite ease-in-out;
+}
+
+.blob-1 {
+	width: 500px;
+	height: 500px;
+	background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+	top: -250px;
+	right: -250px;
+	animation-delay: 0s;
+}
+
+.blob-2 {
+	width: 400px;
+	height: 400px;
+	background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
+	bottom: -200px;
+	left: -200px;
+	animation-delay: 8s;
+}
+
+.blob-3 {
+	width: 350px;
+	height: 350px;
+	background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
+	top: 40%;
+	left: 50%;
+	animation-delay: 16s;
+}
+
+@keyframes float {
+
+	0%,
+	100% {
+		transform: translate(0, 0) scale(1);
+	}
+
+	33% {
+		transform: translate(50px, -80px) scale(1.15);
+	}
+
+	66% {
+		transform: translate(-30px, 50px) scale(0.9);
+	}
+}
+
+/* ===== Main Layout ===== */
+.content-container {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	grid-template-columns: 280px 1fr;
+	gap: 24px;
+	max-width: 1400px;
+	margin: 0 auto;
+}
+
+/* ===== Floating Drawer ===== */
+.floating-drawer {
+	background: rgba(20, 34, 33, 0.8);
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(76, 175, 80, 0.2);
+	border-radius: 16px;
+	height: fit-content;
+	position: sticky;
+	top: 24px;
+	transition: all 0.3s ease;
+}
+
+.floating-drawer:hover {
+	border-color: rgba(76, 175, 80, 0.4);
+	box-shadow: 0 8px 32px rgba(76, 175, 80, 0.15);
+}
+
+.navigation-menu {
+	padding: 8px;
+}
+
+.menu-header {
+	padding: 16px;
+	margin-bottom: 8px;
+}
+
+.menu-item {
+  padding: 8px;
+  margin: 4px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.map-container {
-  flex: 1;
-  position: relative;
+.menu-item:hover {
+  background: rgba(56, 255, 62, 0.1);
+  color: #ffffff;
 }
 
-.locate-btn {
-  position: absolute;
-  bottom: 24px;
-  right: 24px;
-  z-index: 999;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+.active-menu-item {
+  background: rgba(44, 163, 48, 0.241);
+  color: #ffffff;
+  font-weight: 600;
 }
 
-.station-popup {
-  min-width: 200px;
+/* ===== Content Panel Card ===== */
+.content-panel-card {
+	background: rgba(20, 34, 33, 0.8);
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(76, 175, 80, 0.2);
+	border-radius: 16px;
+	min-height: 600px;
+	transition: all 0.3s ease;
 }
 
-.cursor-pointer {
-  cursor: pointer;
+.content-panel-card:hover {
+	border-color: rgba(76, 175, 80, 0.3);
+}
+
+.section-content {
+	animation: fadeIn 0.3s ease-in;
+	
+}
+
+.section-content h1 {
+	color: #e8f5e9;
+	font-weight: 600;
+	font-size: 2rem;
+	margin: 0;
+}
+
+.active-panel-header {
+	font-size: 1.7rem;
+	font-weight: 600;
+	margin-bottom: 16px;
+	border-bottom: 2px solid rgba(76, 175, 80, 0.5);
+	padding-bottom: 8px;
+}
+
+.settings-header{
+	padding: 18px;
+	margin-top: 16px;
+	margin-bottom: 12px;
+	background: rgba(20, 34, 33, 0.6);
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(76, 175, 80, 0.2);
+	border-radius: 16px;
+	max-width: 1368px;
+	margin-left: auto;
+	margin-right: auto;
+	
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* ===== Responsive Design ===== */
+
+
+@media (max-width: 1024px) {
+	.content-container {
+		grid-template-columns: 1fr;
+	}
+
+	.floating-drawer {
+		position: relative;
+		top: 0;
+	}
+
+	.settings-header{
+		max-width: 100%;
+		margin-left: 12px;
+		margin-right: 12px;
+		margin-bottom:6px;
+	}
+}
+
+@media (max-width: 600px) {
+	.settings-bg {
+		padding: 12px;
+	}
+
+	.content-container {
+		gap: 16px;
+	}
+
+	.settings-header{
+		max-width: 100%;
+		margin-left: 12px;
+		margin-right: 12px;
+		margin-bottom:6px;
+	}
 }
 </style>
