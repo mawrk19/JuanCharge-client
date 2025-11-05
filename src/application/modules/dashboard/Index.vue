@@ -12,10 +12,10 @@
       <div class="row items-center justify-between">
         <div>
           <div class="text-h4 text-white text-weight-bold q-mb-xs">
-            Welcome Back! 👋
+            Welcome Back!
           </div>
           <div class="text-subtitle1 text-grey-5">
-            Here's what's happening with your EV charging network today
+            JuanCharge LGU Dashboard
           </div>
         </div>
         <div>
@@ -39,47 +39,48 @@
       <div class="row q-col-gutter-md q-row-gutter-md">
         <div class="col-12 col-sm-6 col-md-3 q-mb-md">
           <DashboardCard
-            title="Active Stations"
-            subtitle="Currently online"
-            :value="metrics.activeStations"
-            icon="ev_station"
+            title="Collected"
+            subtitle="Total Recyclable"
+            :value="metrics.garbageCollected"
+            icon="recycling"
             iconColor="white"
-            change="+12% from last month"
+            format="weight"
+            change="+1 from last month"
             changeType="positive"
           />
         </div>
         <div class="col-12 col-sm-6 col-md-3 q-mb-md">
           <DashboardCard
-            title="Total Revenue"
-            subtitle="This month"
-            :value="metrics.revenue"
-            icon="attach_money"
+            title="Charging Time"
+            subtitle="Dispensed"
+            :value="metrics.chargingTime"
+            icon="charging_station"
             iconColor="white"
-            format="currency"
+            format="minutes"
             change="+8.5% from last month"
             changeType="positive"
           />
         </div>
         <div class="col-12 col-sm-6 col-md-3 q-mb-md">
           <DashboardCard
-            title="Charging Sessions"
-            subtitle="Today"
-            :value="metrics.sessionsToday"
-            icon="battery_charging_full"
+            title="Online"
+            subtitle="JuanCharge Kiosk"
+            :value="metrics.onlineKiosk"
+            icon="podcasts"
             iconColor="white"
-            change="-3.2% from yesterday"
-            changeType="negative"
+            change="Uptime: 120 hrs"
+            changeType="positive"
           />
         </div>
         <div class="col-12 col-sm-6 col-md-3 q-mb-md">
           <DashboardCard
-            title="Utilization Rate"
-            subtitle="Average daily"
-            :value="metrics.utilizationRate"
-            icon="analytics"
+            title="Charge Capacity"
+            subtitle="Battery Status"
+            :value="metrics.chargeCapacity"
+            icon="battery_charging_full"
             iconColor="white"
             format="percentage"
-            change="+2.1% from last week"
+            change="Last Full: 4 days ago"
             changeType="positive"
           />
         </div>
@@ -181,10 +182,10 @@ export default {
   data() {
     return {
       metrics: {
-        activeStations: 248,
-        revenue: 45280,
-        sessionsToday: 156,
-        utilizationRate: 73.5
+        garbageCollected: 120,
+        chargingTime: 314,
+        onlineKiosk: 1,
+        chargeCapacity: 74.5,
       },
       
       // Revenue Chart Configuration
@@ -214,7 +215,7 @@ export default {
         },
         yaxis: {
           labels: {
-            formatter: (value) => `₱${(value / 1000).toFixed(0)}k`
+            formatter: (value) => `${(value / 1000).toFixed(0)}k`
           }
         },
         tooltip: {

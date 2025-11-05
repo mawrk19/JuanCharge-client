@@ -111,7 +111,11 @@ export default {
             maximumFractionDigits: 0
           }).format(this.value);
         case 'percentage':
-          return `${this.value}%`;
+          return `${this.value} %`;
+        case 'minutes':
+          return `${this.value} hrs`;
+        case 'weight':
+          return `${this.value} kg`
         default:
           return new Intl.NumberFormat().format(this.value);
       }
