@@ -54,7 +54,13 @@ const routes = [
         name: "kiosks",
         component: () => import("@/application/modules/kiosks/Index.vue"),
         meta: { requiresAuth: true }
-      }
+      },
+      {
+        path: "kiosks-users",
+        name: "kiosks-users",
+        component: () => import("@/application/modules/kiosks_user/Index.vue"),
+        meta: { requiresAuth: true }
+      },
     ]
   },
   {

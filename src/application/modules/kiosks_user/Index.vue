@@ -10,10 +10,10 @@
     <!-- Page Header -->
     <div class="page-header q-mb-lg">
       <div class="text-h4 text-white text-weight-bold q-mb-xs">
-        User Management
+        Kiosk User Management
       </div>
       <div class="text-subtitle1 text-grey-5">
-        Manage users, roles, and permissions
+        Manage kiosk users and their points
       </div>
     </div>
 
@@ -34,19 +34,19 @@
           <template v-slot:no-data>
             <div class="full-width row flex-center text-grey-5 q-gutter-sm q-py-xl">
               <q-icon size="2em" name="warning" />
-              <span>No users found</span>
+              <span>No kiosk users found</span>
             </div>
           </template>
 
           <!-- Table Header Slot -->
           <template v-slot:top>
               <div class="row full-width items-center q-pa-md">
-                <div class="text-h6 text-white">Users List</div>
+                <div class="text-h6 text-white">Kiosk Users List</div>
                 <q-space />
                 <q-btn
                   color="green"
                   icon="add"
-                  label="Create User"
+                  label="Create Kiosk User"
                   @click="openCreateDialog"
                   class="modern-btn q-mr-md"
                 />
@@ -54,7 +54,7 @@
                   v-model="filter"
                   outlined
                   dense
-                  placeholder="Search users..."
+                  placeholder="Search kiosk users..."
                   dark
                   class="search-input"
                   style="min-width: 300px;"
@@ -91,25 +91,21 @@
           </template>
 
           <!-- Roles Column -->
-          <template v-slot:body-cell-roles="props">
-            <q-td :props="props">
-              <q-badge
-                v-for="role in props.row.roles"
-                :key="role"
-                :color="getRoleColor(role)"
-                :label="role"
-                class="q-mr-xs"
-              />
-            </q-td>
-          </template>
-
-          <!-- Phone Number Column -->
-          <template v-slot:body-cell-phone="props">
+          <template v-slot:body-cell-contact_number="props">
             <q-td :props="props">
               <div class="row items-center no-wrap">
                 <q-icon name="phone" size="16px" color="grey-5" class="q-mr-xs" />
-                <span class="text-grey-4">{{ props.row.phone }}</span>
+                <span class="text-grey-4">{{ props.row.contact_number }}</span>
               </div>
+            </q-td>
+          </template>
+
+          <!-- Points Column -->
+          <template v-slot:body-cell-points_balance="props">
+            <q-td :props="props">
+              <q-badge color="purple" outline>
+                {{ props.row.points_balance }} pts
+              </q-badge>
             </q-td>
           </template>
 
@@ -159,7 +155,7 @@
     <q-dialog v-model="showCreateDialog" persistent>
       <q-card class="dialog-card" style="min-width: 500px;">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white">{{ editingId ? 'Edit User' : 'Create New User' }}</div>
+          <div class="text-h6 text-white">{{ editingId ? 'Edit Kiosk User' : 'Create New Kiosk User' }}</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
@@ -194,29 +190,14 @@
               </template>
             </q-input>
 
-            <!-- Role Dropdown -->
-            <q-select
-              v-model="userForm.role"
-              :options="roleOptions"
-              label="Role"
-              dark
-              outlined
-              dense
-              :rules="[val => !!val || 'Role is required']"
-            >
-              <template v-slot:prepend>
-                <q-icon name="badge" />
-              </template>
-            </q-select>
-
-            <!-- Phone Number Field -->
+            <!-- Contact Number Field -->
             <q-input
-              v-model="userForm.phone_number"
-              label="Phone Number"
+              v-model="userForm.contact_number"
+              label="Contact Number"
               dark
               outlined
               dense
-              :rules="[val => !!val || 'Phone number is required']"
+              :rules="[val => !!val || 'Contact number is required']"
               placeholder="+63 XXX XXX XXXX"
             >
               <template v-slot:prepend>
@@ -242,33 +223,18 @@
               </template>
             </q-input>
 
-            <!-- Birth Date Field -->
+            <!-- Points Field -->
             <q-input
-              v-model="userForm.birth_date"
-              label="Birth Date"
+              v-model.number="userForm.points_balance"
+              label="Points"
+              type="number"
               dark
               outlined
               dense
-              placeholder="YYYY-MM-DD or click calendar"
+              :rules="[val => val >= 0 || 'Points must be a positive number']"
             >
               <template v-slot:prepend>
-                <q-icon name="cake" />
-              </template>
-              <template v-slot:append>
-                <q-icon name="event" class="cursor-pointer">
-                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                    <q-date
-                      v-model="userForm.birth_date"
-                      dark
-                      mask="YYYY-MM-DD"
-                      today-btn
-                    >
-                      <div class="row items-center justify-end">
-                        <q-btn v-close-popup label="Close" color="primary" flat />
-                      </div>
-                    </q-date>
-                  </q-popup-proxy>
-                </q-icon>
+                <q-icon name="stars" />
               </template>
             </q-input>
 
@@ -282,11 +248,12 @@
                 :disable="saving"
               />
               <q-btn
-                :label="editingId ? 'Update User' : 'Create User'"
+                :label="editingId ? 'Update Kiosk User' : 'Create Kiosk User'"
                 type="submit"
                 color="green"
                 class="modern-btn"
                 :loading="saving"
+                @click="editingId ? updateUserHandler() : createUserHandler()"
               />
             </div>
           </q-form>
@@ -298,7 +265,7 @@
     <q-dialog v-model="showEditDialog" persistent>
       <q-card class="dialog-card" style="min-width: 500px;">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white">Edit User</div>
+          <div class="text-h6 text-white">Edit Kiosk User</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
@@ -333,29 +300,14 @@
               </template>
             </q-input>
 
-            <!-- Role Dropdown -->
-            <q-select
-              v-model="userForm.role"
-              :options="roleOptions"
-              label="Role"
-              dark
-              outlined
-              dense
-              :rules="[val => !!val || 'Role is required']"
-            >
-              <template v-slot:prepend>
-                <q-icon name="badge" />
-              </template>
-            </q-select>
-
-            <!-- Phone Number Field -->
+            <!-- Contact Number Field -->
             <q-input
-              v-model="userForm.phone_number"
-              label="Phone Number"
+              v-model="userForm.contact_number"
+              label="Contact Number"
               dark
               outlined
               dense
-              :rules="[val => !!val || 'Phone number is required']"
+              :rules="[val => !!val || 'Contact number is required']"
               placeholder="+63 XXX XXX XXXX"
             >
               <template v-slot:prepend>
@@ -381,33 +333,18 @@
               </template>
             </q-input>
 
-            <!-- Birth Date Field -->
+            <!-- Points Field -->
             <q-input
-              v-model="userForm.birth_date"
-              label="Birth Date"
+              v-model.number="userForm.points_balance"
+              label="Points"
+              type="number"
               dark
               outlined
               dense
-              placeholder="YYYY-MM-DD or click calendar"
+              :rules="[val => val >= 0 || 'Points must be a positive number']"
             >
               <template v-slot:prepend>
-                <q-icon name="cake" />
-              </template>
-              <template v-slot:append>
-                <q-icon name="event" class="cursor-pointer">
-                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                    <q-date
-                      v-model="userForm.birth_date"
-                      dark
-                      mask="YYYY-MM-DD"
-                      today-btn
-                    >
-                      <div class="row items-center justify-end">
-                        <q-btn v-close-popup label="Close" color="primary" flat />
-                      </div>
-                    </q-date>
-                  </q-popup-proxy>
-                </q-icon>
+                <q-icon name="stars" />
               </template>
             </q-input>
 
@@ -421,7 +358,7 @@
                 :disable="saving"
               />
               <q-btn
-                label="Update User"
+                label="Update Kiosk User"
                 type="submit"
                 color="green"
                 class="modern-btn"
@@ -438,13 +375,14 @@
 
 <script>
 export default {
-  name: "UsersIndex",
+  name: "KioskUsersIndex",
   data() {
     return {
       filter: '',
       showCreateDialog: false,
       showEditDialog: false, // NEW: for edit modal
       saving: false,
+      editingId: null, // Track which user is being edited
       editingUserId: null, // NEW: track which user is being edited
       
       pagination: {
@@ -454,18 +392,10 @@ export default {
       userForm: {
         first_name: '',
         last_name: '',
-        role: null,
-        phone_number: '',
+        contact_number: '',
         email: '',
-        birth_date: null
+        points_balance: 0
       },
-
-      roleOptions: [
-        'Admin',
-        'Manager',
-        'Operator',
-        'Support',
-      ],
 
       columns: [
         {
@@ -483,16 +413,9 @@ export default {
           sortable: true
         },
         {
-          name: 'roles',
-          label: 'Roles',
-          field: 'roles',
-          align: 'left',
-          sortable: false
-        },
-        {
-          name: 'phone',
-          label: 'Phone Number',
-          field: 'phone',
+          name: 'contact_number',
+          label: 'Contact Number',
+          field: 'contact_number',
           align: 'left',
           sortable: true
         },
@@ -504,9 +427,9 @@ export default {
           sortable: true
         },
         {
-          name: 'birth_date',
-          label: 'Birth Date',
-          field: 'birth_date',
+          name: 'points_balance',
+          label: 'Points',
+          field: 'points_balance',
           align: 'left',
           sortable: true
         },
@@ -525,10 +448,10 @@ export default {
 
   computed: {
     isLoading() {
-      return this.$store.getters['users/isLoading'];
+      return this.$store.getters['kiosks_user/isLoading'];
     },
     error() {
-      return this.$store.getters['users/error'];
+      return this.$store.getters['kiosks_user/error'];
     }
   },
 
@@ -537,16 +460,9 @@ export default {
   },
 
   methods: {
-    // Normalize date to YYYY-MM-DD format (remove time)
-    normalizeDateOnly(dateString) {
-      if (!dateString) return null;
-      // Handle both 'T' separator and space separator
-      return dateString.split('T')[0].split(' ')[0];
-    },
-
     async loadUsers() {
       try {
-        const response = await this.$store.dispatch('users/fetchUsers');
+        const response = await this.$store.dispatch('kiosks_user/fetchUsers');
         
         let usersData = null;
         
@@ -565,9 +481,8 @@ export default {
             first_name: user.first_name,
             last_name: user.last_name,
             email: user.email,
-            phone: user.phone_number,
-            birth_date: this.normalizeDateOnly(user.birth_date),
-            roles: [user.role]
+            contact_number: user.contact_number,
+            points_balance: user.points_balance || 0
           }));
           
           this.users = [];
@@ -580,7 +495,7 @@ export default {
       } catch (error) {
         this.$q.notify({
           color: 'red',
-          message: 'Failed to load users',
+          message: 'Failed to load kiosk users',
           icon: 'error',
           position: 'top'
         });
@@ -613,10 +528,9 @@ export default {
       this.userForm = {
         first_name: '',
         last_name: '',
-        role: null,
-        phone_number: '',
+        contact_number: '',
         email: '',
-        birth_date: null
+        points_balance: 0
       };
       this.showCreateDialog = true;
     },
@@ -625,19 +539,18 @@ export default {
       this.saving = true;
       
       try {
-        const response = await this.$store.dispatch('users/createUser', this.userForm);
+        const response = await this.$store.dispatch('kiosks_user/createUser', this.userForm);
         
         if (response.success) {
           // Add user to the list
           this.users.unshift({
-            id: response.data.id,
+            // id: response.data.id,
             name: `${response.data.first_name} ${response.data.last_name}`,
             first_name: response.data.first_name,
             last_name: response.data.last_name,
             email: response.data.email,
-            phone: response.data.phone_number,
-            birth_date: this.normalizeDateOnly(response.data.birth_date),
-            roles: [response.data.role]
+            contact_number: response.data.contact_number,
+            points_balance: response.data.points_balance || 0
           });
 
           this.showCreateDialog = false;
@@ -645,13 +558,13 @@ export default {
           // Show success notification
           this.$q.notify({
             color: 'green',
-            message: 'User created successfully',
+            message: 'Kiosk user created successfully',
             icon: 'check_circle',
             position: 'top'
           });
         }
       } catch (error) {
-        let errorMessage = 'Failed to create user';
+        let errorMessage = 'Failed to create kiosk user';
         
         if (error.response?.data?.errors) {
           const errors = error.response.data.errors;
@@ -675,34 +588,31 @@ export default {
     },
 
     async editUser(user) {
-      // Fetch full user data from API to get birth_date
       this.editingUserId = user.id;
       
       try {
         // Fetch complete user data from backend
-        const response = await this.$store.dispatch('users/getUser', user.id);
+        const response = await this.$store.dispatch('kiosks_user/getUser', user.id);
         
         if (response.data) {
           const fullUserData = response.data;
           this.userForm = {
             first_name: fullUserData.first_name || '',
             last_name: fullUserData.last_name || '',
-            role: fullUserData.role,
-            phone_number: fullUserData.phone_number,
+            contact_number: fullUserData.contact_number,
             email: fullUserData.email,
-            birth_date: this.normalizeDateOnly(fullUserData.birth_date)
+            points_balance: fullUserData.points_balance || 0
           };
         }
       } catch (error) {
-        console.error('Error fetching user details:', error);
+        console.error('Error fetching kiosk user details:', error);
         // Fallback to table data if API call fails
         this.userForm = {
-          first_name: '',
-          last_name: '',
-          role: user.roles[0],
-          phone_number: user.phone,
+          first_name: user.first_name || '',
+          last_name: user.last_name || '',
+          contact_number: user.contact_number,
           email: user.email,
-          birth_date: null
+          points_balance: user.points_balance || 0
         };
       }
       
@@ -713,42 +623,38 @@ export default {
       this.saving = true;
       
       try {
-        const response = await this.$store.dispatch('users/updateUser', {
+        const response = await this.$store.dispatch('kiosks_user/updateUser', {
           id: this.editingUserId,
-          userData: this.userForm  // FIX: changed 'data' to 'userData'
+          userData: this.userForm
         });
         
         if (response.success) {
           this.$q.notify({
             color: 'green',
-            message: response.message || 'User updated successfully',
+            message: response.message || 'Kiosk user updated successfully',
             icon: 'check_circle',
             position: 'top'
           });
 
-          // Update user in the table immediately (no refresh needed!)
+          // Update user in the table immediately
           const index = this.users.findIndex(u => u.id === this.editingUserId);
           if (index !== -1) {
-            // Use $set to ensure Vue detects the change
             this.$set(this.users, index, {
-              id: response.data.id,
+              // id: response.data.id,
               name: `${response.data.first_name} ${response.data.last_name}`,
               first_name: response.data.first_name,
               last_name: response.data.last_name,
               email: response.data.email,
-              phone: response.data.phone_number,
-              birth_date: this.normalizeDateOnly(response.data.birth_date),
-              roles: [response.data.role]
+              contact_number: response.data.contact_number,
+              points_balance: response.data.points_balance || 0
             });
           }
 
           this.showEditDialog = false;
-          
-          // Force Vue to update the table
           this.$forceUpdate();
         }
       } catch (error) {
-        let errorMessage = 'Failed to update user';
+        let errorMessage = 'Failed to update kiosk user';
         
         if (error.response?.data?.errors) {
           const errors = error.response.data.errors;
@@ -778,19 +684,19 @@ export default {
         dark: true
       }).onOk(async () => {
         try {
-          await this.$store.dispatch('users/deleteUser', user.id);
+          await this.$store.dispatch('kiosks_user/deleteUser', user.id);
           this.users = this.users.filter(u => u.id !== user.id);
           
           this.$q.notify({
             color: 'green',
-            message: 'User deleted successfully',
+            message: 'Kiosk user deleted successfully',
             icon: 'check_circle',
             position: 'top'
           });
         } catch (error) {
           this.$q.notify({
             color: 'red',
-            message: 'Failed to delete user',
+            message: 'Failed to delete kiosk user',
             icon: 'error',
             position: 'top'
           });

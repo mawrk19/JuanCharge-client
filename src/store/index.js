@@ -5,6 +5,7 @@ import auth from '@/application/modules/auth/store'
 import dashboard from '@/application/modules/dashboard/store'
 import users from '@/application/modules/users/store'
 import kiosks from '@/application/modules/kiosks/store'
+import kiosks_user from '@/application/modules/kiosks_user/store'
 
 Vue.use(Vuex)
 
@@ -13,6 +14,7 @@ export default new Vuex.Store({
     auth,
     dashboard,
     users,
-    kiosks
+    kiosks,
+    kiosks_user
   }
 })
