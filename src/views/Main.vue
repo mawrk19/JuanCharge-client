@@ -134,6 +134,20 @@
           <q-item-section>Kiosks</q-item-section>
         </q-item>
 
+        <!-- Admin-only sections -->
+        <template v-if="isAdmin">
+          <q-item 
+            clickable 
+            v-ripple 
+            @click="$router.push('/main/users')"
+            :active="$route.path === '/main/users'"
+          >
+            <q-item-section avatar>
+              <q-icon name="people" />
+            </q-item-section>
+            <q-item-section>Users</q-item-section>
+          </q-item>
+        </template>
       </q-list>
     </q-drawer>
 
@@ -196,7 +210,19 @@ export default {
   computed: {
     unreadCount() {
       return this.notifications.filter(n => !n.read).length;
+    },
+    isAdmin() {
+      return this.$store.getters['auth/isAdmin'];
+    },
+    userType() {
+      return this.$store.state.auth.userType || 'admin';
+    },
+    userName() {
+      return this.$store.state.auth.user?.name || 'User';
     }
+  },
+  mounted() {
+    // Component mounted
   },
   methods: {
     toggleMini () {
@@ -254,5 +280,17 @@ export default {
   background: rgba(44, 163, 48, 0.241);
   color: #ffffff;
   font-weight: 600;
+}
+</style>
+/* Make active drawer item label and icon blue, with a subtle active background */
+.q-drawer .q-item.q-item--active .q-item__section {
+  color: #ffffff !important; /* blue - adjust as needed */
+}
+.q-drawer .q-item.q-item--active .q-icon {
+  color: #ffffff !important;
+}
+/* Optional: subtle background for the active item to improve contrast */
+.q-drawer .q-item.q-item--active {
+  background-color: rgba(255, 255, 255, 0.1) !important;
 }
 </style>

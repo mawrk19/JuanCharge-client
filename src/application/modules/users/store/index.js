@@ -1,5 +1,4 @@
 import http from "@/service/axios";
-import { bind } from "leaflet";
 
 export default {
   namespaced: true,
@@ -58,7 +57,9 @@ export default {
         // Transform data to match table format
         const newUser = {
           id: data.data.id,
-          name: data.data.name,
+          name: `${data.data.first_name} ${data.data.last_name}`,
+          first_name: data.data.first_name,
+          last_name: data.data.last_name,
           email: data.data.email,
           birth_date: data.data.birth_date,
           phone: data.data.phone_number,
@@ -100,7 +101,9 @@ export default {
         // Transform data to match table format
         const updatedUser = {
           id: data.data.id,
-          name: data.data.name,
+          name: `${data.data.first_name} ${data.data.last_name}`,
+          first_name: data.data.first_name,
+          last_name: data.data.last_name,
           email: data.data.email,
           birth_date: data.data.birth_date,
           phone: data.data.phone_number,

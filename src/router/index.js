@@ -82,53 +82,27 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-  // Get token and user from Cache or sessionStorage only
-  let token = Cache.get('token') || sessionStorage.getItem('token');
-  let user = Cache.get('user');
+  const token = localStorage.getItem('token');
+  const storeToken = store.state.auth?.token;
   
-  if (!user) {
-    // Only check sessionStorage
-    let userStr = sessionStorage.getItem('user');
-    if (userStr) {
-      try {
-        user = JSON.parse(userStr);
-        if (user) Cache.set('user', user);
-      } catch (e) {
-        // Invalid user data, clear it
-        sessionStorage.removeItem('user');
-        user = null;
-      }
-    }
-  }
-
-  // Sync token to cache if it exists
-  if (token && !Cache.get('token')) {
-    Cache.set('token', token);
+  // Use token from localStorage OR Vuex store
+  const hasToken = token || storeToken;
+  
+  // Public routes
+  const publicPages = ['/login', '/register'];
+  const authRequired = !publicPages.includes(to.path);
+  
+  if (authRequired && !hasToken) {
+    // Redirect to login if not authenticated
+    return next('/login');
   }
 
   // Simple authentication check - just need a valid token
   const isAuthenticated = !!token;
   
-  // If going to login and already authenticated, redirect to dashboard
-  if (to.path === "/login" && isAuthenticated) {
-    next({ path: "/main/dashboard" });
-    return;
-  }
-
-  // Check if route requires authentication
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (!isAuthenticated) {
-      // Clear any invalid session data and go to login
-      if (token || user) {
-        store.dispatch("auth/logout");
-      }
-      next({ path: "/login" });
-      return;
-    }
-    
-    // If authenticated, allow access
-    next();
-    return;
+  // If user is authenticated and on login page, redirect to dashboard
+  if (hasToken && publicPages.includes(to.path)) {
+    return next('/main/dashboard');
   }
   
   // For non-protected routes, allow access

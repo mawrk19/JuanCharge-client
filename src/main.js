@@ -21,6 +21,9 @@ Vue.component('apexchart', VueApexCharts)
 
 Vue.config.productionTip = false
 
+// Restore session from localStorage before mounting the app
+store.dispatch('auth/restoreSession');
+
 new Vue({
   router,
   store,

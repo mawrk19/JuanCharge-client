@@ -127,7 +127,16 @@ export default {
         this.loading = true;
         await this.$store.dispatch("auth/login", this.form);
         
-        // Success notification
+        // Verify token was stored
+        const storedToken = localStorage.getItem('token');
+        const storeToken = this.$store.state.auth.token;
+        
+        if (!storedToken || !storeToken) {
+          console.error('Token not stored properly!', { storedToken, storeToken, response: response.data });
+          throw new Error('Authentication failed: Token not stored');
+        }
+        
+        // Login successful
         this.$q.notify({
           type: 'positive',
           message: 'Login successful!',
@@ -135,15 +144,32 @@ export default {
           position: 'top'
         });
         
-        this.$router.push("/main/dashboard");
+        // Small delay to ensure state is fully updated
+        setTimeout(() => {
+          this.$router.push("/main/dashboard");
+        }, 100);
       } catch (e) {
-        // Show user-friendly error notification
-        const errorMessage = e.response?.data?.message || 'Login failed. Please check your credentials.';
+        console.error('Login error:', e);
+        console.error('Error response data:', e.response?.data);
+        
+        let errorMessage = 'Login failed. Please check your credentials.';
+        
+        // Check for 401 specifically
+        if (e.response?.status === 401) {
+          errorMessage = e.response?.data?.message || 
+                        'Invalid credentials or unauthorized access. Please check your email and password.';
+        } else if (e.message) {
+          errorMessage = e.message;
+        } else if (e.response?.data?.message) {
+          errorMessage = e.response.data.message;
+        }
+        
         this.$q.notify({
           type: 'negative',
           message: errorMessage,
           icon: 'error',
-          position: 'top'
+          position: 'top',
+          timeout: 5000
         });
       } finally {
         this.loading = false;

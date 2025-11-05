@@ -155,28 +155,42 @@
       </q-card-section>
     </q-card>
 
-    <!-- Create User Dialog -->
+    <!-- Create/Edit User Dialog -->
     <q-dialog v-model="showCreateDialog" persistent>
       <q-card class="dialog-card" style="min-width: 500px;">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white">Create New User</div>
+          <div class="text-h6 text-white">{{ editingId ? 'Edit User' : 'Create New User' }}</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
         <q-card-section>
-          <q-form @submit="createUserHandler" class="q-gutter-md">
-            <!-- Name Field -->
+          <q-form @submit="editingId ? updateUserHandler() : createUserHandler()" class="q-gutter-md">
+            <!-- First Name Field -->
             <q-input
-              v-model="userForm.name"
-              label="Name"
+              v-model="userForm.first_name"
+              label="First Name"
               dark
               outlined
               dense
-              :rules="[val => !!val || 'Name is required']"
+              :rules="[val => !!val || 'First name is required']"
             >
               <template v-slot:prepend>
                 <q-icon name="person" />
+              </template>
+            </q-input>
+
+            <!-- Last Name Field -->
+            <q-input
+              v-model="userForm.last_name"
+              label="Last Name"
+              dark
+              outlined
+              dense
+              :rules="[val => !!val || 'Last name is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="person_outline" />
               </template>
             </q-input>
 
@@ -268,7 +282,146 @@
                 :disable="saving"
               />
               <q-btn
-                label="Create User"
+                :label="editingId ? 'Update User' : 'Create User'"
+                type="submit"
+                color="green"
+                class="modern-btn"
+                :loading="saving"
+              />
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- Edit User Dialog -->
+    <q-dialog v-model="showEditDialog" persistent>
+      <q-card class="dialog-card" style="min-width: 500px;">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 text-white">Edit User</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section>
+          <q-form @submit="updateUserHandler" class="q-gutter-md">
+            <!-- First Name Field -->
+            <q-input
+              v-model="userForm.first_name"
+              label="First Name"
+              dark
+              outlined
+              dense
+              :rules="[val => !!val || 'First name is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="person" />
+              </template>
+            </q-input>
+
+            <!-- Last Name Field -->
+            <q-input
+              v-model="userForm.last_name"
+              label="Last Name"
+              dark
+              outlined
+              dense
+              :rules="[val => !!val || 'Last name is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="person_outline" />
+              </template>
+            </q-input>
+
+            <!-- Role Dropdown -->
+            <q-select
+              v-model="userForm.role"
+              :options="roleOptions"
+              label="Role"
+              dark
+              outlined
+              dense
+              :rules="[val => !!val || 'Role is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="badge" />
+              </template>
+            </q-select>
+
+            <!-- Phone Number Field -->
+            <q-input
+              v-model="userForm.phone_number"
+              label="Phone Number"
+              dark
+              outlined
+              dense
+              :rules="[val => !!val || 'Phone number is required']"
+              placeholder="+63 XXX XXX XXXX"
+            >
+              <template v-slot:prepend>
+                <q-icon name="phone" />
+              </template>
+            </q-input>
+
+            <!-- Email Field -->
+            <q-input
+              v-model="userForm.email"
+              label="Email Address"
+              type="email"
+              dark
+              outlined
+              dense
+              :rules="[
+                val => !!val || 'Email is required',
+                val => /.+@.+\..+/.test(val) || 'Email must be valid'
+              ]"
+            >
+              <template v-slot:prepend>
+                <q-icon name="email" />
+              </template>
+            </q-input>
+
+            <!-- Birth Date Field -->
+            <q-input
+              v-model="userForm.birth_date"
+              label="Birth Date"
+              dark
+              outlined
+              dense
+              placeholder="YYYY-MM-DD or click calendar"
+            >
+              <template v-slot:prepend>
+                <q-icon name="cake" />
+              </template>
+              <template v-slot:append>
+                <q-icon name="event" class="cursor-pointer">
+                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                    <q-date
+                      v-model="userForm.birth_date"
+                      dark
+                      mask="YYYY-MM-DD"
+                      today-btn
+                    >
+                      <div class="row items-center justify-end">
+                        <q-btn v-close-popup label="Close" color="primary" flat />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+
+            <!-- Action Buttons -->
+            <div class="row q-gutter-sm justify-end q-mt-md">
+              <q-btn
+                label="Cancel"
+                color="grey"
+                flat
+                v-close-popup
+                :disable="saving"
+              />
+              <q-btn
+                label="Update User"
                 type="submit"
                 color="green"
                 class="modern-btn"
@@ -290,14 +443,17 @@ export default {
     return {
       filter: '',
       showCreateDialog: false,
+      showEditDialog: false, // NEW: for edit modal
       saving: false,
+      editingUserId: null, // NEW: track which user is being edited
       
       pagination: {
         rowsPerPage: 10
       },
       
       userForm: {
-        name: '',
+        first_name: '',
+        last_name: '',
         role: null,
         phone_number: '',
         email: '',
@@ -309,7 +465,6 @@ export default {
         'Manager',
         'Operator',
         'Support',
-        'User'
       ],
 
       columns: [
@@ -379,7 +534,6 @@ export default {
       try {
         const response = await this.$store.dispatch('users/fetchUsers');
         
-        // Handle the API response structure: {success: true, data: [...]}
         let usersData = null;
         
         if (response && response.data) {
@@ -391,13 +545,17 @@ export default {
         if (Array.isArray(usersData) && usersData.length > 0) {
           const mappedUsers = usersData.map(user => ({
             id: user.id,
-            name: user.name,
+            name: user.first_name && user.last_name 
+              ? `${user.first_name} ${user.last_name}` 
+              : user.name || 'N/A',
+            first_name: user.first_name,
+            last_name: user.last_name,
             email: user.email,
             phone: user.phone_number,
+            birth_date: user.birth_date,
             roles: [user.role]
           }));
           
-          // Force reactivity
           this.users = [];
           this.$nextTick(() => {
             this.users = mappedUsers;
@@ -436,15 +594,11 @@ export default {
       return colors[role] || 'grey';
     },
 
-    dateOptions(date) {
-      // Allow dates from the past up to today (no future dates for birth date)
-      const today = new Date().toISOString().split('T')[0];
-      return date <= today;
-    },
-
     openCreateDialog() {
+      this.editingId = null;
       this.userForm = {
-        name: '',
+        first_name: '',
+        last_name: '',
         role: null,
         phone_number: '',
         email: '',
@@ -469,13 +623,24 @@ export default {
 
           this.users.unshift({
             id: response.data.id,
-            name: response.data.name,
+            name: `${response.data.first_name} ${response.data.last_name}`,
+            first_name: response.data.first_name,
+            last_name: response.data.last_name,
             email: response.data.email,
             phone: response.data.phone_number,
+            birth_date: response.data.birth_date,
             roles: [response.data.role]
           });
 
           this.showCreateDialog = false;
+
+          // Show success notification
+          this.$q.notify({
+            color: 'green',
+            message: 'User created successfully',
+            icon: 'check_circle',
+            position: 'top'
+          });
         }
       } catch (error) {
         let errorMessage = 'Failed to create user';
@@ -494,15 +659,105 @@ export default {
           message: errorMessage,
           icon: 'error',
           position: 'top',
-          timeout: 5000
+          timeout: 5000,
         });
       } finally {
         this.saving = false;
       }
     },
 
-    editUser(user) {
-      // TODO: Implement edit functionality
+    async editUser(user) {
+      // Fetch full user data from API to get birth_date
+      this.editingUserId = user.id;
+      
+      try {
+        // Fetch complete user data from backend
+        const response = await this.$store.dispatch('users/getUser', user.id);
+        
+        if (response.data) {
+          const fullUserData = response.data;
+          this.userForm = {
+            first_name: fullUserData.first_name || '',
+            last_name: fullUserData.last_name || '',
+            role: fullUserData.role,
+            phone_number: fullUserData.phone_number,
+            email: fullUserData.email,
+            birth_date: fullUserData.birth_date
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        // Fallback to table data if API call fails
+        this.userForm = {
+          first_name: '',
+          last_name: '',
+          role: user.roles[0],
+          phone_number: user.phone,
+          email: user.email,
+          birth_date: null
+        };
+      }
+      
+      this.showEditDialog = true;
+    },
+
+    async updateUserHandler() {
+      this.saving = true;
+      
+      try {
+        const response = await this.$store.dispatch('users/updateUser', {
+          id: this.editingUserId,
+          userData: this.userForm  // FIX: changed 'data' to 'userData'
+        });
+        
+        if (response.success) {
+          this.$q.notify({
+            color: 'green',
+            message: response.message || 'User updated successfully',
+            icon: 'check_circle',
+            position: 'top'
+          });
+
+          // Update user in the table immediately (no refresh needed!)
+          const index = this.users.findIndex(u => u.id === this.editingUserId);
+          if (index !== -1) {
+            // Use $set to ensure Vue detects the change
+            this.$set(this.users, index, {
+              id: response.data.id,
+              name: `${response.data.first_name} ${response.data.last_name}`,
+              first_name: response.data.first_name,
+              last_name: response.data.last_name,
+              email: response.data.email,
+              phone: response.data.phone_number,
+              roles: [response.data.role]
+            });
+          }
+
+          this.showEditDialog = false;
+          
+          // Force Vue to update the table
+          this.$forceUpdate();
+        }
+      } catch (error) {
+        let errorMessage = 'Failed to update user';
+        
+        if (error.response?.data?.errors) {
+          const errors = error.response.data.errors;
+          errorMessage = Object.values(errors).flat().join(', ');
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        }
+
+        this.$q.notify({
+          color: 'red',
+          message: errorMessage,
+          icon: 'error',
+          position: 'top',
+          timeout: 5000
+        });
+      } finally {
+        this.saving = false;
+      }
     },
 
     async deleteUserHandler(user) {
@@ -674,7 +929,6 @@ export default {
   background: rgba(76, 175, 80, 0.1);
 }
 
-/* Odd rows - no column borders */
 .modern-table >>> tbody tr:nth-child(odd) td {
   color: rgba(255, 255, 255, 0.95);
   border-left: none;
@@ -686,7 +940,6 @@ export default {
   background: rgba(0, 0, 0, 0.05);
 }
 
-/* Even rows - with column borders */
 .modern-table >>> tbody tr:nth-child(even) td {
   color: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(76, 175, 80, 0.15);
@@ -695,7 +948,6 @@ export default {
   background: rgba(0, 0, 0, 0.15);
 }
 
-/* Remove old styles */
 .modern-table >>> tbody td {
   color: rgba(255, 255, 255, 0.95);
   padding: 12px;
