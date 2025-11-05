@@ -76,6 +76,9 @@ export default {
             email: payload.email,
             user_type: user_type
           };
+        } else if (!user.user_type && user_type) {
+          // Ensure user_type is always in the user object
+          user.user_type = user_type;
         }
         
         console.log('Token found:', token);
@@ -124,6 +127,40 @@ export default {
           Cache.remove("token");
           Cache.remove("user");
           Cache.remove("user_type");
+        }
+        
+        return res;
+      } catch (err) {
+        throw err;
+      }
+    },
+
+    async updateProfile({ commit, state }, payload) {
+      try {
+        const res = await http.put("/auth/profile", {
+          first_name: payload.firstName,
+          last_name: payload.lastName,
+          email: payload.email,
+          contact_number: payload.contactNumber
+        });
+        
+        if (res.data.success) {
+          // Update user data in store
+          const updatedUser = {
+            ...state.user,
+            first_name: payload.firstName,
+            last_name: payload.lastName,
+            email: payload.email,
+            contact_number: payload.contactNumber
+          };
+          
+          commit("SET_USER", updatedUser);
+          
+          // Update localStorage
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          
+          // Update cache
+          Cache.set("user", updatedUser);
         }
         
         return res;

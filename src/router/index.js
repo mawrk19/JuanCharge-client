@@ -64,6 +64,37 @@ const routes = [
     ]
   },
   {
+    path: "/patron",
+    component: () => import("@/application/modules/patron/Layout.vue"),
+    meta: { requiresAuth: true, requiresRole: 'patron' },
+    children: [
+      {
+        path: "",
+        name: "patron-dashboard",
+        component: () => import("@/application/modules/patron/Index.vue"),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: "map",
+        name: "patron-map",
+        component: () => import("@/application/modules/patron/pages/Map.vue"),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: "achievements",
+        name: "patron-achievements",
+        component: () => import("@/application/modules/patron/pages/Achievements.vue"),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: "profile",
+        name: "patron-profile",
+        component: () => import("@/application/modules/patron/pages/Profile.vue"),
+        meta: { requiresAuth: true }
+      }
+    ]
+  },
+  {
     path: '*',
     name: 'not-found',
     component: { render: h => h('div', { style: { padding: '2rem', textAlign: 'center' } }, [h('h1', '404 Not Found')]) }
@@ -89,23 +120,42 @@ const router = new Router({
 
 // Route guard to check authentication and handle first login
 router.beforeEach((to, from, next) => {
+  // Always prioritize localStorage for token check to survive HMR
   const token = localStorage.getItem('token');
-  const storeToken = store.state.auth?.token;
+  const userType = localStorage.getItem('user_type');
   
-  // Use token from localStorage OR Vuex store
-  const hasToken = token || storeToken;
+  // If store is empty but localStorage has data, restore session
+  if (token && !store.state.auth?.token) {
+    store.dispatch('auth/restoreSession');
+  }
+  
+  // Treat kiosk_user as patron (they are the users who charge at kiosks)
+  const isPatron = userType === 'patron' || userType === 'kiosk_user';
   
   // Public routes
   const publicPages = ['/login', '/register'];
   const authRequired = !publicPages.includes(to.path);
   
-  if (authRequired && !hasToken) {
+  if (authRequired && !token) {
     // Redirect to login if not authenticated
     return next('/login');
   }
   
-  // If user is authenticated and on login page, redirect to dashboard
-  if (hasToken && publicPages.includes(to.path)) {
+  // If user is authenticated and on login page, redirect based on role
+  if (token && publicPages.includes(to.path)) {
+    if (isPatron) {
+      return next('/patron');
+    }
+    return next('/main/dashboard');
+  }
+  
+  // Check if patron trying to access admin routes
+  if (token && isPatron && to.path.startsWith('/main')) {
+    return next('/patron');
+  }
+  
+  // Check if admin/lgu trying to access patron routes
+  if (token && !isPatron && to.path.startsWith('/patron')) {
     return next('/main/dashboard');
   }
   

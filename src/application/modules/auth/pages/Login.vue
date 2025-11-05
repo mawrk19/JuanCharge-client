@@ -144,9 +144,16 @@ export default {
           position: 'top'
         });
         
-        // Small delay to ensure state is fully updated
+        // Small delay to ensure state is fully updated, then redirect based on user type
         setTimeout(() => {
-          this.$router.push("/main/dashboard");
+          const userType = this.$store.state.auth?.user?.user_type || localStorage.getItem('user_type');
+          
+          // Treat kiosk_user as patron (they are the users who charge at kiosks)
+          if (userType === 'patron' || userType === 'kiosk_user') {
+            this.$router.push("/patron");
+          } else {
+            this.$router.push("/main/dashboard");
+          }
         }, 100);
       } catch (e) {
         console.error('Login error:', e);
