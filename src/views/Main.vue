@@ -147,6 +147,18 @@
             </q-item-section>
             <q-item-section>Users</q-item-section>
           </q-item>
+
+          <q-item 
+            clickable 
+            v-ripple 
+            @click="$router.push('/main/kiosks-users')"
+            :active="$route.path === '/main/kiosks-users'"
+          >
+            <q-item-section avatar>
+              <q-icon name="person" />
+            </q-item-section>
+            <q-item-section>Kiosk Users</q-item-section>
+          </q-item>
         </template>
       </q-list>
     </q-drawer>

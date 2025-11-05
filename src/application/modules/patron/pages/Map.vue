@@ -169,7 +169,7 @@
           <!-- Loading State -->
           <div v-if="isLoadingStations" class="tw-text-center tw-p-8">
             <q-spinner color="green" size="48px" class="tw-mb-4" />
-            <div class="text-grey-5">Loading kiosks...</div>
+            <div class="text-grey-5">Loading stations...</div>
           </div>
 
           <div v-else-if="filteredStations.length === 0" class="tw-text-center tw-p-8 tw-opacity-60">
@@ -191,13 +191,13 @@
                 </q-avatar>
                 <div class="col q-ml-sm">
                   <div class="text-subtitle2 text-weight-bold text-white">{{ station.name }}</div>
-                  <div class="text-caption text-grey-5">{{ station.address }}</div>
+                  <div class="text-caption text-grey-5">{{ station.kiosk_code }}</div>
                 </div>
               </div>
 
               <q-separator class="q-my-sm" style="border-color: rgba(76, 175, 80, 0.2);" />
 
-              <!-- Bin Level Indicator -->
+              <!-- Availability Indicator -->
               <div class="q-mb-sm">
                 <div class="row items-center justify-between q-mb-xs">
                   <span class="text-caption text-grey-4">Availability</span>
@@ -221,14 +221,14 @@
               <div class="row q-col-gutter-sm q-mb-sm">
                 <div class="col-6">
                   <div class="info-box q-pa-xs">
-                    <q-icon name="qr_code" size="16px" color="purple" />
-                    <span class="text-caption text-grey-4 q-ml-xs">{{ station.kiosk_code }}</span>
+                    <q-icon name="attach_money" size="16px" color="green" />
+                    <span class="text-caption text-grey-4 q-ml-xs">₱{{ station.rate }}/kWh</span>
                   </div>
                 </div>
                 <div class="col-6">
                   <div class="info-box q-pa-xs">
-                    <q-icon name="computer" size="16px" color="blue" />
-                    <span class="text-caption text-grey-4 q-ml-xs">v{{ station.software_version }}</span>
+                    <q-icon name="cable" size="16px" color="blue" />
+                    <span class="text-caption text-grey-4 q-ml-xs text-truncate">{{ station.connectors.join(', ') }}</span>
                   </div>
                 </div>
               </div>
@@ -236,8 +236,8 @@
               <div class="row q-col-gutter-sm">
                 <div class="col-6">
                   <div class="info-box q-pa-xs">
-                    <q-icon name="vpn_key" size="16px" color="orange" />
-                    <span class="text-caption text-grey-4 q-ml-xs">{{ station.serial_number }}</span>
+                    <q-icon name="place" size="16px" color="orange" />
+                    <span class="text-caption text-grey-4 q-ml-xs">{{ station.distance }}</span>
                   </div>
                 </div>
                 <div class="col-6">
@@ -283,7 +283,7 @@
       <q-card style="min-width: 350px">
         <q-card-section v-if="selectedStation">
           <div class="text-h6">{{ selectedStation.name }}</div>
-          <div class="text-subtitle2 text-grey-7">{{ selectedStation.address }}</div>
+          <div class="text-subtitle2 text-grey-7">{{ selectedStation.kiosk_code }}</div>
         </q-card-section>
 
         <q-separator />
@@ -297,19 +297,19 @@
             <q-badge :color="getStatusColor(selectedStation.status)" :label="selectedStation.status" class="q-ml-sm" />
           </div>
           <div class="q-mb-sm">
-            <strong>Serial Number:</strong> {{ selectedStation.serial_number }}
+            <strong>Rate:</strong> ₱{{ selectedStation.rate }}/kWh
           </div>
           <div class="q-mb-sm">
-            <strong>IP Address:</strong> {{ selectedStation.ip_address }}
+            <strong>Available Ports:</strong> {{ selectedStation.available }}/{{ selectedStation.total }}
           </div>
           <div class="q-mb-sm">
-            <strong>MAC Address:</strong> {{ selectedStation.mac_address }}
+            <strong>Connector Types:</strong> {{ selectedStation.connectors.join(', ') }}
+          </div>
+          <div class="q-mb-sm">
+            <strong>Distance:</strong> {{ selectedStation.distance }}
           </div>
           <div class="q-mb-sm">
             <strong>Software Version:</strong> {{ selectedStation.software_version }}
-          </div>
-          <div class="q-mb-sm" v-if="selectedStation.assigned_to">
-            <strong>Assigned To:</strong> {{ selectedStation.assigned_to }}
           </div>
           <div class="q-mb-sm">
             <strong>Location:</strong> {{ selectedStation.lat }}, {{ selectedStation.lng }}
@@ -330,7 +330,7 @@ import { LMap, LTileLayer, LMarker, LPopup, LIcon } from 'vue2-leaflet';
 import 'leaflet/dist/leaflet.css';
 
 export default {
-  name: 'MapView',
+  name: "PatronMap",
   components: {
     LMap,
     LTileLayer,
@@ -369,9 +369,7 @@ export default {
       connectorOptions: [
         { label: 'All Types', value: 'all' },
         { label: 'Type 2', value: 'Type 2' },
-        { label: 'CCS', value: 'CCS' },
-        { label: 'CHAdeMO', value: 'CHAdeMO' },
-        { label: 'Tesla', value: 'Tesla' }
+        { label: 'CCS', value: 'CCS' }
       ],
 
       // Stations Data
@@ -398,37 +396,27 @@ export default {
     async loadKiosks() {
       this.isLoadingStations = true;
       try {
-        const response = await this.$store.dispatch('kiosks/fetchKiosks');
+        await this.$store.dispatch('kiosks/fetchKiosks');
+        const kiosksData = this.$store.state.kiosks.kiosks || [];
         
-        let kiosksData = null;
-        if (response && response.data) {
-          kiosksData = response.data;
-        } else if (Array.isArray(response)) {
-          kiosksData = response;
-        }
-        
-        if (Array.isArray(kiosksData) && kiosksData.length > 0) {
-          // Transform kiosk data to station format
-          this.allStations = kiosksData.map(kiosk => {
+        this.allStations = kiosksData
+          .filter(kiosk => kiosk.location)
+          .map(kiosk => {
             // Parse location string "lat, lng"
-            const [lat, lng] = kiosk.location ? 
-              kiosk.location.split(',').map(coord => parseFloat(coord.trim())) : 
-              [14.5995, 120.9842]; // Default Manila coordinates
+            const [lat, lng] = kiosk.location.split(',').map(coord => parseFloat(coord.trim()));
             
             return {
               id: kiosk.id,
-              name: `Kiosk ${kiosk.kiosk_code}`,
-              address: kiosk.notes || 'No address provided',
+              name: `Station ${kiosk.kiosk_code}`,
+              kiosk_code: kiosk.kiosk_code,
               lat: lat,
               lng: lng,
               status: kiosk.status === 'active' ? 'available' : 'offline',
-              available: kiosk.status === 'active' ? 1 : 0,
-              total: 1,
-              connectorType: 'Type 2',
-              power: 50,
-              pricePerKwh: 12.5,
-              // Additional kiosk info
-              kiosk_code: kiosk.kiosk_code,
+              available: kiosk.status === 'active' ? 2 : 0,
+              total: 2,
+              rate: 15.00,
+              connectors: ['Type 2', 'CCS'],
+              distance: '0.5 km',
               serial_number: kiosk.serial_number,
               mac_address: kiosk.mac_address,
               ip_address: kiosk.ip_address,
@@ -436,23 +424,19 @@ export default {
               assigned_to: kiosk.assigned_to
             };
           });
-          
-          this.filteredStations = [...this.allStations];
-        } else {
-          this.$q.notify({
-            color: 'info',
-            message: 'No kiosks found',
-            icon: 'info',
-            position: 'top'
-          });
+        
+        this.filteredStations = [...this.allStations];
+        
+        // Center map on first station if available
+        if (this.allStations.length > 0) {
+          this.center = [this.allStations[0].lat, this.allStations[0].lng];
         }
       } catch (error) {
         console.error('Error loading kiosks:', error);
         this.$q.notify({
-          color: 'red',
-          message: 'Failed to load kiosks',
-          icon: 'error',
-          position: 'top'
+          type: 'negative',
+          message: 'Failed to load charging stations',
+          icon: 'error'
         });
       } finally {
         this.isLoadingStations = false;
@@ -460,11 +444,10 @@ export default {
     },
 
     generateSearchSuggestions() {
-      // Generate suggestions from all stations
       this.allSuggestions = this.allStations.map(station => ({
         label: station.name,
         value: station.id,
-        caption: station.address,
+        caption: station.kiosk_code,
         icon: 'ev_station',
         iconColor: this.getStatusColor(station.status),
         badge: station.status,
@@ -475,7 +458,6 @@ export default {
     },
 
     onSearchInput(val) {
-      // Show suggestions when user types
       if (val && val.length > 0) {
         const needle = val.toLowerCase();
         this.searchSuggestions = this.allSuggestions.filter(v => 
@@ -487,7 +469,6 @@ export default {
         this.searchSuggestions = [...this.allSuggestions];
         this.showSuggestions = false;
       }
-      // Filter stations as user types
       this.filterStations();
     },
 
@@ -500,65 +481,6 @@ export default {
       this.filterStations();
     },
 
-    filterSearch(val, update) {
-      update(() => {
-        if (val === '') {
-          this.searchSuggestions = [...this.allSuggestions];
-        } else {
-          const needle = val.toLowerCase();
-          this.searchSuggestions = this.allSuggestions.filter(v => 
-            v.label.toLowerCase().includes(needle) || 
-            v.caption.toLowerCase().includes(needle)
-          );
-        }
-      });
-    },
-
-    updateSearchQuery(val) {
-      // Update the search query as user types
-      if (typeof val === 'string') {
-        this.searchQuery = val;
-        this.filterStationsByText(val);
-      }
-    },
-
-    onSearchSelect(stationId) {
-      if (stationId) {
-        const station = this.allStations.find(s => s.id === stationId);
-        if (station) {
-          this.selectStation(station);
-          this.filterStations();
-        }
-      } else {
-        this.filterStations();
-      }
-    },
-
-    filterStationsByText(query) {
-      let filtered = [...this.allStations];
-
-      // Filter by search query
-      if (query && query.trim()) {
-        const needle = query.toLowerCase();
-        filtered = filtered.filter(station => 
-          station.name.toLowerCase().includes(needle) ||
-          station.address.toLowerCase().includes(needle)
-        );
-      }
-
-      // Apply status filter
-      if (this.selectedStatus !== 'all') {
-        filtered = filtered.filter(station => station.status === this.selectedStatus);
-      }
-
-      // Apply connector filter
-      if (this.selectedConnector !== 'all') {
-        filtered = filtered.filter(station => station.connectorType === this.selectedConnector);
-      }
-
-      this.filteredStations = filtered;
-    },
-
     onMapReady() {
       console.log('Map is ready');
     },
@@ -566,19 +488,13 @@ export default {
     filterStations() {
       let filtered = [...this.allStations];
 
-      // Filter by search query - handle both string and number (station ID)
-      if (this.searchQuery) {
-        if (typeof this.searchQuery === 'number') {
-          // If it's a station ID from selection
-          filtered = filtered.filter(station => station.id === this.searchQuery);
-        } else if (typeof this.searchQuery === 'string' && this.searchQuery.trim()) {
-          // If it's a text search
-          const query = this.searchQuery.toLowerCase();
-          filtered = filtered.filter(station => 
-            station.name.toLowerCase().includes(query) ||
-            station.address.toLowerCase().includes(query)
-          );
-        }
+      // Filter by search query
+      if (this.searchQuery && typeof this.searchQuery === 'string' && this.searchQuery.trim()) {
+        const query = this.searchQuery.toLowerCase();
+        filtered = filtered.filter(station => 
+          station.name.toLowerCase().includes(query) ||
+          station.kiosk_code.toLowerCase().includes(query)
+        );
       }
 
       // Filter by status
@@ -588,7 +504,9 @@ export default {
 
       // Filter by connector type
       if (this.selectedConnector !== 'all') {
-        filtered = filtered.filter(station => station.connectorType === this.selectedConnector);
+        filtered = filtered.filter(station => 
+          station.connectors.some(c => c === this.selectedConnector)
+        );
       }
 
       this.filteredStations = filtered;
@@ -599,15 +517,6 @@ export default {
       this.showSuggestions = false;
       // Reset to show all stations based on other filters
       this.filterStations();
-    },
-
-    resetFilters() {
-      this.searchQuery = '';
-      this.selectedStatus = 'all';
-      this.selectedConnector = 'all';
-      this.showSuggestions = false;
-      this.filterStations();
-      this.searchSuggestions = [...this.allSuggestions];
     },
 
     selectStation(station) {
@@ -803,8 +712,40 @@ export default {
   justify-content: center;
 }
 
-.cursor-pointer {
+.tw-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tw-cursor-pointer {
   cursor: pointer;
+}
+
+.tw-text-center {
+  text-align: center;
+}
+
+.tw-p-8 {
+  padding: 2rem;
+}
+
+.tw-mb-4 {
+  margin-bottom: 1rem;
+}
+
+.tw-mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.tw-opacity-60 {
+  opacity: 0.6;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Responsive */
