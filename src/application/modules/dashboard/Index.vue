@@ -324,7 +324,8 @@ export default {
   computed: {
     userName() {
       const user = this.$store.state.auth.user;
-      if(!user) return '';
+      if (!user) return '';
+      return user.name || user.first_name || 'User';
     }
   },
 };
