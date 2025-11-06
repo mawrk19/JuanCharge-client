@@ -79,6 +79,7 @@
             label="Forgot Password?"
             color="green"
             class="text-capitalize"
+            @click="$router.push('/forgot-password')"
           />
         </div>
 

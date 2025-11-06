@@ -148,7 +148,7 @@
           <q-item-section avatar>
             <q-icon name="people" />
           </q-item-section>
-          <q-item-section>Users</q-item-section>
+          <q-item-section>LGU Users</q-item-section>
         </q-item>
 
         <q-item 

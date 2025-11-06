@@ -22,6 +22,16 @@ const routes = [
     component: () => import("@/application/modules/auth/pages/Register.vue"),
   },
   {
+    path: "/forgot-password",
+    name: "forgot-password",
+    component: () => import("@/application/modules/auth/pages/ForgotPassword.vue"),
+  },
+  {
+    path: "/reset-password",
+    name: "reset-password",
+    component: () => import("@/application/modules/auth/pages/ResetPassword.vue"),
+  },
+  {
     path: "/main",
     component: () => import("@/views/Main.vue"),
     meta: { requiresAuth: true },
@@ -152,8 +162,8 @@ router.beforeEach(async (to, from, next) => {
   // Treat kiosk_user as patron (they are the users who charge at kiosks)
   const isPatron = userType === 'patron' || userType === 'kiosk_user';
   
-  // Public routes
-  const publicPages = ['/login', '/register'];
+  // Public routes (accessible without authentication)
+  const publicPages = ['/login', '/register', '/forgot-password', '/reset-password'];
   const authRequired = !publicPages.includes(to.path);
   
   if (authRequired && !token) {

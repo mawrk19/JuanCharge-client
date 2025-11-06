@@ -10,10 +10,10 @@
     <!-- Page Header -->
     <div class="page-header q-mb-lg">
       <div class="text-h4 text-white text-weight-bold q-mb-xs">
-        User Management
+        LGU User Management
       </div>
       <div class="text-subtitle1 text-grey-5">
-        Manage users, roles, and permissions
+        Manage LGU users, roles, and permissions
       </div>
     </div>
 
@@ -42,7 +42,7 @@
           <!-- Table Header Slot -->
           <template v-slot:top>
               <div class="row full-width items-center q-pa-md">
-                <div class="text-h6 text-white">Users List</div>
+                <div class="text-h6 text-white">LGU Users List</div>
                 <q-space />
                 <q-btn
                   color="green"
