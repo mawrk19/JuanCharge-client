@@ -46,16 +46,19 @@
             </q-input>
 
             <!-- Submit Button -->
-            <q-btn
-              type="submit"
-              unelevated
-              color="green"
-              text-color="white"
-              label="Send Reset Link"
-              class="full-width q-py-sm"
-              :loading="loading"
-              :disable="loading"
-            />
+            <div class="text-center">
+              <q-btn
+                type="submit"
+                unelevated
+                color="green"
+                text-color="white"
+                label="Send Reset Link"
+                class="q-py-sm"
+                style="min-width: 200px;"
+                :loading="loading"
+                :disable="loading"
+              />
+            </div>
 
             <!-- Back to Login -->
             <div class="text-center q-mt-md">
@@ -74,7 +77,7 @@
 
       <!-- Info Footer -->
       <div class="info-footer text-center q-mt-md">
-        <q-icon name="info_outline" size="16px" class="q-mr-xs" />
+        <q-icon name="info_outline" size="16px" class="q-mr-xs text-white" />
         <span class="text-caption text-grey-5">
           If your email exists in our system, you will receive a password reset link
         </span>

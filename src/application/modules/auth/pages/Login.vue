@@ -69,8 +69,7 @@
             v-model="rememberMe"
             label="Remember me"
             dark
-            color="green"
-            size="xs"
+            class="text-green text-sm"
           />
           <q-btn
             flat
