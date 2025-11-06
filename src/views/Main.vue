@@ -115,7 +115,7 @@
         <q-item 
           clickable 
           v-ripple="false" 
-          @click="$router.push('/main/dashboard')" 
+          @click="navigateTo('/main/dashboard')" 
           class="menu-item" 
           :class="{ 'active-menu-item': $route.path === '/main/dashboard' }"
         >
@@ -128,7 +128,7 @@
         <q-item 
           clickable 
           v-ripple="false" 
-          @click="$router.push('/main/map')" 
+          @click="navigateTo('/main/map')" 
           class="menu-item" 
           :class="{ 'active-menu-item': $route.path === '/main/map' }"
         >
@@ -141,7 +141,7 @@
         <q-item 
           clickable 
           v-ripple="false" 
-          @click="$router.push('/main/users')" 
+          @click="navigateTo('/main/users')" 
           class="menu-item" 
           :class="{ 'active-menu-item': $route.path === '/main/users' }"
         >
@@ -154,7 +154,7 @@
         <q-item 
           clickable 
           v-ripple="false" 
-          @click="$router.push('/main/kiosks')" 
+          @click="navigateTo('/main/kiosks')" 
           class="menu-item" 
           :class="{ 'active-menu-item': $route.path === '/main/kiosks' }"
         >
@@ -169,7 +169,7 @@
           v-if="isAdmin"
           clickable 
           v-ripple="false" 
-          @click="$router.push('/main/kiosks-users')" 
+          @click="navigateTo('/main/kiosks-users')" 
           class="menu-item" 
           :class="{ 'active-menu-item': $route.path === '/main/kiosks-users' }"
         >
@@ -245,7 +245,8 @@ export default {
       return this.$store.getters['auth/isAdmin'];
     },
     userType() {
-      return this.$store.state.auth.userType || 'admin';
+      // Get user_type from the user object or from the getter
+      return this.$store.getters['auth/userType'] || this.$store.state.auth.user?.user_type || 'admin';
     },
     userName() {
       return this.$store.state.auth.user?.name || 'User';
@@ -257,6 +258,17 @@ export default {
   methods: {
     toggleMini () {
       this.miniState = !this.miniState
+    },
+    navigateTo(path) {
+      // Avoid navigation to the same route
+      if (this.$route.path !== path) {
+        this.$router.push(path).catch(err => {
+          // Silently catch navigation errors (like duplicate navigation)
+          if (err.name !== 'NavigationDuplicated') {
+            console.error('Navigation error:', err);
+          }
+        });
+      }
     },
     async logout() {
       await this.$store.dispatch('auth/logout');

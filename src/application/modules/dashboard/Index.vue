@@ -362,15 +362,7 @@ mounted() {
       this.chartsReady = true;
     }, 300);
   });
-},
-  mounted() {
-    // Delay chart rendering to ensure DOM is ready and data is properly initialized
-    this.$nextTick(() => {
-      setTimeout(() => {
-        this.chartsReady = true;
-      }, 300);
-    });
-  }
+}
 };
 </script>
 

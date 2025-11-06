@@ -174,13 +174,13 @@
                   How It Works
                 </div>
                 <div class="text-caption text-grey-4 q-mb-xs">
-                  <strong>Base:</strong> 1 pt = 0.5 Wh ≈ 5 mins
+                  <strong>Base:</strong> 1 pt = 0.1 Wh ≈ 1 min
                 </div>
                 <div class="text-caption text-grey-4 q-mb-xs">
                   <strong>Port:</strong> 5V × 2A = 10W
                 </div>
                 <div class="text-caption text-grey-4">
-                  <strong>Min:</strong> 10 points = 5 Wh ≈ 50 mins
+                  <strong>Min:</strong> 10 points = 1 Wh ≈ 10 mins
                 </div>
               </div>
 
@@ -229,7 +229,7 @@ export default {
   data() {
     return {
       convertAmount: '',
-      pointToWh: 0.5, // 1 point = 0.5 Wh
+      pointToWh: 0.1, // 1 point = 0.1 Wh (updated for 1 point = 1 minute)
       minutesPerWh: 10, // 1 Wh = 10 minutes at 10W
       
       conversionTable: [
@@ -237,8 +237,8 @@ export default {
           name: 'PET Bottle (290mL)',
           weight: '15g',
           points: '1',
-          energy: '0.5',
-          time: '5 mins',
+          energy: '0.1',
+          time: '1 min',
           icon: 'water_drop',
           color: 'blue'
         },
@@ -246,8 +246,8 @@ export default {
           name: 'Aluminum Can',
           weight: '7.5g',
           points: '1',
-          energy: '0.5',
-          time: '5 mins',
+          energy: '0.1',
+          time: '1 min',
           icon: 'sports_bar',
           color: 'grey-6'
         },
@@ -255,8 +255,8 @@ export default {
           name: 'Tin Can',
           weight: '15g',
           points: '1.5',
-          energy: '0.75',
-          time: '7.5 mins',
+          energy: '0.15',
+          time: '1.5 mins',
           icon: 'bento',
           color: 'brown'
         }

@@ -7,7 +7,15 @@ export default {
     user: (() => {
       try {
         const userStr = localStorage.getItem("user");
-        return userStr ? JSON.parse(userStr) : null;
+        const user = userStr ? JSON.parse(userStr) : null;
+        // Ensure user_type is in the user object if it exists separately
+        if (user && !user.user_type) {
+          const user_type = localStorage.getItem("user_type");
+          if (user_type) {
+            user.user_type = user_type;
+          }
+        }
+        return user;
       } catch {
         return null;
       }
@@ -242,7 +250,20 @@ export default {
         if (response.data.valid) {
           // Update user data if provided
           if (response.data.user) {
-            commit("SET_USER", response.data.user);
+            let user = response.data.user;
+            const user_type = response.data.user_type || user.user_type || localStorage.getItem("user_type");
+            
+            // Ensure user_type is in the user object
+            if (user_type && !user.user_type) {
+              user.user_type = user_type;
+            }
+            
+            commit("SET_USER", user);
+            
+            // Also update localStorage
+            if (user_type) {
+              localStorage.setItem("user_type", user_type);
+            }
           }
           return true;
         } else {
@@ -267,6 +288,11 @@ export default {
       if (userStr) {
         try {
           user = JSON.parse(userStr);
+          // Ensure user_type is in the user object
+          const user_type = localStorage.getItem("user_type");
+          if (user && user_type && !user.user_type) {
+            user.user_type = user_type;
+          }
         } catch (e) {
           user = null;
         }
