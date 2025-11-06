@@ -92,6 +92,18 @@ const routes = [
         meta: { requiresAuth: true }
       },
       {
+        path: "convert",
+        name: "patron-convert",
+        component: () => import("@/application/modules/patron/pages/ConvertPoints.vue"),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: "charging",
+        name: "patron-charging",
+        component: () => import("@/application/modules/patron/pages/ChargingSession.vue"),
+        meta: { requiresAuth: true }
+      },
+      {
         path: "profile",
         name: "patron-profile",
         component: () => import("@/application/modules/patron/pages/Profile.vue"),
@@ -123,14 +135,18 @@ const router = new Router({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  // Always prioritize localStorage for token check to survive HMR
+router.beforeEach(async (to, from, next) => {
+  // Always prioritize localStorage for token check
   const token = localStorage.getItem('token');
   const userType = localStorage.getItem('user_type');
   
   // If store is empty but localStorage has data, restore session
   if (token && !store.state.auth?.token) {
-    store.dispatch('auth/restoreSession');
+    try {
+      store.dispatch('auth/restoreSession');
+    } catch (error) {
+      console.error('Failed to restore session:', error);
+    }
   }
   
   // Treat kiosk_user as patron (they are the users who charge at kiosks)
@@ -144,9 +160,20 @@ router.beforeEach((to, from, next) => {
     // Redirect to login if not authenticated
     return next('/login');
   }
-
-  // Simple authentication check - just need a valid token
-  const isAuthenticated = !!token;
+  
+  // If user has token and accessing protected route, validate it
+  if (authRequired && token) {
+    // Only validate on first load or when coming from public page
+    const shouldValidate = !from.name || publicPages.includes(from.path);
+    
+    if (shouldValidate) {
+      const isValid = await store.dispatch('auth/validateToken');
+      if (!isValid) {
+        // Token is invalid, redirect to login
+        return next('/login');
+      }
+    }
+  }
   
   // If user is authenticated and on login page, redirect based on role
   if (token && publicPages.includes(to.path)) {

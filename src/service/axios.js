@@ -13,6 +13,11 @@ const http = axios.create({
   withCredentials: false,
 });
 
+// Configure axios with token from localStorage on initialization
+const token = localStorage.getItem('token');
+if (token) {
+  http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}
 
 http.interceptors.request.use(
   (config) => {
@@ -37,18 +42,23 @@ http.interceptors.request.use(
 http.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401)  {
-      // Clear all auth data
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('user_type');
-      localStorage.removeItem('is_first_login');
-      Cache.remove('token');
-      Cache.remove('user');
-      Cache.remove('user_type');
+    if (error.response && error.response.status === 401) {
+      // Only redirect to login if we're not already on login page
+      const currentPath = window.location.pathname;
       
-      // Redirect to login
-      window.location.href = '/login';
+      if (currentPath !== '/login' && currentPath !== '/register') {
+        // Clear all auth data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('user_type');
+        localStorage.removeItem('is_first_login');
+        Cache.remove('token');
+        Cache.remove('user');
+        Cache.remove('user_type');
+        
+        // Redirect to login
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error)
   }

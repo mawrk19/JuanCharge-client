@@ -4,8 +4,15 @@ import { Cache } from "@/service/cache";
 export default {
   namespaced: true,
   state: () => ({
-    user: null,
-    token: null,
+    user: (() => {
+      try {
+        const userStr = localStorage.getItem("user");
+        return userStr ? JSON.parse(userStr) : null;
+      } catch {
+        return null;
+      }
+    })(),
+    token: localStorage.getItem("token") || null,
   }),
   getters: {
     isAdmin: (state) => {
@@ -21,13 +28,47 @@ export default {
   mutations: {
     SET_USER(state, user) {
       state.user = user;
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+        Cache.set("user", user);
+      } else {
+        localStorage.removeItem("user");
+        Cache.remove("user");
+      }
     },
     SET_TOKEN(state, token) {
       state.token = token;
+      if (token) {
+        localStorage.setItem("token", token);
+        Cache.set("token", token);
+        // Set axios default header
+        http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      } else {
+        localStorage.removeItem("token");
+        Cache.remove("token");
+        delete http.defaults.headers.common['Authorization'];
+      }
     },
     CLEAR_AUTH(state) {
       state.user = null;
       state.token = null;
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("user_type");
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+      Cache.remove("token");
+      Cache.remove("user");
+      Cache.remove("user_type");
+      delete http.defaults.headers.common['Authorization'];
+    },
+    UPDATE_USER_POINTS(state, points) {
+      if (state.user) {
+        state.user.points_balance = points;
+        // Update localStorage as well
+        localStorage.setItem("user", JSON.stringify(state.user));
+        Cache.set("user", state.user);
+      }
     },
   },
   actions: {
@@ -180,16 +221,43 @@ export default {
     },
     
     async logout({ commit }) {
-      commit("CLEAR_AUTH");
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      localStorage.removeItem("user_type");
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("user");
-      Cache.remove("token");
-      Cache.remove("user");
-      Cache.remove("user_type");
+      try {
+        // Optional: Call backend logout endpoint
+        await http.post("/auth/logout").catch(() => {});
+      } catch (err) {
+        // Ignore logout errors
+      } finally {
+        commit("CLEAR_AUTH");
+      }
     },
+    
+    async validateToken({ commit, state }) {
+      if (!state.token) {
+        return false;
+      }
+      
+      try {
+        const response = await http.get("/auth/validate");
+        
+        if (response.data.valid) {
+          // Update user data if provided
+          if (response.data.user) {
+            commit("SET_USER", response.data.user);
+          }
+          return true;
+        } else {
+          // Token is invalid
+          commit("CLEAR_AUTH");
+          return false;
+        }
+      } catch (error) {
+        console.error('Token validation failed:', error);
+        // If validation fails, clear auth
+        commit("CLEAR_AUTH");
+        return false;
+      }
+    },
+    
     restoreSession({ commit }) {
       // Check localStorage for JWT token
       let token = localStorage.getItem("token");

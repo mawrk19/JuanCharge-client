@@ -39,13 +39,28 @@
     <!-- Page Content -->
     <q-page-container>
       <router-view />
+      
+      <!-- Charging Widget - Shows on all pages when session is active -->
+      <charging-widget />
     </q-page-container>
   </q-layout>
 </template>
 
 <script>
+import ChargingWidget from './components/ChargingWidget.vue';
+
 export default {
   name: "PatronLayout",
+  
+  components: {
+    ChargingWidget
+  },
+
+  mounted() {
+    // Restore any active session from localStorage on app load
+    this.$store.dispatch('patron/restoreSession');
+  },
+
   methods: {
     goToDashboard() {
       this.$router.push('/patron');
