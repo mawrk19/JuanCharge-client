@@ -293,7 +293,6 @@ export default {
   color: #ffffff;
   font-weight: 600;
 }
-</style>
 /* Make active drawer item label and icon blue, with a subtle active background */
 .q-drawer .q-item.q-item--active .q-item__section {
   color: #ffffff !important; /* blue - adjust as needed */

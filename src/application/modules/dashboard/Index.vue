@@ -19,14 +19,6 @@
           </div>
         </div>
         <div>
-          <q-btn
-            unelevated
-            color="green"
-            icon="add"
-            label="Add Station"
-            class="modern-btn"
-            @click="$router.push('main/kiosks/new')"
-          />
         </div>
       </div>
     </div>

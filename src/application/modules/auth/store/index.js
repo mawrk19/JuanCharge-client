@@ -7,6 +7,17 @@ export default {
     user: null,
     token: null,
   }),
+  getters: {
+    isAdmin: (state) => {
+      return state.user?.user_type === 'admin';
+    },
+    isLguUser: (state) => {
+      return state.user?.user_type === 'lgu';
+    },
+    userType: (state) => {
+      return state.user?.user_type || null;
+    },
+  },
   mutations: {
     SET_USER(state, user) {
       state.user = user;
@@ -75,6 +86,7 @@ export default {
         // Store in localStorage
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("user_type", user_type); // Add this for router guard
         
         // Also update Vuex state
         commit("SET_TOKEN", token);
@@ -109,6 +121,23 @@ export default {
           Cache.remove("user");
           Cache.remove("user_type");
         }
+        
+        return res;
+      } catch (err) {
+        throw err;
+      }
+    },
+
+    async register({ commit }, payload) {
+      try {
+        const res = await http.post("/auth/register", {
+          first_name: payload.firstName,
+          last_name: payload.lastName,
+          email: payload.email,
+          contact_number: payload.contactNumber,
+          password: payload.password,
+          password_confirmation: payload.passwordConfirmation
+        });
         
         return res;
       } catch (err) {
@@ -154,10 +183,12 @@ export default {
       commit("CLEAR_AUTH");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      localStorage.removeItem("user_type");
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
       Cache.remove("token");
       Cache.remove("user");
+      Cache.remove("user_type");
     },
     restoreSession({ commit }) {
       // Check localStorage for JWT token
