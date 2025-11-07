@@ -173,8 +173,8 @@
             @click="navigateTo('/main/kiosks-users')" 
             class="menu-item" 
             :class="{ 'active-menu-item': $route.path === '/main/kiosks-users' }"
-            <q-item-section avatar>
-            <q-item-section avatar>
+          >   
+      <q-item-section avatar>
               <q-icon name="person" />
             </q-item-section>
             <q-item-section>Patrons</q-item-section>
