@@ -2,11 +2,10 @@ import axios from 'axios';
 import { Cache } from './cache';
 
 // Get API base URL from environment variables
-// For production (Vercel), use variables without VITE_ prefix
-// For development, use VITE_ prefix
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 
-                   import.meta.env.API_BASE_URL || 
-                   '/api';
+// Vite only exposes variables with VITE_ prefix to client code
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
+
+console.log('🔧 API Base URL:', apiBaseUrl); // Debug log
 
 const http = axios.create({
   baseURL: apiBaseUrl,
