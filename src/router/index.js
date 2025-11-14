@@ -76,6 +76,12 @@ const routes = [
         component: () => import("@/application/modules/kiosks_user/Index.vue"),
         meta: { requiresAuth: true }
       },
+      {
+        path: "analytics",
+        name: "analytics",
+        component: () => import("@/application/modules/analytics/Index.vue"),
+        meta: { requiresAuth: true }
+      },
     ]
   },
   {
