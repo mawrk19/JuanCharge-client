@@ -179,6 +179,20 @@
             </q-item-section>
             <q-item-section>Patrons</q-item-section>
           </q-item>
+
+          <q-item 
+            clickable 
+            v-ripple="false" 
+            @click="navigateTo('/main/analytics')" 
+            class="menu-item" 
+            :class="{ 'active-menu-item': $route.path === '/main/analytics' }"
+          >
+            <q-item-section avatar>
+              <q-icon name="dashboard" />
+            </q-item-section>
+            <q-item-section>Analytics</q-item-section>
+          </q-item>
+
         </q-list>
       </q-scroll-area>
     </q-drawer>
