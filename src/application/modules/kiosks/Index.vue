@@ -21,14 +21,14 @@
     <q-card class="table-card">
       <q-card-section class="q-pa-none">
         <q-table
-          :data="kiosks"
+          :data="filteredKiosks"
           :columns="columns"
           row-key="id"
-          :pagination.sync="pagination"
-          :filter="filter"
+          v-model:pagination="pagination"
           :loading="kioskIsLoading"
           bordered
           class="modern-table"
+          :rows-per-page-options="[10, 25, 50, 100]"
         >
           <!-- No Data Slot -->
           <template v-slot:no-data>
@@ -58,24 +58,16 @@
                   dark
                   class="search-input"
                   style="min-width: 300px;"
+                  @input="filterKiosks"
                 >
                   <template v-slot:prepend>
                     <q-icon name="search" />
                   </template>
                   <template v-slot:append>
-                    <q-icon v-if="filter" name="close" @click="filter = ''" class="cursor-pointer" />
+                    <q-icon v-if="filter" name="close" @click="filter = ''; filterKiosks();" class="cursor-pointer" />
                   </template>
                 </q-input>
               </div>
-          </template>
-
-          <!-- ID Column -->
-          <template v-slot:body-cell-id="props">
-            <q-td :props="props">
-              <q-badge color="green" outline>
-                #{{ props.row.id }}
-              </q-badge>
-            </q-td>
           </template>
 
           <!-- Kiosk_Code Column -->
@@ -94,11 +86,8 @@
           <template v-slot:body-cell-status="props">
             <q-td :props="props">
               <q-badge
-                v-for="status in props.row.status"
-                :key="status"
-                :color="getStatusColor(status)"
-                :label="status"
-                class="q-mr-xs"
+                :color="getStatusColor(props.row.status)"
+                :label="props.row.status"
               />
             </q-td>
           </template>
@@ -367,6 +356,9 @@ export default {
       editingId: null,
       
       pagination: {
+        sortBy: 'kiosk_code',
+        descending: false,
+        page: 1,
         rowsPerPage: 10
       },
 
@@ -382,7 +374,7 @@ export default {
         notes: ''
       },
 
-      userOptions: [], // Will be populated with LGU users
+      userOptions: [],
 
       statusOptions: [
         { label: 'Active', value: 'active' },
@@ -391,13 +383,6 @@ export default {
       ],
 
       columns: [
-        {
-          name: 'id',
-          label: 'ID',
-          field: 'id',
-          align: 'left',
-          sortable: true
-        },
         {
           name: 'kiosk_code',
           label: 'Kiosk Code',
@@ -463,7 +448,8 @@ export default {
         }
       ],
 
-      kiosks: []
+      kiosks: [],
+      filteredKiosks: []
     };
   },
 
@@ -482,6 +468,27 @@ export default {
   },
 
   methods: {
+    filterKiosks() {
+      if (!this.filter) {
+        this.filteredKiosks = [...this.kiosks];
+        return;
+      }
+
+      const searchTerm = this.filter.toLowerCase();
+      this.filteredKiosks = this.kiosks.filter(kiosk => {
+        return (
+          kiosk.kiosk_code?.toLowerCase().includes(searchTerm) ||
+          kiosk.location?.toLowerCase().includes(searchTerm) ||
+          kiosk.status?.toLowerCase().includes(searchTerm) ||
+          kiosk.serial_number?.toLowerCase().includes(searchTerm) ||
+          kiosk.mac_address?.toLowerCase().includes(searchTerm) ||
+          kiosk.ip_address?.toLowerCase().includes(searchTerm) ||
+          kiosk.software_version?.toLowerCase().includes(searchTerm) ||
+          kiosk.assigned_to?.toLowerCase().includes(searchTerm)
+        );
+      });
+    },
+
     async loadUsers() {
       try {
         const response = await this.$store.dispatch('users/fetchUsers');
@@ -494,9 +501,10 @@ export default {
           }));
         }
       } catch (error) {
-        // console.error('Failed to load users:', error);
+        // Silent error
       }
     },
+
     async loadKiosks() {
       try {
         const response = await this.$store.dispatch('kiosks/fetchKiosks');
@@ -507,7 +515,7 @@ export default {
             id: kiosk.id,
             kiosk_code: kiosk.kiosk_code,
             location: kiosk.location,
-            status: [kiosk.status],
+            status: kiosk.status,
             serial_number: kiosk.serial_number,
             mac_address: kiosk.mac_address,
             ip_address: kiosk.ip_address,
@@ -516,6 +524,7 @@ export default {
             assigned_to_id: kiosk.assigned_to,
             notes: kiosk.notes
           }));
+          this.filteredKiosks = [...this.kiosks];
         }
       } catch (error) {
         this.$q.notify({
@@ -564,16 +573,12 @@ export default {
     async createKioskHandler() {
       this.saving = true;
       try {
-        // Prepare the data with correct field name for API
         const payload = {
-  ...this.kioskForm,
-  assigned_to: this.kioskForm.assigned_to, // Keep the same name used in backend
-};
+          ...this.kioskForm,
+          assigned_to: this.kioskForm.assigned_to,
+        };
 
-        
         const response = await this.$store.dispatch('kiosks/createKiosk', payload);
-        
-        // Handle different response structures
         const kioskData = response.data?.data || response.data || response;
         
         if (response.success !== false && kioskData) {
@@ -584,21 +589,22 @@ export default {
             position: 'top'
           });
 
-          // Add to local array with proper structure
-          this.kiosks.unshift({
+          const newKiosk = {
             id: kioskData.id,
             kiosk_code: kioskData.kiosk_code,
             location: kioskData.location,
-            status: [kioskData.status],
+            status: kioskData.status,
             serial_number: kioskData.serial_number,
             mac_address: kioskData.mac_address,
             ip_address: kioskData.ip_address,
             software_version: kioskData.software_version,
-            assigned_to: kioskData.assigned_to?.name || kioskData.assigned_to || '-',
+            assigned_to: kioskData.assigned_user_name || kioskData.assigned_to || '-',
             assigned_to_id: kioskData.assigned_to?.id || null,
             notes: kioskData.notes || ''
-          });
+          };
           
+          this.kiosks.unshift(newKiosk);
+          this.filterKiosks();
           this.showCreateDialog = false;
         }
       } catch (error) {
@@ -630,7 +636,7 @@ export default {
       this.kioskForm = {
         kiosk_code: kiosk.kiosk_code,
         location: kiosk.location,
-        status: kiosk.status[0],
+        status: kiosk.status,
         serial_number: kiosk.serial_number,
         mac_address: kiosk.mac_address,
         ip_address: kiosk.ip_address,
@@ -645,19 +651,16 @@ export default {
       this.saving = true;
       
       try {
-        // Prepare the data with correct field name for API
         const payload = {
-  ...this.kioskForm,
-  assigned_to: this.kioskForm.assigned_to, // Keep the same name used in backend
-};
+          ...this.kioskForm,
+          assigned_to: this.kioskForm.assigned_to,
+        };
 
-        
         const response = await this.$store.dispatch('kiosks/updateKiosk', {
           id: this.editingId,
           data: payload
         });
         
-        // Handle different response structures
         const kioskData = response.data?.data || response.data || response;
         
         if (response.success !== false && kioskData) {
@@ -668,24 +671,24 @@ export default {
             position: 'top'
           });
 
-          // Update the kiosk in the local array
           const index = this.kiosks.findIndex(k => k.id === this.editingId);
           if (index !== -1) {
             this.kiosks.splice(index, 1, {
               id: kioskData.id,
               kiosk_code: kioskData.kiosk_code,
               location: kioskData.location,
-              status: [kioskData.status],
+              status: kioskData.status,
               serial_number: kioskData.serial_number,
               mac_address: kioskData.mac_address,
               ip_address: kioskData.ip_address,
               software_version: kioskData.software_version,
-              assigned_to: kioskData.assigned_to?.name || kioskData.assigned_to || '-',
+              assigned_to: kioskData.assigned_user_name || kioskData.assigned_to || '-',
               assigned_to_id: kioskData.assigned_to?.id || null,
               notes: kioskData.notes || ''
             });
           }
 
+          this.filterKiosks();
           this.showCreateDialog = false;
           this.editingId = null;
         }
@@ -721,8 +724,9 @@ export default {
         dark: true
       }).onOk(async () => {
         try {
-          const response = await this.$store.dispatch('kiosks/deleteKiosk', kiosk.id);
+          await this.$store.dispatch('kiosks/deleteKiosk', kiosk.id);
           this.kiosks = this.kiosks.filter(k => k.id !== kiosk.id);
+          this.filterKiosks();
 
           this.$q.notify({
             color: 'green',

@@ -15,10 +15,21 @@
             Welcome {{ userName }}!
           </div>
           <div class="text-subtitle1 text-grey-5">
-            JuanCharge LGU Analytics
+            JuanCharge Analytics
           </div>
         </div>
-        <div>
+        <div class="row q-gutter-sm">
+          <!-- <q-btn
+            flat
+            round
+            icon="refresh"
+            color="grey-5"
+            @click="fetchAllData"
+            :loading="isLoading"
+            size="md"
+          >
+            <q-tooltip>Refresh Data</q-tooltip>
+          </q-btn> -->
           <q-btn
             unelevated
             color="green"
@@ -84,24 +95,25 @@
       </div>
     </div>
 
+    <!-- Accumulated Points Section -->
     <div class="q-mb-lg">
       <div class="section-header q-mb-md">
-        <q-icon name="restore_from_trash" size="28px" color="green" class="q-mr-sm" />
-        <span class="text-h5 text-white text-weight-bold">Collection Overview</span>
+        <q-icon name="stars" size="28px" color="green" class="q-mr-sm" />
+        <span class="text-h5 text-white text-weight-bold">Accumulated Points</span>
       </div>
       <div class="row q-col-gutter-md q-row-gutter-md">
         <div class="col-12 col-md-8 q-mb-md">
           <q-card class="analytics-chart-card">
             <q-card-section>
-              <div class="text-h6">Bin Collection Insights</div>
-              <div class="text-subtitle2 text-grey-7">Monthly kiosk bin collection for the past 6 months</div>
+              <div class="text-h6">Points Accumulation Trend</div>
+              <div class="text-subtitle2 text-grey-7">Total points earned over the past 6 months</div>
             </q-card-section>
             <q-card-section>
               <apexchart
                 type="area"
                 height="300"
-                :options="revenueChartOptions"
-                :series="revenueChartSeries"
+                :options="pointsChartOptions"
+                :series="pointsChartSeries"
               />
             </q-card-section>
           </q-card>
@@ -109,61 +121,99 @@
         <div class="col-12 col-md-4 q-mb-md">
           <q-card class="analytics-chart-card">
             <q-card-section>
-              <div class="text-h6">Kiosk Status</div>
-              <div class="text-subtitle2 text-grey-7"></div>
+              <div class="text-h6">Total Points Summary</div>
+              <div class="text-subtitle2 text-grey-7">Current points overview</div>
             </q-card-section>
             <q-card-section>
-              <apexchart
-                type="donut"
-                height="300"
-                :options="stationStatusChartOptions"
-                :series="stationStatusChartSeries"
-              />
+              <div class="points-summary">
+                <div class="summary-item">
+                  <div class="summary-label">Total Points</div>
+                  <div class="summary-value text-green">{{ formatNumber(pointsSummary.totalPoints) }} pts</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-label">Total Redeemed</div>
+                  <div class="summary-value text-orange">{{ formatNumber(pointsSummary.totalRedeemed) }} pts</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-label">Active Patrons</div>
+                  <div class="summary-value text-blue">{{ pointsSummary.activePatrons }}</div>
+                </div>
+              </div>
             </q-card-section>
           </q-card>
         </div>
       </div>
     </div>
 
+    <!-- Top Performing Patrons -->
     <div>
       <div class="section-header q-mb-md">
-        <q-icon name="electric_bolt" size="28px" color="green" class="q-mr-sm" />
-        <span class="text-h5 text-white text-weight-bold">Usage & Energy</span>
+        <q-icon name="emoji_events" size="28px" color="green" class="q-mr-sm" />
+        <span class="text-h5 text-white text-weight-bold">Top Performing Patrons</span>
       </div>
-      <div class="row q-col-gutter-md q-row-gutter-md">
-        <div class="col-12 col-md-6 q-mb-md">
-          <q-card class="analytics-chart-card">
-            <q-card-section>
-              <div class="text-h6">Daily Usage Patterns</div>
-              <div class="text-subtitle2 text-grey-7">Charging sessions by hour</div>
-            </q-card-section>
-            <q-card-section>
-              <apexchart
-                type="column"
-                height="300"
-                :options="usagePatternChartOptions"
-                :series="usagePatternChartSeries"
-              />
-            </q-card-section>
-          </q-card>
-        </div>
-        <div class="col-12 col-md-6 q-mb-md">
-          <q-card class="analytics-chart-card">
-            <q-card-section>
-              <div class="text-h6">Energy Consumption</div>
-              <div class="text-subtitle2 text-grey-7">kWh delivered this week</div>
-            </q-card-section>
-            <q-card-section>
-              <apexchart
-                type="line"
-                height="300"
-                :options="energyConsumptionChartOptions"
-                :series="energyConsumptionChartSeries"
-              />
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
+      <q-card class="analytics-chart-card">
+        <q-card-section>
+          <div class="text-h6 q-mb-md">Highest Point Earners</div>
+          
+          <div v-if="topPatrons.length === 0" class="text-center text-grey-6 q-py-xl">
+            <q-icon name="people_outline" size="48px" class="q-mb-md" />
+            <div>No patron data available</div>
+          </div>
+
+          <div v-else class="leaderboard-list">
+            <div
+              v-for="(patron, index) in topPatrons"
+              :key="patron.id"
+              class="leaderboard-item"
+              :class="{ 'top-three': index < 3 }"
+            >
+              <div class="row items-center no-wrap">
+                <!-- Rank Badge -->
+                <div class="rank-badge" :class="`rank-${index + 1}`">
+                  <q-icon 
+                    v-if="index === 0" 
+                    name="emoji_events" 
+                    size="24px" 
+                    color="amber"
+                  />
+                  <q-icon 
+                    v-else-if="index === 1" 
+                    name="emoji_events" 
+                    size="24px" 
+                    color="grey-5"
+                  />
+                  <q-icon 
+                    v-else-if="index === 2" 
+                    name="emoji_events" 
+                    size="24px" 
+                    color="orange"
+                  />
+                  <span v-else class="rank-number">{{ index + 1 }}</span>
+                </div>
+
+                <!-- Patron Avatar & Name -->
+                <q-avatar size="48px" color="green" text-color="white" class="q-ml-md">
+                  {{ getInitials(patron.name) }}
+                </q-avatar>
+                
+                <div class="col q-ml-md">
+                  <div class="patron-name">{{ patron.name }}</div>
+                  <div class="patron-subtitle">Rank #{{ index + 1 }}</div>
+                </div>
+
+                <!-- Points Badge -->
+                <q-badge 
+                  :color="index === 0 ? 'amber' : index === 1 ? 'grey-6' : index === 2 ? 'orange' : 'purple'" 
+                  class="points-badge"
+                >
+                  <q-icon name="stars" size="16px" class="q-mr-xs" />
+                  {{ formatNumber(patron.points) }} pts
+                </q-badge>
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
     </div>
   </q-page>
 </template>
@@ -179,16 +229,27 @@ export default {
   },
   data() {
     return {
-      patronsList: [], // Store patrons list here
+      lguUsersList: [],
+      kioskUsersList: [],
+      kiosksList: [],
+      chargingHistory: [],
+      topPatrons: [],
+      
       metrics: {
         totalUsers: 0,
         totalLguUsers: 0,
         totalPatrons: 0,
         totalKiosks: 0,
       },
+
+      pointsSummary: {
+        totalPoints: 0,
+        totalRedeemed: 0,
+        activePatrons: 0
+      },
       
-      // Revenue Chart Configuration
-      revenueChartOptions: {
+      // Points Accumulation Chart
+      pointsChartOptions: {
         chart: {
           type: 'area',
           toolbar: { show: false },
@@ -210,7 +271,7 @@ export default {
         dataLabels: { enabled: false },
         stroke: { curve: 'smooth', width: 2 },
         xaxis: {
-          categories: [ 'May', 'June', 'July', 'August', 'September', 'October', 'November']
+          categories: []
         },
         yaxis: {
           labels: {
@@ -219,110 +280,17 @@ export default {
         },
         tooltip: {
           y: {
-            formatter: (value) => `₱${value.toLocaleString()}`
+            formatter: (value) => `${value.toLocaleString()} pts`
           }
         }
       },
-      revenueChartSeries: [{
-        name: 'Bin Collection',
-        data: [10, 80, 30, 70, 50, 85, 90]
-      }],
-
-      // Station Status Chart
-      stationStatusChartOptions: {
-        chart: { 
-          type: 'donut',
-          background: 'transparent'
-        },
-        theme: {
-          mode: 'dark'
-        },
-        colors: ['#4caf50', '#ff9800', '#f44336', '#9e9e9e'],
-        labels: ['Online', 'Charging', 'Offline', 'Maintenance'],
-        legend: { position: 'bottom' },
-        plotOptions: {
-          pie: {
-            donut: {
-              labels: {
-                show: true,
-                total: {
-                  show: true,
-                  label: 'Total Kiosk'
-                }
-              }
-            }
-          }
-        }
-      },
-      stationStatusChartSeries: [0, 0, 0, 0],
-
-      // Usage Pattern Chart
-      usagePatternChartOptions: {
-        chart: {
-          type: 'column',
-          toolbar: { show: false },
-          background: 'transparent'
-        },
-        theme: {
-          mode: 'dark'
-        },
-        colors: ['#66bb6a'],
-        plotOptions: {
-          bar: {
-            borderRadius: 4,
-            columnWidth: '60%'
-          }
-        },
-        dataLabels: { enabled: false },
-        xaxis: {
-          categories: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00']
-        },
-        yaxis: {
-          title: { text: 'Sessions' }
-        }
-      },
-      usagePatternChartSeries: [{
-        name: 'Charging Sessions',
-        data: [12, 8, 35, 42, 38, 28]
-      }],
-
-      // Energy Consumption Chart
-      energyConsumptionChartOptions: {
-        chart: {
-          type: 'line',
-          toolbar: { show: false },
-          background: 'transparent'
-        },
-        theme: {
-          mode: 'dark'
-        },
-        colors: ['#81c784'],
-        stroke: { curve: 'smooth', width: 3 },
-        dataLabels: { enabled: false },
-        xaxis: {
-          categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-        },
-        yaxis: {
-          title: { text: 'Energy (kWh)' },
-          labels: {
-            formatter: (value) => `${(value / 1000).toFixed(1)}k`
-          }
-        },
-        markers: {
-          size: 5,
-          colors: ['#ff5722'],
-          strokeWidth: 2
-        }
-      },
-      energyConsumptionChartSeries: [{
-        name: 'Energy Delivered',
-        data: [8420, 9150, 8890, 9720, 9340, 7650, 6890]
+      pointsChartSeries: [{
+        name: 'Total Points',
+        data: []
       }],
 
       // Loading states
-      isLoadingKiosks: false,
-      isLoadingUsers: false,
-      isLoadingPatron: false,
+      isLoading: false,
     };
   },
   
@@ -331,202 +299,155 @@ export default {
       const user = this.$store.state.auth.user;
       if (!user) return '';
       return user.name || user.first_name || 'User';
-    },
-    
-    isLoading() {
-      return this.isLoadingKiosks || this.isLoadingUsers || this.isLoadingPatron;
     }
   },
 
   async mounted() {
-    console.log('Analytics mounted - starting data fetch...');
     await this.fetchAllData();
   },
 
   methods: {
+    getInitials(name) {
+      if (!name) return '?';
+      return name
+        .split(' ')
+        .map(word => word[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    },
+
+    formatNumber(num) {
+      if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + 'M';
+      } else if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'K';
+      }
+      return num.toLocaleString();
+    },
+
     async fetchAllData() {
+      if (this.isLoading) return;
+      
+      this.isLoading = true;
+
       try {
-        console.log('Fetching all data...');
-        
-        // Fetch all data in parallel
-        const results = await Promise.allSettled([
-          this.fetchKiosksData(),
-          this.fetchUsersData(),
-          this.fetchPatronData()
+        // Fetch all data in parallel for better performance
+        const [kiosksRes, lguUsersRes, kioskUsersRes, chargingRes] = await Promise.all([
+          http.get('/kiosks').catch(() => ({ data: [] })),
+          http.get('/lgu-users', { params: { per_page: 1000 } }).catch(() => ({ data: [] })),
+          http.get('/kiosk-users', { params: { per_page: 1000 } }).catch(() => ({ data: [] })),
+          http.get('/charging/history', { params: { per_page: 1000 } }).catch(() => ({ data: [] }))
         ]);
 
-        // Log results
-        results.forEach((result, index) => {
-          const names = ['Kiosks', 'Users', 'Patrons'];
-          if (result.status === 'fulfilled') {
-            console.log(`✅ ${names[index]} fetched successfully:`, result.value);
-          } else {
-            console.error(`❌ ${names[index]} failed:`, result.reason);
-          }
-        });
+        // Extract data
+        this.kiosksList = kiosksRes.data?.data || kiosksRes.data || [];
+        this.lguUsersList = lguUsersRes.data?.data || lguUsersRes.data || [];
+        this.kioskUsersList = kioskUsersRes.data?.data || kioskUsersRes.data || [];
+        this.chargingHistory = chargingRes.data?.data || chargingRes.data || [];
 
-        // Update metrics after all data is fetched
+        // Calculate all metrics
         this.updateMetrics();
-        
-        this.$q.notify({
-          type: 'positive',
-          message: 'Dashboard data loaded successfully',
-          position: 'top',
-          timeout: 2000
-        });
+        this.calculatePointsData();
+        this.calculateTopPerformers();
+
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         this.$q.notify({
           type: 'negative',
-          message: 'Failed to load dashboard data',
-          position: 'top'
+          message: 'Failed to load some dashboard data',
+          position: 'top',
+          timeout: 2000
         });
-      }
-    },
-
-    async fetchKiosksData() {
-      this.isLoadingKiosks = true;
-      try {
-        console.log('Dispatching kiosks/fetchKiosks...');
-        const response = await this.$store.dispatch('kiosks/fetchKiosks');
-        console.log('Kiosks response:', response);
-        console.log('Kiosks in store:', this.$store.state.kiosks.kiosks);
-        return response;
-      } catch (error) {
-        console.error('Error fetching kiosks:', error);
-        throw error;
       } finally {
-        this.isLoadingKiosks = false;
-      }
-    },
-
-    async fetchUsersData() {
-      this.isLoadingUsers = true;
-      try {
-        console.log('Dispatching users/fetchUsers...');
-        // Fetch with a large per_page to get all users, or use pagination total
-        const response = await this.$store.dispatch('users/fetchUsers', { 
-          page: 1, 
-          per_page: 1000 // Get all users
-        });
-        console.log('Users response:', response);
-        console.log('Users in store:', this.$store.state.users.users);
-        console.log('Users pagination:', this.$store.state.users.pagination);
-        return response;
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        throw error;
-      } finally {
-        this.isLoadingUsers = false;
-      }
-    },
-
-    async fetchPatronData() {
-      this.isLoadingPatron = true;
-      try {
-        console.log('Fetching patrons from API...');
-        
-        // Try multiple endpoints to find patrons
-        try {
-          // Try 1: Direct patrons endpoint
-          const { data } = await http.get('/patrons', {
-            params: { per_page: 1000 }
-          });
-          console.log('✅ Patrons from /patrons:', data);
-          this.patronsList = data.data || [];
-          return data;
-        } catch (err1) {
-          console.log('❌ /patrons not found, trying /kiosk-users with role filter...');
-          
-          try {
-            // Try 2: Kiosk users with role filter
-            const { data } = await http.get('/kiosk-users', {
-              params: { 
-                role: 'patron',
-                per_page: 1000 
-              }
-            });
-            console.log('✅ Patrons from /kiosk-users?role=patron:', data);
-            this.patronsList = data.data || [];
-            return data;
-          } catch (err2) {
-            console.log('❌ Role filter failed, fetching all kiosk-users and filtering...');
-            
-            // Try 3: Get all kiosk-users and filter by role
-            const { data } = await http.get('/kiosk-users', {
-              params: { per_page: 1000 }
-            });
-            console.log('All kiosk-users:', data);
-            
-            // Filter for patrons (users with role === 'patron')
-            const allUsers = data.data || [];
-            this.patronsList = allUsers.filter(user => 
-              user.role === 'patron' || user.role === 'Patron'
-            );
-            console.log('✅ Filtered patrons:', this.patronsList.length);
-            
-            return data;
-          }
-        }
-      } catch (error) {
-        console.error('❌ All patron fetch attempts failed:', error);
-        this.patronsList = [];
-        return null;
-      } finally {
-        this.isLoadingPatron = false;
+        this.isLoading = false;
       }
     },
 
     updateMetrics() {
-      console.log('=== Updating Metrics ===');
-      console.log('Full Store State:', {
-        kiosks: this.$store.state.kiosks,
-        users: this.$store.state.users,
-        patron: this.$store.state.patron
-      });
-
-      // Get data from Vuex store - using correct state property names
-      const kiosks = this.$store.state.kiosks?.kiosks || [];
-      const users = this.$store.state.users?.users || [];
-      const usersPagination = this.$store.state.users?.pagination || {};
-      const patrons = this.patronsList || [];
-
-      console.log('Extracted data counts:', { 
-        kiosks: kiosks.length, 
-        users: users.length,
-        usersPagination: usersPagination,
-        patrons: patrons.length 
-      });
-
-      // 1. Total Kiosks
-      this.metrics.totalKiosks = kiosks.length;
-
-      // 2. Total LGU Users - use pagination total if available, otherwise use array length
-      this.metrics.totalLguUsers = usersPagination.total || users.length;
-
-      // 3. Total Patrons
-      this.metrics.totalPatrons = patrons.length;
-
-      // 4. Total Users (LGU Users + Patrons)
+      this.metrics.totalKiosks = this.kiosksList.length;
+      this.metrics.totalLguUsers = this.lguUsersList.length;
+      this.metrics.totalPatrons = this.kioskUsersList.length;
       this.metrics.totalUsers = this.metrics.totalLguUsers + this.metrics.totalPatrons;
+    },
 
-      console.log('✅ Updated Metrics:', this.metrics);
+    calculatePointsData() {
+      // Calculate total points from all patrons
+      let totalPoints = 0;
+      let activePatrons = 0;
+      
+      this.kioskUsersList.forEach(user => {
+        const points = parseFloat(user.points_balance || 0);
+        totalPoints += points;
+        if (points > 0) {
+          activePatrons++;
+        }
+      });
 
-      // Update Station Status Chart
-      const active = kiosks.filter(k => k.status === 'active').length;
-      const inactive = kiosks.filter(k => k.status === 'inactive').length;
-      const maintenance = kiosks.filter(k => k.status === 'maintenance').length;
-      const offline = kiosks.filter(k => k.status === 'offline').length;
+      // Calculate total points redeemed from charging history
+      let totalRedeemed = 0;
+      this.chargingHistory.forEach(session => {
+        totalRedeemed += parseFloat(session.points_redeemed || 0);
+      });
 
-      this.stationStatusChartSeries = [
-        active,           // Online
-        0,                // Charging
-        offline,          // Offline
-        maintenance       // Maintenance
-      ];
+      // Update points summary
+      this.pointsSummary = {
+        totalPoints: Math.round(totalPoints),
+        totalRedeemed: Math.round(totalRedeemed),
+        activePatrons: activePatrons
+      };
 
-      console.log('✅ Updated Chart Series:', this.stationStatusChartSeries);
-      console.log('=== Metrics Update Complete ===');
+      // Calculate monthly points accumulation
+      const monthlyPoints = {};
+      const now = new Date();
+      
+      // Initialize last 7 months
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = date.toLocaleString('default', { month: 'short' });
+        monthlyPoints[key] = 0;
+      }
+
+      // Aggregate points by month (cumulative)
+      this.kioskUsersList.forEach(user => {
+        const createdDate = new Date(user.created_at);
+        const monthKey = createdDate.toLocaleString('default', { month: 'short' });
+        const points = parseFloat(user.points_balance || 0);
+        
+        let foundMonth = false;
+        Object.keys(monthlyPoints).forEach(month => {
+          if (month === monthKey) foundMonth = true;
+          if (foundMonth) {
+            monthlyPoints[month] += points;
+          }
+        });
+      });
+
+      // Update chart
+      const categories = Object.keys(monthlyPoints);
+      const data = Object.values(monthlyPoints).map(val => Math.round(val));
+      
+      this.pointsChartOptions.xaxis.categories = categories;
+      this.pointsChartSeries = [{
+        name: 'Total Points',
+        data: data
+      }];
+    },
+
+    calculateTopPerformers() {
+      // Sort patrons by points balance and get top 10
+      const sortedPatrons = [...this.kioskUsersList]
+        .filter(user => user.points_balance > 0)
+        .sort((a, b) => (b.points_balance || 0) - (a.points_balance || 0))
+        .slice(0, 10);
+
+      this.topPatrons = sortedPatrons.map(user => ({
+        id: user.id,
+        name: user.first_name && user.last_name 
+          ? `${user.first_name} ${user.last_name}` 
+          : user.name || 'Unknown User',
+        points: Math.round(user.points_balance || 0)
+      }));
     },
   }
 };
@@ -537,10 +458,9 @@ export default {
   background: linear-gradient(135deg, #0a0f0d 0%, #142221 50%, #1a2c28 100%);
   min-height: 100vh;
   position: relative;
-  overflow: hidden;
 }
 
-/* Animated Background Blobs */
+/* Animated Background Blobs - Optimized */
 .animated-bg {
   position: fixed;
   top: 0;
@@ -555,36 +475,37 @@ export default {
 .blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.2;
-  animation: float 25s infinite ease-in-out;
+  filter: blur(80px);
+  opacity: 0.15;
+  animation: float 20s infinite ease-in-out;
+  will-change: transform;
 }
 
 .blob-1 {
-  width: 500px;
-  height: 500px;
+  width: 400px;
+  height: 400px;
   background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
-  top: -250px;
-  left: -250px;
+  top: -200px;
+  left: -200px;
   animation-delay: 0s;
 }
 
 .blob-2 {
-  width: 400px;
-  height: 400px;
+  width: 350px;
+  height: 350px;
   background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
-  bottom: -200px;
-  right: -200px;
-  animation-delay: 8s;
+  bottom: -175px;
+  right: -175px;
+  animation-delay: 7s;
 }
 
 .blob-3 {
-  width: 350px;
-  height: 350px;
+  width: 300px;
+  height: 300px;
   background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
-  top: 40%;
-  right: 10%;
-  animation-delay: 16s;
+  top: 50%;
+  right: 15%;
+  animation-delay: 14s;
 }
 
 @keyframes float {
@@ -592,10 +513,10 @@ export default {
     transform: translate(0, 0) scale(1);
   }
   33% {
-    transform: translate(50px, -80px) scale(1.15);
+    transform: translate(30px, -50px) scale(1.1);
   }
   66% {
-    transform: translate(-30px, 50px) scale(0.9);
+    transform: translate(-20px, 30px) scale(0.95);
   }
 }
 
@@ -662,6 +583,125 @@ export default {
 
 .analytics-chart-card >>> .text-subtitle2 {
   color: rgba(255, 255, 255, 0.6);
+}
+
+/* Points Summary */
+.points-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px 0;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.summary-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Leaderboard List */
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.leaderboard-item {
+  background: rgba(30, 30, 30, 0.6);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.leaderboard-item:hover {
+  background: rgba(40, 40, 40, 0.8);
+  border-color: rgba(76, 175, 80, 0.4);
+  transform: translateX(8px);
+}
+
+.leaderboard-item.top-three {
+  border-width: 2px;
+}
+
+.leaderboard-item.top-three:nth-child(1) {
+  border-color: rgba(255, 193, 7, 0.6);
+  background: rgba(255, 193, 7, 0.08);
+}
+
+.leaderboard-item.top-three:nth-child(2) {
+  border-color: rgba(158, 158, 158, 0.6);
+  background: rgba(158, 158, 158, 0.08);
+}
+
+.leaderboard-item.top-three:nth-child(3) {
+  border-color: rgba(255, 152, 0, 0.6);
+  background: rgba(255, 152, 0, 0.08);
+}
+
+.rank-badge {
+  min-width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(76, 175, 80, 0.2);
+  border: 2px solid rgba(76, 175, 80, 0.3);
+}
+
+.rank-badge.rank-1 {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.5);
+}
+
+.rank-badge.rank-2 {
+  background: rgba(158, 158, 158, 0.2);
+  border-color: rgba(158, 158, 158, 0.5);
+}
+
+.rank-badge.rank-3 {
+  background: rgba(255, 152, 0, 0.2);
+  border-color: rgba(255, 152, 0, 0.5);
+}
+
+.rank-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.patron-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.patron-subtitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.points-badge {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 20px;
 }
 
 /* Responsive */
