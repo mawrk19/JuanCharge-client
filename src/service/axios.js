@@ -1,8 +1,12 @@
 import axios from 'axios';
 import { Cache } from './cache';
 
-// Base URL for API
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.API_BASE_URL || '/api';
+// Get API base URL from environment variables
+// Vite only exposes variables with VITE_ prefix to client code
+const apiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.API_BASE_URL ||
+  '/api';
 
 // Create Axios instance
 const http = axios.create({
