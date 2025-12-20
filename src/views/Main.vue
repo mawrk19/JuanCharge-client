@@ -76,13 +76,14 @@
         <!-- Account Button -->
         <q-btn flat round dense icon="account_circle" class="tw-ml-2">
           <q-menu>
+            <q-list style="min-width: 150px">
               <q-item clickable v-close-popup @click="$router.push('/main/settings')">
                 <q-item-section avatar>
                   <q-icon name="settings" />
                 </q-item-section>
                 <q-item-section>Settings</q-item-section>
               </q-item>
-            <q-list style="min-width: 150px">
+              
               <q-item clickable v-close-popup @click="logout">
                 <q-item-section avatar>
                   <q-icon name="logout" />
@@ -105,62 +106,95 @@
       style="background-color: #142221;"
       class="text-white"
     >
-      <q-list style="background-color: #142221; height: 100vh;">
-        <q-item clickable v-ripple="false" @click="$router.push('/main/dashboard')"  class="menu-item q-pa-sm" :class="{ 'active-menu-item': $route.path === '/main/dashboard' }">
-          <q-item-section avatar>
-            <q-icon name="ev_station" />
-          </q-item-section>
-          <q-item-section>Dashboard</q-item-section>
-        </q-item>
+      <q-scroll-area style="height: 100vh; background-color: #142221;">
+        <div style="background-color: #142221; padding: 16px; text-align: center;">
+          <img src="/image/logo.png" alt="JuanCharge Logo" style="width: 140px; height: auto; display: block; margin: 0 auto;" />
+          <h4>JuanCharge</h4>
+        </div>
 
-        <q-item clickable v-ripple="false" @click="$router.push('/main/map')" class="menu-item":class="{ 'active-menu-item': $route.path === '/main/map' }">
-          <q-item-section avatar>
-            <q-icon name="analytics" />
-          </q-item-section>
-          <q-item-section>Map</q-item-section>
-        </q-item>
-
-        <q-item clickable v-ripple="false" @click="$router.push('/main/users')" class="menu-item" :class="{ 'active-menu-item': $route.path === '/main/users' }">
-          <q-item-section avatar>
-            <q-icon name="people" />
-          </q-item-section>
-          <q-item-section>Users</q-item-section>
-        </q-item>
-
-        <q-item clickable v-ripple="false" @click="$router.push('/main/kiosks')" class="menu-item" :class="{ 'active-menu-item': $route.path === '/main/kiosks' }">
-          <q-item-section avatar>
-            <q-icon name="ev_station" />
-          </q-item-section>
-          <q-item-section>Kiosks</q-item-section>
-        </q-item>
-
-        <!-- Admin-only sections -->
-        <template v-if="isAdmin">
+        <q-list style="background-color: #142221;">
           <q-item 
             clickable 
-            v-ripple 
-            @click="$router.push('/main/users')"
-            :active="$route.path === '/main/users'"
+            v-ripple="false" 
+            @click="navigateTo('/main/dashboard')" 
+            class="menu-item" 
+            :class="{ 'active-menu-item': $route.path === '/main/dashboard' }"
+          >
+            <q-item-section avatar>
+              <q-icon name="dashboard" />
+            </q-item-section>
+            <q-item-section>Dashboard</q-item-section>
+          </q-item>
+
+          <q-item 
+            clickable 
+            v-ripple="false" 
+            @click="navigateTo('/main/map')" 
+            class="menu-item" 
+            :class="{ 'active-menu-item': $route.path === '/main/map' }"
+          >
+            <q-item-section avatar>
+              <q-icon name="analytics" />
+            </q-item-section>
+            <q-item-section>Map</q-item-section>
+          </q-item>
+
+          <q-item 
+            clickable 
+            v-ripple="false" 
+            @click="navigateTo('/main/users')" 
+            class="menu-item" 
+            :class="{ 'active-menu-item': $route.path === '/main/users' }"
           >
             <q-item-section avatar>
               <q-icon name="people" />
             </q-item-section>
-            <q-item-section>Users</q-item-section>
+            <q-item-section>LGU Users</q-item-section>
           </q-item>
 
           <q-item 
             clickable 
-            v-ripple 
-            @click="$router.push('/main/kiosks-users')"
-            :active="$route.path === '/main/kiosks-users'"
+            v-ripple="false" 
+            @click="navigateTo('/main/kiosks')" 
+            class="menu-item" 
+            :class="{ 'active-menu-item': $route.path === '/main/kiosks' }"
           >
             <q-item-section avatar>
+              <q-icon name="ev_station" />
+            </q-item-section>
+            <q-item-section>Kiosks</q-item-section>
+          </q-item>
+
+          <!-- Admin-only Patrons section -->
+          <q-item 
+            v-if="isAdmin"
+            clickable 
+            v-ripple="false" 
+            @click="navigateTo('/main/kiosks-users')" 
+            class="menu-item" 
+            :class="{ 'active-menu-item': $route.path === '/main/kiosks-users' }"
+          >   
+      <q-item-section avatar>
               <q-icon name="person" />
             </q-item-section>
-            <q-item-section>Kiosk Users</q-item-section>
+            <q-item-section>Patrons</q-item-section>
           </q-item>
-        </template>
-      </q-list>
+
+          <q-item 
+            clickable 
+            v-ripple="false" 
+            @click="navigateTo('/main/analytics')" 
+            class="menu-item" 
+            :class="{ 'active-menu-item': $route.path === '/main/analytics' }"
+          >
+            <q-item-section avatar>
+              <q-icon name="dashboard" />
+            </q-item-section>
+            <q-item-section>Analytics</q-item-section>
+          </q-item>
+
+        </q-list>
+      </q-scroll-area>
     </q-drawer>
 
     <!-- Page content -->
@@ -227,7 +261,8 @@ export default {
       return this.$store.getters['auth/isAdmin'];
     },
     userType() {
-      return this.$store.state.auth.userType || 'admin';
+      // Get user_type from the user object or from the getter
+      return this.$store.getters['auth/userType'] || this.$store.state.auth.user?.user_type || 'admin';
     },
     userName() {
       return this.$store.state.auth.user?.name || 'User';
@@ -239,6 +274,17 @@ export default {
   methods: {
     toggleMini () {
       this.miniState = !this.miniState
+    },
+    navigateTo(path) {
+      // Avoid navigation to the same route
+      if (this.$route.path !== path) {
+        this.$router.push(path).catch(err => {
+          // Silently catch navigation errors (like duplicate navigation)
+          if (err.name !== 'NavigationDuplicated') {
+            console.error('Navigation error:', err);
+          }
+        });
+      }
     },
     async logout() {
       await this.$store.dispatch('auth/logout');

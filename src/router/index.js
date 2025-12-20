@@ -22,6 +22,16 @@ const routes = [
     component: () => import("@/application/modules/auth/pages/Register.vue"),
   },
   {
+    path: "/forgot-password",
+    name: "forgot-password",
+    component: () => import("@/application/modules/auth/pages/ForgotPassword.vue"),
+  },
+  {
+    path: "/reset-password",
+    name: "reset-password",
+    component: () => import("@/application/modules/auth/pages/ResetPassword.vue"),
+  },
+  {
     path: "/main",
     component: () => import("@/views/Main.vue"),
     meta: { requiresAuth: true },
@@ -66,6 +76,12 @@ const routes = [
         component: () => import("@/application/modules/kiosks_user/Index.vue"),
         meta: { requiresAuth: true }
       },
+      {
+        path: "analytics",
+        name: "analytics",
+        component: () => import("@/application/modules/analytics/Index.vue"),
+        meta: { requiresAuth: true }
+      },
     ]
   },
   {
@@ -89,6 +105,18 @@ const routes = [
         path: "achievements",
         name: "patron-achievements",
         component: () => import("@/application/modules/patron/pages/Achievements.vue"),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: "convert",
+        name: "patron-convert",
+        component: () => import("@/application/modules/patron/pages/ConvertPoints.vue"),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: "charging",
+        name: "patron-charging",
+        component: () => import("@/application/modules/patron/pages/ChargingSession.vue"),
         meta: { requiresAuth: true }
       },
       {
@@ -123,30 +151,45 @@ const router = new Router({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  // Always prioritize localStorage for token check to survive HMR
+router.beforeEach(async (to, from, next) => {
+  // Always prioritize localStorage for token check
   const token = localStorage.getItem('token');
   const userType = localStorage.getItem('user_type');
   
   // If store is empty but localStorage has data, restore session
   if (token && !store.state.auth?.token) {
-    store.dispatch('auth/restoreSession');
+    try {
+      store.dispatch('auth/restoreSession');
+    } catch (error) {
+      console.error('Failed to restore session:', error);
+    }
   }
   
   // Treat kiosk_user as patron (they are the users who charge at kiosks)
   const isPatron = userType === 'patron' || userType === 'kiosk_user';
   
-  // Public routes
-  const publicPages = ['/login', '/register'];
+  // Public routes (accessible without authentication)
+  const publicPages = ['/login', '/register', '/forgot-password', '/reset-password'];
   const authRequired = !publicPages.includes(to.path);
   
   if (authRequired && !token) {
     // Redirect to login if not authenticated
     return next('/login');
   }
-
-  // Simple authentication check - just need a valid token
-  const isAuthenticated = !!token;
+  
+  // If user has token and accessing protected route, validate it
+  if (authRequired && token) {
+    // Only validate on first load or when coming from public page
+    const shouldValidate = !from.name || publicPages.includes(from.path);
+    
+    if (shouldValidate) {
+      const isValid = await store.dispatch('auth/validateToken');
+      if (!isValid) {
+        // Token is invalid, redirect to login
+        return next('/login');
+      }
+    }
+  }
   
   // If user is authenticated and on login page, redirect based on role
   if (token && publicPages.includes(to.path)) {

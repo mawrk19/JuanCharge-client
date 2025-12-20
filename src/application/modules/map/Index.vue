@@ -447,7 +447,7 @@ export default {
           });
         }
       } catch (error) {
-        console.error('Error loading kiosks:', error);
+        // console.error('Error loading kiosks:', error);
         this.$q.notify({
           color: 'red',
           message: 'Failed to load kiosks',
@@ -560,7 +560,7 @@ export default {
     },
 
     onMapReady() {
-      console.log('Map is ready');
+      // console.log('Map is ready');
     },
     
     filterStations() {
@@ -660,7 +660,7 @@ export default {
             });
           },
           (error) => {
-            console.error('Error getting location:', error);
+            // console.error('Error getting location:', error);
             this.locating = false;
             this.$q.notify({
               color: 'negative',

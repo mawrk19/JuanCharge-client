@@ -12,13 +12,21 @@
       <div class="row items-center justify-between">
         <div>
           <div class="text-h4 text-white text-weight-bold q-mb-xs">
-            Welcome Back!
+            Welcome {{ userName }}!
           </div>
           <div class="text-subtitle1 text-grey-5">
             JuanCharge LGU Dashboard
           </div>
         </div>
         <div>
+          <q-btn
+            unelevated
+            color="green"
+            icon="add"
+            label="Add Station"
+            class="modern-btn"
+            @click="$router.push('../main/kiosks')"
+          />
         </div>
       </div>
     </div>
@@ -33,7 +41,7 @@
           <DashboardCard
             title="Collected"
             subtitle="Total Recyclable"
-            :value="metrics.garbageCollected"
+            :value="garbageCollected"
             icon="recycling"
             iconColor="white"
             format="weight"
@@ -43,12 +51,12 @@
         </div>
         <div class="col-12 col-sm-6 col-md-3 q-mb-md">
           <DashboardCard
-            title="Charging Time"
-            subtitle="Dispensed"
-            :value="metrics.chargingTime"
+            title="Energy Dispensed"
+            subtitle="Total kWh"
+            :value="energyDispensed"
             icon="charging_station"
             iconColor="white"
-            format="minutes"
+            format="kwh"
             change="+8.5% from last month"
             changeType="positive"
           />
@@ -57,7 +65,7 @@
           <DashboardCard
             title="Online"
             subtitle="JuanCharge Kiosk"
-            :value="metrics.onlineKiosk"
+            :value="onlineKiosks"
             icon="podcasts"
             iconColor="white"
             change="Uptime: 120 hrs"
@@ -66,253 +74,103 @@
         </div>
         <div class="col-12 col-sm-6 col-md-3 q-mb-md">
           <DashboardCard
-            title="Charge Capacity"
-            subtitle="Battery Status"
-            :value="metrics.chargeCapacity"
-            icon="battery_charging_full"
+            title="CO2 Saved"
+            subtitle="Environmental Impact"
+            :value="co2Saved"
+            icon="eco"
             iconColor="white"
-            format="percentage"
-            change="Last Full: 4 days ago"
+            format="weight"
+            change="Equivalent to 12 trees"
             changeType="positive"
           />
         </div>
       </div>
     </div>
 
+    <!-- Recent Activity & Quick Actions -->
     <div class="q-mb-lg">
-      <div class="section-header q-mb-md">
-        <q-icon name="bar_chart" size="28px" color="green" class="q-mr-sm" />
-        <span class="text-h5 text-white text-weight-bold">Revenue Overview</span>
-      </div>
-      <div class="row q-col-gutter-md q-row-gutter-md">
-        <div class="col-12 col-md-8 q-mb-md">
-          <q-card class="dashboard-chart-card">
-            <q-card-section>
-              <div class="text-h6">Revenue Overview</div>
-              <div class="text-subtitle2 text-grey-7">Monthly revenue for the past 6 months</div>
-            </q-card-section>
-            <q-card-section>
-              <apexchart
-                type="area"
-                height="300"
-                :options="revenueChartOptions"
-                :series="revenueChartSeries"
-              />
-            </q-card-section>
-          </q-card>
+      <div class="row q-col-gutter-md">
+        <div class="col-12 col-md-8">
+          <RecentActivityFeed />
         </div>
-        <div class="col-12 col-md-4 q-mb-md">
-          <q-card class="dashboard-chart-card">
-            <q-card-section>
-              <div class="text-h6">Station Status</div>
-              <div class="text-subtitle2 text-grey-7">Current station distribution</div>
-            </q-card-section>
-            <q-card-section>
-              <apexchart
-                type="donut"
-                height="300"
-                :options="stationStatusChartOptions"
-                :series="stationStatusChartSeries"
-              />
-            </q-card-section>
-          </q-card>
+        <div class="col-12 col-md-4">
+          <QuickActions />
         </div>
       </div>
     </div>
 
+    <!-- Kiosk Network Status -->
     <div>
-      <div class="section-header q-mb-md">
-        <q-icon name="electric_bolt" size="28px" color="green" class="q-mr-sm" />
-        <span class="text-h5 text-white text-weight-bold">Usage & Energy</span>
-      </div>
-      <div class="row q-col-gutter-md q-row-gutter-md">
-        <div class="col-12 col-md-6 q-mb-md">
-          <q-card class="dashboard-chart-card">
-            <q-card-section>
-              <div class="text-h6">Daily Usage Patterns</div>
-              <div class="text-subtitle2 text-grey-7">Charging sessions by hour</div>
-            </q-card-section>
-            <q-card-section>
-              <apexchart
-                type="column"
-                height="300"
-                :options="usagePatternChartOptions"
-                :series="usagePatternChartSeries"
-              />
-            </q-card-section>
-          </q-card>
-        </div>
-        <div class="col-12 col-md-6 q-mb-md">
-          <q-card class="dashboard-chart-card">
-            <q-card-section>
-              <div class="text-h6">Energy Consumption</div>
-              <div class="text-subtitle2 text-grey-7">kWh delivered this week</div>
-            </q-card-section>
-            <q-card-section>
-              <apexchart
-                type="line"
-                height="300"
-                :options="energyConsumptionChartOptions"
-                :series="energyConsumptionChartSeries"
-              />
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
+      <KioskStatusList />
     </div>
   </q-page>
 </template>
 
 <script>
 import DashboardCard from "./components/DashboardCard.vue";
+import QuickActions from "./components/QuickActions.vue";
+import RecentActivityFeed from "./components/RecentActivityFeed.vue";
+import KioskStatusList from "./components/KioskStatusList.vue";
 
 export default {
   name: "Dashboard",
   components: {
-    DashboardCard
+    DashboardCard,
+    QuickActions,
+    RecentActivityFeed,
+    KioskStatusList
   },
   data() {
-    return {
-      metrics: {
-        garbageCollected: 120,
-        chargingTime: 314,
-        onlineKiosk: 1,
-        chargeCapacity: 74.5,
-      },
-      
-      // Revenue Chart Configuration
-      revenueChartOptions: {
-        chart: {
-          type: 'area',
-          toolbar: { show: false },
-          fontFamily: 'inherit',
-          background: 'transparent'
-        },
-        colors: ['#4caf50'],
-        theme: {
-          mode: 'dark'
-        },
-        fill: {
-          type: 'gradient',
-          gradient: {
-            shadeIntensity: 1,
-            opacityFrom: 0.7,
-            opacityTo: 0.3,
-          }
-        },
-        dataLabels: { enabled: false },
-        stroke: { curve: 'smooth', width: 2 },
-        xaxis: {
-          categories: ['July', 'August', 'September', 'October', 'November', 'December']
-        },
-        yaxis: {
-          labels: {
-            formatter: (value) => `${(value / 1000).toFixed(0)}k`
-          }
-        },
-        tooltip: {
-          y: {
-            formatter: (value) => `₱${value.toLocaleString()}`
-          }
-        }
-      },
-      revenueChartSeries: [{
-        name: 'Revenue',
-        data: [38500, 42100, 39800, 45200, 47300, 45280]
-      }],
-
-      // Station Status Chart
-      stationStatusChartOptions: {
-        chart: { 
-          type: 'donut',
-          background: 'transparent'
-        },
-        theme: {
-          mode: 'dark'
-        },
-        colors: ['#4caf50', '#ff9800', '#f44336', '#9e9e9e'],
-        labels: ['Online', 'Charging', 'Offline', 'Maintenance'],
-        legend: { position: 'bottom' },
-        plotOptions: {
-          pie: {
-            donut: {
-              labels: {
-                show: true,
-                total: {
-                  show: true,
-                  label: 'Total Stations'
-                }
-              }
-            }
-          }
-        }
-      },
-      stationStatusChartSeries: [186, 48, 12, 8],
-
-      // Usage Pattern Chart
-      usagePatternChartOptions: {
-        chart: {
-          type: 'column',
-          toolbar: { show: false },
-          background: 'transparent'
-        },
-        theme: {
-          mode: 'dark'
-        },
-        colors: ['#66bb6a'],
-        plotOptions: {
-          bar: {
-            borderRadius: 4,
-            columnWidth: '60%'
-          }
-        },
-        dataLabels: { enabled: false },
-        xaxis: {
-          categories: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00']
-        },
-        yaxis: {
-          title: { text: 'Sessions' }
-        }
-      },
-      usagePatternChartSeries: [{
-        name: 'Charging Sessions',
-        data: [12, 8, 35, 42, 38, 28]
-      }],
-
-      // Energy Consumption Chart
-      energyConsumptionChartOptions: {
-        chart: {
-          type: 'line',
-          toolbar: { show: false },
-          background: 'transparent'
-        },
-        theme: {
-          mode: 'dark'
-        },
-        colors: ['#81c784'],
-        stroke: { curve: 'smooth', width: 3 },
-        dataLabels: { enabled: false },
-        xaxis: {
-          categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-        },
-        yaxis: {
-          title: { text: 'Energy (kWh)' },
-          labels: {
-            formatter: (value) => `${(value / 1000).toFixed(1)}k`
-          }
-        },
-        markers: {
-          size: 5,
-          colors: ['#ff5722'],
-          strokeWidth: 2
-        }
-      },
-      energyConsumptionChartSeries: [{
-        name: 'Energy Delivered',
-        data: [8420, 9150, 8890, 9720, 9340, 7650, 6890]
-      }]
-    };
-  }
+    return {};
+  },
+  computed: {
+    userName() {
+      const user = this.$store.state.auth.user;
+      if (!user) return '';
+      return user.name || user.first_name || 'User';
+    },
+    
+    // Dashboard Stats from Analytics Store
+    dashboardStats() {
+      return this.$store.state.analytics.stats || {};
+    },
+    
+    // Recyclables Collected (kg)
+    garbageCollected() {
+      return this.dashboardStats.total_recyclables_kg || 0;
+    },
+    
+    // Energy Dispensed (kWh)
+    energyDispensed() {
+      const kwh = this.dashboardStats.total_energy_kwh || 0;
+      return parseFloat(kwh.toFixed(1));
+    },
+    
+    // CO2 Saved (kg) - Using standard conversion: 1 kWh = 0.5 kg CO2 saved
+    co2Saved() {
+      const co2 = this.dashboardStats.co2_saved_kg || (this.energyDispensed * 0.5);
+      return parseFloat(co2.toFixed(1));
+    },
+    
+    // Online Kiosks Count
+    onlineKiosks() {
+      // Use backend-provided count if available, otherwise fallback to filtering
+      if (this.dashboardStats.online_kiosks_count !== undefined) {
+        return this.dashboardStats.online_kiosks_count;
+      }
+      const kiosks = this.$store.state.kiosks.kiosks || [];
+      return kiosks.filter(k => k.status === 'online' || k.is_online).length;
+    }
+  },
+  
+  async mounted() {
+    // Fetch dashboard stats from backend
+    try {
+      await this.$store.dispatch('analytics/fetchStats');
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error);
+    }
+  },
 };
 </script>
 

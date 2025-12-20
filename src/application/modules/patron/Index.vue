@@ -9,11 +9,38 @@
 
     <!-- Page Header -->
     <div class="page-header q-mb-lg">
-      <div class="text-h4 text-white text-weight-bold q-mb-xs">
-        Welcome, {{ userName }}!
-      </div>
-      <div class="text-subtitle1 text-grey-5">
-        Your charging dashboard
+      <div class="row items-center justify-between">
+        <div>
+          <div class="text-h4 text-white text-weight-bold q-mb-xs">
+            Welcome, {{ userName }}!
+          </div>
+          <div class="text-subtitle1 text-grey-5">
+            Your charging dashboard
+          </div>
+        </div>
+        <div class="row q-gutter-sm">
+          <q-btn
+            flat
+            round
+            icon="refresh"
+            color="grey-5"
+            @click="loadPatronData"
+            :loading="loading"
+            size="md"
+          >
+            <q-tooltip>Refresh Data</q-tooltip>
+          </q-btn>
+          <q-btn
+            color="green"
+            icon="bolt"
+            label="Convert Points"
+            size="md"
+            @click="goToConvert"
+            class="convert-btn"
+          >
+            <q-badge color="amber" floating>{{ userPointsBalance }}</q-badge>
+          </q-btn>
+        </div>
       </div>
     </div>
 
@@ -87,8 +114,24 @@
     <!-- Recent Charging Sessions -->
     <q-card class="table-card q-mb-lg">
       <q-card-section>
-        <div class="text-h6 text-white q-mb-md">Recent Charging Sessions</div>
+        <div class="row items-center justify-between q-mb-md">
+          <div class="text-h6 text-white">Recent Charging Sessions</div>
+          <q-badge color="green" outline>{{ chargingSessions.length }} sessions</q-badge>
+        </div>
+        
+        <q-inner-loading :showing="loading">
+          <q-spinner-gears size="50px" color="green" />
+        </q-inner-loading>
+        
+        <div v-if="!loading && chargingSessions.length === 0" class="text-center q-pa-lg">
+          <q-icon name="ev_station" size="64px" color="grey-6" class="q-mb-md" />
+          <div class="text-h6 text-grey-5 q-mb-xs">No Charging Sessions Yet</div>
+          <div class="text-caption text-grey-6 q-mb-md">Start converting your points to begin charging!</div>
+          <q-btn color="green" icon="bolt" label="Convert Points" @click="goToConvert" />
+        </div>
+        
         <q-table
+          v-if="!loading && chargingSessions.length > 0"
           :data="chargingSessions"
           :columns="sessionColumns"
           row-key="id"
@@ -99,7 +142,7 @@
           <template v-slot:body-cell-status="props">
             <q-td :props="props">
               <q-badge 
-                :color="props.row.status === 'completed' ? 'green' : props.row.status === 'in-progress' ? 'orange' : 'red'"
+                :color="props.row.status === 'completed' ? 'green' : props.row.status === 'active' ? 'orange' : props.row.status === 'cancelled' ? 'red' : 'grey'"
                 :label="props.row.status"
               />
             </q-td>
@@ -108,8 +151,14 @@
           <template v-slot:body-cell-points="props">
             <q-td :props="props">
               <q-badge color="purple" outline>
-                +{{ props.row.points }} pts
+                {{ props.row.points }} pts
               </q-badge>
+            </q-td>
+          </template>
+          
+          <template v-slot:body-cell-energy="props">
+            <q-td :props="props">
+              <span class="text-green">{{ props.row.energy }} Wh</span>
             </q-td>
           </template>
         </q-table>
@@ -152,48 +201,6 @@
         </q-card>
       </div>
     </div>
-
-    <!-- Achievements Section OLD - REMOVE -->
-    <q-card class="achievements-card q-mb-lg" style="display: none;">
-      <q-card-section>
-        <div class="row items-center justify-between q-mb-md">
-          <div class="text-h6 text-white">Your Achievements</div>
-          <q-btn
-            flat
-            dense
-            color="green"
-            label="View All"
-            @click="showAchievementsDrawer = true"
-          />
-        </div>
-        
-        <div class="row q-col-gutter-sm">
-          <div 
-            v-for="achievement in recentAchievements" 
-            :key="achievement.id"
-            class="col-6 col-sm-4 col-md-3"
-          >
-            <q-card 
-              class="achievement-badge"
-              :class="{ 'unlocked': achievement.unlocked }"
-              @click="showAchievementDetails(achievement)"
-            >
-              <q-card-section class="text-center q-pa-sm">
-                <q-icon 
-                  :name="achievement.icon" 
-                  size="40px" 
-                  :color="achievement.unlocked ? achievement.color : 'grey-6'"
-                />
-                <div class="text-caption text-white q-mt-xs">{{ achievement.name }}</div>
-                <div v-if="!achievement.unlocked" class="text-caption text-grey-6">
-                  {{ achievement.progress }}
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
   </q-page>
 </template>
 
@@ -202,11 +209,7 @@ export default {
   name: "PatronIndex",
   data() {
     return {
-      patronPoints: 0,
-      totalCharges: 0,
-      totalEnergy: 0,
-      co2Saved: 0,
-      
+      hasLoadedOnce: false,
       pagination: {
         rowsPerPage: 10
       },
@@ -235,21 +238,14 @@ export default {
         },
         {
           name: 'energy',
-          label: 'Energy (kWh)',
+          label: 'Energy (Wh)',
           field: 'energy',
           align: 'left',
           sortable: true
         },
         {
-          name: 'cost',
-          label: 'Cost',
-          field: 'cost',
-          align: 'left',
-          sortable: true
-        },
-        {
           name: 'points',
-          label: 'Points Earned',
+          label: 'Points Redeemed',
           field: 'points',
           align: 'left',
           sortable: true
@@ -261,33 +257,7 @@ export default {
           align: 'center',
           sortable: true
         }
-      ],
-
-      chargingSessions: [
-        {
-          id: 1,
-          date: '2025-11-05 14:30',
-          station: 'SM Mall of Asia',
-          duration: '45 min',
-          energy: 25.5,
-          cost: '₱318.75',
-          points: 25,
-          status: 'completed'
-        },
-        {
-          id: 2,
-          date: '2025-11-03 10:15',
-          station: 'BGC Central Square',
-          duration: '1h 20min',
-          energy: 42.0,
-          cost: '₱630.00',
-          points: 42,
-          status: 'completed'
-        }
-      ],
-
-      // Removed leaderboard, recentAchievements, and allAchievements data
-      // These are now in the dedicated Achievements page
+      ]
     };
   },
 
@@ -298,6 +268,86 @@ export default {
         return `${user.first_name} ${user.last_name}`;
       }
       return user?.email?.split('@')[0] || 'Patron';
+    },
+    
+    userPointsBalance() {
+      const user = this.$store.state.auth?.user;
+      return user?.points_balance || 0;
+    },
+
+    loading() {
+      return this.$store.getters['patron/isLoading'];
+    },
+
+    dashboardStats() {
+      return this.$store.getters['patron/dashboardStats'];
+    },
+
+    patronPoints() {
+      return this.dashboardStats?.total_points || 0;
+    },
+
+    totalCharges() {
+      return this.dashboardStats?.total_charges || 0;
+    },
+
+    totalEnergy() {
+      // Return in kWh format
+      return this.dashboardStats?.energy_used_kwh?.toFixed(2) || '0.00';
+    },
+
+    co2Saved() {
+      return this.dashboardStats?.co2_saved_kg?.toFixed(2) || '0.00';
+    },
+
+    recyclablesWeight() {
+      return this.dashboardStats?.total_recyclables_weight_kg?.toFixed(2) || '0.00';
+    },
+
+    rawChargingSessions() {
+      return this.$store.getters['patron/chargingHistory'];
+    },
+
+    chargingSessions() {
+      const sessions = this.rawChargingSessions || [];
+      
+      return sessions.map(session => {
+        // Format date
+        const startDate = new Date(session.start_time);
+        const formattedDate = startDate.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        
+        // Format duration
+        let duration = '-';
+        if (session.end_time) {
+          const endDate = new Date(session.end_time);
+          const durationMs = endDate - startDate;
+          const durationMins = Math.round(durationMs / 1000 / 60);
+          
+          if (durationMins < 60) {
+            duration = `${durationMins} min`;
+          } else {
+            const hours = Math.floor(durationMins / 60);
+            const mins = durationMins % 60;
+            duration = mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+          }
+        }
+        
+        return {
+          id: session.session_id,
+          date: formattedDate,
+          station: session.kiosk_location || 'Unknown Station',
+          duration: duration,
+          energy: (parseFloat(session.energy_wh) || 0).toFixed(1),
+          points: session.points_redeemed,
+          status: session.status
+        };
+      });
     }
   },
 
@@ -307,12 +357,47 @@ export default {
 
   methods: {
     async loadPatronData() {
-      // TODO: Fetch actual patron data from API
-      // For now, using mock data
-      this.patronPoints = 150;
-      this.totalCharges = 24;
-      this.totalEnergy = 520;
-      this.totalSpent = 7845;
+      try {
+        // Fetch dashboard stats and charging history in parallel
+        await Promise.all([
+          this.$store.dispatch('patron/fetchDashboardStats'),
+          this.$store.dispatch('patron/fetchChargingHistory')
+        ]);
+        
+        // Show success notification on first load
+        if (!this.hasLoadedOnce) {
+          this.$q.notify({
+            type: 'positive',
+            message: 'Dashboard data updated',
+            position: 'top',
+            timeout: 1500
+          });
+          this.hasLoadedOnce = true;
+        }
+        
+      } catch (error) {
+        console.error('Error loading patron data:', error);
+        
+        // Don't show error notification if it's a 401 (user will be redirected)
+        if (error.response?.status === 401) {
+          return;
+        }
+        
+        this.$q.notify({
+          type: 'negative',
+          message: 'Failed to load dashboard data',
+          position: 'top',
+          actions: [
+            {
+              label: 'Retry',
+              color: 'white',
+              handler: () => {
+                this.loadPatronData();
+              }
+            }
+          ]
+        });
+      }
     },
 
     goToMap() {
@@ -321,6 +406,10 @@ export default {
 
     goToAchievements() {
       this.$router.push('/patron/achievements');
+    },
+
+    goToConvert() {
+      this.$router.push('/patron/convert');
     },
 
     viewProfile() {
@@ -654,4 +743,12 @@ export default {
 .achievement-item.unlocked .achievement-detail-card {
   border-color: rgba(76, 175, 80, 0.5);
 }
+
+/* Convert Points Button */
+.convert-btn {
+  position: relative;
+  font-weight: 600;
+  padding: 8px 24px;
+}
 </style>
+

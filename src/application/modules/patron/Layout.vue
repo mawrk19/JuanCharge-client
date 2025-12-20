@@ -3,9 +3,8 @@
     <!-- Header -->
     <q-header elevated class="patron-header">
       <q-toolbar>
-        <q-toolbar-title class="text-weight-bold brand-title" @click="goToDashboard">
-          <q-icon name="ev_station" size="sm" class="q-mr-sm" />
-          JuanCharge
+        <q-toolbar-title class="brand-title" @click="goToDashboard">
+          <img src="/image/logo.png" alt="JuanCharge Logo" class="navbar-logo" />
         </q-toolbar-title>
 
         <q-btn
@@ -40,13 +39,28 @@
     <!-- Page Content -->
     <q-page-container>
       <router-view />
+      
+      <!-- Charging Widget - Shows on all pages when session is active -->
+      <charging-widget />
     </q-page-container>
   </q-layout>
 </template>
 
 <script>
+import ChargingWidget from './components/ChargingWidget.vue';
+
 export default {
   name: "PatronLayout",
+  
+  components: {
+    ChargingWidget
+  },
+
+  mounted() {
+    // Restore any active session from localStorage on app load
+    this.$store.dispatch('patron/restoreSession');
+  },
+
   methods: {
     goToDashboard() {
       this.$router.push('/patron');
@@ -67,7 +81,7 @@ export default {
         });
         this.$router.push('/login');
       } catch (err) {
-        console.error('Logout error:', err);
+        // console.error('Logout error:', err);
         this.$q.notify({
           type: 'negative',
           message: 'Logout failed',
@@ -93,5 +107,11 @@ export default {
 .brand-title:hover {
   opacity: 0.8;
   transform: scale(1.02);
+}
+
+.navbar-logo {
+  height: 40px;
+  width: auto;
+  vertical-align: middle;
 }
 </style>

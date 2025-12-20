@@ -7,21 +7,15 @@
 <script>
 export default {
   async created() {
-    // Clear any existing localStorage auth data and cache data to ensure session-based behavior
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    
-    // Clear all cache: prefixed items from localStorage
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('cache:')) {
-        localStorage.removeItem(key);
-      }
-    });
-    
-    // Only check sessionStorage for session-based auth
-    const token = sessionStorage.getItem('token')
+    // Initialize authentication state from localStorage
+    const token = localStorage.getItem('token');
     if (token) {
-      this.$store.commit('auth/SET_TOKEN', token)
+      // Restore session from localStorage
+      this.$store.dispatch('auth/restoreSession');
+      
+      // Optionally validate token with backend
+      // This ensures the token is still valid
+      await this.$store.dispatch('auth/validateToken');
     }
   }
 }

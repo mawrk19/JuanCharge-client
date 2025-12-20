@@ -1,57 +1,65 @@
 import axios from 'axios';
 import { Cache } from './cache';
 
+// Get API base URL from environment variables
+// Vite only exposes variables with VITE_ prefix to client code
+const apiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.API_BASE_URL ||
+  '/api';
 
+// Create Axios instance
 const http = axios.create({
-  baseURL: '/api', // Use Vite proxy instead of direct URL
-  // timeout: 10000, // Timeout in milliseconds (optional)
+  baseURL: apiBaseUrl,
   headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
   },
-  // withCredentials not needed for JWT - tokens sent via Authorization header
-  withCredentials: false,
+  withCredentials: false, // JWT does not require cookies
 });
 
+// Add token from localStorage on initialization
+const token = localStorage.getItem('token');
+if (token) {
+  http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}
 
+// Request interceptor to always attach token
 http.interceptors.request.use(
-  (config) => {
-    // Get JWT token from localStorage or Cache
+  config => {
     const token = localStorage.getItem('token') || Cache.get('token');
-    
     if (token) {
-      // Always set Authorization header if token exists
       config.headers['Authorization'] = `Bearer ${token}`;
     } else {
-      // If no token, remove Authorization header
       delete config.headers['Authorization'];
     }
-
     return config;
   },
+  error => Promise.reject(error)
+);
+
+// Response interceptor to handle 401 errors
+http.interceptors.response.use(
+  response => response,
   error => {
+    if (error.response && error.response.status === 401) {
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/login' && currentPath !== '/register') {
+        // Clear all auth data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('user_type');
+        localStorage.removeItem('is_first_login');
+        Cache.remove('token');
+        Cache.remove('user');
+        Cache.remove('user_type');
+        
+        // Redirect to login
+        window.location.href = '/login';
+      }
+    }
     return Promise.reject(error);
   }
 );
 
-http.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401)  {
-      // Clear all auth data
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('user_type');
-      localStorage.removeItem('is_first_login');
-      Cache.remove('token');
-      Cache.remove('user');
-      Cache.remove('user_type');
-      
-      // Redirect to login
-      window.location.href = '/login';
-    }
-    return Promise.reject(error)
-  }
-)
-
-export default http
+export default http;

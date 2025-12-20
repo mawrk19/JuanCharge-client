@@ -1,5 +1,5 @@
 export default {
   moduleName: "kiosk_user",
-  title: "Kiosk Users",
+  title: "Patron",
   icon: "perm_identity",
 };

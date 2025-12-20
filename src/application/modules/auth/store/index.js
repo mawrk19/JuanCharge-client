@@ -4,8 +4,23 @@ import { Cache } from "@/service/cache";
 export default {
   namespaced: true,
   state: () => ({
-    user: null,
-    token: null,
+    user: (() => {
+      try {
+        const userStr = localStorage.getItem("user");
+        const user = userStr ? JSON.parse(userStr) : null;
+        // Ensure user_type is in the user object if it exists separately
+        if (user && !user.user_type) {
+          const user_type = localStorage.getItem("user_type");
+          if (user_type) {
+            user.user_type = user_type;
+          }
+        }
+        return user;
+      } catch {
+        return null;
+      }
+    })(),
+    token: localStorage.getItem("token") || null,
   }),
   getters: {
     isAdmin: (state) => {
@@ -21,13 +36,47 @@ export default {
   mutations: {
     SET_USER(state, user) {
       state.user = user;
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+        Cache.set("user", user);
+      } else {
+        localStorage.removeItem("user");
+        Cache.remove("user");
+      }
     },
     SET_TOKEN(state, token) {
       state.token = token;
+      if (token) {
+        localStorage.setItem("token", token);
+        Cache.set("token", token);
+        // Set axios default header
+        http.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      } else {
+        localStorage.removeItem("token");
+        Cache.remove("token");
+        delete http.defaults.headers.common['Authorization'];
+      }
     },
     CLEAR_AUTH(state) {
       state.user = null;
       state.token = null;
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("user_type");
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+      Cache.remove("token");
+      Cache.remove("user");
+      Cache.remove("user_type");
+      delete http.defaults.headers.common['Authorization'];
+    },
+    UPDATE_USER_POINTS(state, points) {
+      if (state.user) {
+        state.user.points_balance = points;
+        // Update localStorage as well
+        localStorage.setItem("user", JSON.stringify(state.user));
+        Cache.set("user", state.user);
+      }
     },
   },
   actions: {
@@ -42,7 +91,7 @@ export default {
         // Login with JWT authentication - uses /api prefix from axios baseURL
         const res = await http.post("/auth/login", loginData);
         
-        console.log('Login response:', res.data);
+        // console.log('Login response:', res.data);
         
         if (!res.data.success) {
           throw new Error(res.data.message || 'Login failed');
@@ -63,13 +112,13 @@ export default {
         const is_first_login = res.data.is_first_login || responseData.is_first_login;
         
         if (!token) {
-          console.error('Login response:', res.data);
+          // console.error('Login response:', res.data);
           throw new Error('No token received from server');
         }
         
         // If no user object in response, create a minimal one with email
         if (!user) {
-          console.log('No user object in response, creating minimal user data');
+          // console.log('No user object in response, creating minimal user data');
           user = {
             email: payload.email,
             user_type: user_type
@@ -79,9 +128,9 @@ export default {
           user.user_type = user_type;
         }
         
-        console.log('Token found:', token);
-        console.log('User found:', user);
-        console.log('User type:', user_type);
+        // console.log('Token found:', token);
+        // console.log('User found:', user);
+        // console.log('User type:', user_type);
         
         // Store in localStorage
         localStorage.setItem("token", token);
@@ -99,8 +148,8 @@ export default {
         
         return res;
       } catch (err) {
-        console.error('Login error in store:', err);
-        console.error('Error response:', err.response?.data);
+        // console.error('Login error in store:', err);
+        // console.error('Error response:', err.response?.data);
         throw err;
       }
     },
@@ -180,16 +229,56 @@ export default {
     },
     
     async logout({ commit }) {
-      commit("CLEAR_AUTH");
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      localStorage.removeItem("user_type");
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("user");
-      Cache.remove("token");
-      Cache.remove("user");
-      Cache.remove("user_type");
+      try {
+        // Optional: Call backend logout endpoint
+        await http.post("/auth/logout").catch(() => {});
+      } catch (err) {
+        // Ignore logout errors
+      } finally {
+        commit("CLEAR_AUTH");
+      }
     },
+    
+    async validateToken({ commit, state }) {
+      if (!state.token) {
+        return false;
+      }
+      
+      try {
+        const response = await http.get("/auth/validate");
+        
+        if (response.data.valid) {
+          // Update user data if provided
+          if (response.data.user) {
+            let user = response.data.user;
+            const user_type = response.data.user_type || user.user_type || localStorage.getItem("user_type");
+            
+            // Ensure user_type is in the user object
+            if (user_type && !user.user_type) {
+              user.user_type = user_type;
+            }
+            
+            commit("SET_USER", user);
+            
+            // Also update localStorage
+            if (user_type) {
+              localStorage.setItem("user_type", user_type);
+            }
+          }
+          return true;
+        } else {
+          // Token is invalid
+          commit("CLEAR_AUTH");
+          return false;
+        }
+      } catch (error) {
+        console.error('Token validation failed:', error);
+        // If validation fails, clear auth
+        commit("CLEAR_AUTH");
+        return false;
+      }
+    },
+    
     restoreSession({ commit }) {
       // Check localStorage for JWT token
       let token = localStorage.getItem("token");
@@ -199,6 +288,11 @@ export default {
       if (userStr) {
         try {
           user = JSON.parse(userStr);
+          // Ensure user_type is in the user object
+          const user_type = localStorage.getItem("user_type");
+          if (user && user_type && !user.user_type) {
+            user.user_type = user_type;
+          }
         } catch (e) {
           user = null;
         }

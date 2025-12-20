@@ -1,15 +1,5 @@
 <template>
   <q-page class="profile-page q-pa-md">
-    <!-- Page Header -->
-    <!-- <div class="page-header q-mb-lg">
-      <div class="text-h4 text-white text-weight-bold">
-        <q-icon name="account_circle" color="green" size="40px" class="q-mr-md" />
-        My Profile
-      </div>
-      <div class="text-subtitle1 text-grey-5 q-mt-sm">
-        Manage your profile and account settings
-      </div>
-    </div> -->
 
     <!-- Tabs -->
     <q-card class="profile-card">
