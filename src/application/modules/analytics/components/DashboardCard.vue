@@ -115,9 +115,7 @@ export default {
         case 'minutes':
           return `${this.value} hrs`;
         case 'weight':
-          return `${this.value} kg`;
-        case 'kwh':
-          return `${this.value} kWh`;
+          return `${this.value} kg`
         default:
           return new Intl.NumberFormat().format(this.value);
       }

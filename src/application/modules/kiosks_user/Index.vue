@@ -401,13 +401,13 @@ export default {
       },
 
       columns: [
-        {
-          name: 'id',
-          label: 'ID',
-          field: 'id',
-          align: 'left',
-          sortable: true
-        },
+        // {
+        //   name: 'id',
+        //   label: 'ID',
+        //   field: 'id',
+        //   align: 'left',
+        //   sortable: true
+        // },
         {
           name: 'name',
           label: 'Name',

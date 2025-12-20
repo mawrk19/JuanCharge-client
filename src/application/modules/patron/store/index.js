@@ -61,6 +61,19 @@ export default {
     },
   },
   actions: {
+    async fetchAllPatrons({ commit }) {
+  commit("SET_LOADING", true);
+  try {
+    const { data } = await http.get("/patrons");
+    return data;
+  } catch (error) {
+    commit("SET_ERROR", error.response?.data?.message || "Failed to fetch patrons");
+    throw error;
+  } finally {
+    commit("SET_LOADING", false);
+  }
+},
+
     async fetchPatronData({ commit }) {
       commit("SET_LOADING", true);
       commit("SET_ERROR", null);

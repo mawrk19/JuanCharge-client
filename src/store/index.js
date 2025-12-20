@@ -7,6 +7,7 @@ import users from '@/application/modules/users/store'
 import kiosks from '@/application/modules/kiosks/store'
 import kiosks_user from '@/application/modules/kiosks_user/store'
 import patron from '@/application/modules/patron/store'
+import analytics from '@/application/modules/analytics/store'
 
 Vue.use(Vuex)
 
@@ -17,6 +18,7 @@ export default new Vuex.Store({
     users,
     kiosks,
     kiosks_user,
-    patron
+    patron,
+    analytics
   }
 })
