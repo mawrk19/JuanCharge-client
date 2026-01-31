@@ -1,11 +1,9 @@
 import axios from 'axios';
 import { Cache } from './cache';
 
-// Get API base URL from environment variables
-// Vite only exposes variables with VITE_ prefix to client code
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
-
-console.log('🔧 API Base URL:', apiBaseUrl); // Debug log
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 
+                   import.meta.env.API_BASE_URL || 
+                   '/api';
 
 const http = axios.create({
   baseURL: apiBaseUrl,

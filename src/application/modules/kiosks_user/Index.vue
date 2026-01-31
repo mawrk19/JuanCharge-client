@@ -9,10 +9,10 @@
 
     <!-- Page Header -->
     <div class="page-header q-mb-lg">
-      <div class="text-h4 text-white text-weight-bold q-mb-xs">
+      <div class="text-h4 text-dark text-weight-bold q-mb-xs">
         Patron Management
       </div>
-      <div class="text-subtitle1 text-grey-5">
+      <div class="text-subtitle1 text-grey-7">
         Manage patrons and their points
       </div>
     </div>
@@ -33,7 +33,9 @@
         >
           <!-- No Data Slot -->
           <template v-slot:no-data>
-            <div class="full-width row flex-center text-grey-5 q-gutter-sm q-py-xl">
+            <div
+              class="full-width row flex-center text-grey-5 q-gutter-sm q-py-xl"
+            >
               <q-icon size="2em" name="warning" />
               <span>No patrons found</span>
             </div>
@@ -41,41 +43,43 @@
 
           <!-- Table Header Slot -->
           <template v-slot:top>
-              <div class="row full-width items-center q-pa-md">
-                <div class="text-h6 text-white">Patron List</div>
-                <q-space />
-                <q-btn
-                  color="green"
-                  icon="add"
-                  label="Create Patron"
-                  @click="openCreateDialog"
-                  class="modern-btn q-mr-md"
-                />
-                <q-input
-                  v-model="filter"
-                  outlined
-                  dense
-                  placeholder="Search patrons..."
-                  dark
-                  class="search-input"
-                  style="min-width: 300px;"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="search" />
-                  </template>
-                  <template v-slot:append>
-                    <q-icon v-if="filter" name="close" @click="filter = ''" class="cursor-pointer" />
-                  </template>
-                </q-input>
-              </div>
+            <div class="row full-width items-center q-pa-md">
+              <div class="text-h6 text-dark">Patron List</div>
+              <q-space />
+              <q-btn
+                color="green"
+                icon="add"
+                label="Create Patron"
+                @click="openCreateDialog"
+                class="modern-btn q-mr-md"
+              />
+              <q-input
+                v-model="filter"
+                outlined
+                dense
+                placeholder="Search patrons..."
+                class="search-input"
+                style="min-width: 300px"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="search" />
+                </template>
+                <template v-slot:append>
+                  <q-icon
+                    v-if="filter"
+                    name="close"
+                    @click="filter = ''"
+                    class="cursor-pointer"
+                  />
+                </template>
+              </q-input>
+            </div>
           </template>
 
           <!-- ID Column -->
           <template v-slot:body-cell-id="props">
             <q-td :props="props">
-              <q-badge color="green" outline>
-                #{{ props.row.id }}
-              </q-badge>
+              <q-badge color="green" outline> #{{ props.row.id }} </q-badge>
             </q-td>
           </template>
 
@@ -83,10 +87,17 @@
           <template v-slot:body-cell-name="props">
             <q-td :props="props">
               <div class="row items-center no-wrap">
-                <q-avatar size="32px" color="green" text-color="white" class="q-mr-sm">
+                <q-avatar
+                  size="32px"
+                  color="green"
+                  text-color="white"
+                  class="q-mr-sm"
+                >
                   {{ getInitials(props.row.name) }}
                 </q-avatar>
-                <span class="text-white text-weight-medium">{{ props.row.name }}</span>
+                <span class="text-dark text-weight-medium">{{
+                  props.row.name
+                }}</span>
               </div>
             </q-td>
           </template>
@@ -95,8 +106,13 @@
           <template v-slot:body-cell-contact_number="props">
             <q-td :props="props">
               <div class="row items-center no-wrap">
-                <q-icon name="phone" size="16px" color="grey-5" class="q-mr-xs" />
-                <span class="text-grey-4">{{ props.row.contact_number }}</span>
+                <q-icon
+                  name="phone"
+                  size="16px"
+                  color="grey-5"
+                  class="q-mr-xs"
+                />
+                <span class="text-grey-7">{{ props.row.contact_number }}</span>
               </div>
             </q-td>
           </template>
@@ -114,8 +130,13 @@
           <template v-slot:body-cell-email="props">
             <q-td :props="props">
               <div class="row items-center no-wrap">
-                <q-icon name="email" size="16px" color="grey-5" class="q-mr-xs" />
-                <span class="text-grey-4">{{ props.row.email }}</span>
+                <q-icon
+                  name="email"
+                  size="16px"
+                  color="grey-5"
+                  class="q-mr-xs"
+                />
+                <span class="text-grey-7">{{ props.row.email }}</span>
               </div>
             </q-td>
           </template>
@@ -154,15 +175,20 @@
 
     <!-- Create/Edit User Dialog -->
     <q-dialog v-model="showCreateDialog" persistent>
-      <q-card class="dialog-card" style="min-width: 500px;">
+      <q-card class="dialog-card" style="min-width: 500px">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white">{{ editingId ? 'Edit Patron' : 'Create New Patron' }}</div>
+          <div class="text-h6 text-dark">
+            {{ editingId ? "Edit Patron" : "Create New Patron" }}
+          </div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
         <q-card-section>
-          <q-form @submit="editingId ? updateUserHandler() : createUserHandler()" class="q-gutter-md">
+          <q-form
+            @submit="editingId ? updateUserHandler() : createUserHandler()"
+            class="q-gutter-md"
+          >
             <!-- First Name Field -->
             <q-input
               v-model="userForm.first_name"
@@ -170,7 +196,7 @@
               dark
               outlined
               dense
-              :rules="[val => !!val || 'First name is required']"
+              :rules="[(val) => !!val || 'First name is required']"
             >
               <template v-slot:prepend>
                 <q-icon name="person" />
@@ -184,7 +210,7 @@
               dark
               outlined
               dense
-              :rules="[val => !!val || 'Last name is required']"
+              :rules="[(val) => !!val || 'Last name is required']"
             >
               <template v-slot:prepend>
                 <q-icon name="person_outline" />
@@ -198,7 +224,7 @@
               dark
               outlined
               dense
-              :rules="[val => !!val || 'Contact number is required']"
+              :rules="[(val) => !!val || 'Contact number is required']"
               placeholder="+63 XXX XXX XXXX"
             >
               <template v-slot:prepend>
@@ -215,8 +241,8 @@
               outlined
               dense
               :rules="[
-                val => !!val || 'Email is required',
-                val => /.+@.+\..+/.test(val) || 'Email must be valid'
+                (val) => !!val || 'Email is required',
+                (val) => /.+@.+\..+/.test(val) || 'Email must be valid',
               ]"
             >
               <template v-slot:prepend>
@@ -232,7 +258,7 @@
               dark
               outlined
               dense
-              :rules="[val => val >= 0 || 'Points must be a positive number']"
+              :rules="[(val) => val >= 0 || 'Points must be a positive number']"
             >
               <template v-slot:prepend>
                 <q-icon name="stars" />
@@ -264,9 +290,9 @@
 
     <!-- Edit User Dialog -->
     <q-dialog v-model="showEditDialog" persistent>
-      <q-card class="dialog-card" style="min-width: 500px;">
+      <q-card class="dialog-card" style="min-width: 500px">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white">Edit Patron</div>
+          <div class="text-h6 text-dark">Edit Patron</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
@@ -280,7 +306,7 @@
               dark
               outlined
               dense
-              :rules="[val => !!val || 'First name is required']"
+              :rules="[(val) => !!val || 'First name is required']"
             >
               <template v-slot:prepend>
                 <q-icon name="person" />
@@ -294,7 +320,7 @@
               dark
               outlined
               dense
-              :rules="[val => !!val || 'Last name is required']"
+              :rules="[(val) => !!val || 'Last name is required']"
             >
               <template v-slot:prepend>
                 <q-icon name="person_outline" />
@@ -308,7 +334,7 @@
               dark
               outlined
               dense
-              :rules="[val => !!val || 'Contact number is required']"
+              :rules="[(val) => !!val || 'Contact number is required']"
               placeholder="+63 XXX XXX XXXX"
             >
               <template v-slot:prepend>
@@ -325,8 +351,8 @@
               outlined
               dense
               :rules="[
-                val => !!val || 'Email is required',
-                val => /.+@.+\..+/.test(val) || 'Email must be valid'
+                (val) => !!val || 'Email is required',
+                (val) => /.+@.+\..+/.test(val) || 'Email must be valid',
               ]"
             >
               <template v-slot:prepend>
@@ -342,7 +368,7 @@
               dark
               outlined
               dense
-              :rules="[val => val >= 0 || 'Points must be a positive number']"
+              :rules="[(val) => val >= 0 || 'Points must be a positive number']"
             >
               <template v-slot:prepend>
                 <q-icon name="stars" />
@@ -370,7 +396,6 @@
         </q-card-section>
       </q-card>
     </q-dialog>
-
   </q-page>
 </template>
 
@@ -379,83 +404,83 @@ export default {
   name: "KioskUsersIndex",
   data() {
     return {
-      filter: '',
+      filter: "",
       showCreateDialog: false,
       showEditDialog: false, // NEW: for edit modal
       saving: false,
       editingId: null, // Track which user is being edited
       editingUserId: null, // NEW: track which user is being edited
-      
+
       pagination: {
         page: 1,
         rowsPerPage: 10,
-        rowsNumber: 0
+        rowsNumber: 0,
       },
-      
+
       userForm: {
-        first_name: '',
-        last_name: '',
-        contact_number: '',
-        email: '',
-        points_balance: 0
+        first_name: "",
+        last_name: "",
+        contact_number: "",
+        email: "",
+        points_balance: 0,
       },
 
       columns: [
+        // {
+        //   name: 'id',
+        //   label: 'ID',
+        //   field: 'id',
+        //   align: 'left',
+        //   sortable: true
+        // },
         {
-          name: 'id',
-          label: 'ID',
-          field: 'id',
-          align: 'left',
-          sortable: true
+          name: "name",
+          label: "Name",
+          field: "name",
+          align: "left",
+          sortable: true,
         },
         {
-          name: 'name',
-          label: 'Name',
-          field: 'name',
-          align: 'left',
-          sortable: true
+          name: "contact_number",
+          label: "Contact Number",
+          field: "contact_number",
+          align: "left",
+          sortable: true,
         },
         {
-          name: 'contact_number',
-          label: 'Contact Number',
-          field: 'contact_number',
-          align: 'left',
-          sortable: true
+          name: "email",
+          label: "Email Address",
+          field: "email",
+          align: "left",
+          sortable: true,
         },
         {
-          name: 'email',
-          label: 'Email Address',
-          field: 'email',
-          align: 'left',
-          sortable: true
+          name: "points_balance",
+          label: "Points",
+          field: "points_balance",
+          align: "left",
+          sortable: true,
         },
         {
-          name: 'points_balance',
-          label: 'Points',
-          field: 'points_balance',
-          align: 'left',
-          sortable: true
+          name: "actions",
+          label: "Actions",
+          field: "actions",
+          align: "center",
+          sortable: false,
         },
-        {
-          name: 'actions',
-          label: 'Actions',
-          field: 'actions',
-          align: 'center',
-          sortable: false
-        }
       ],
 
-      users: []
+      users: [],
     };
   },
 
   computed: {
     isLoading() {
-      return this.$store.getters['kiosks_user/isLoading'];
+      return this.$store.getters["kiosks_user/isLoading"];
     },
     error() {
-      return this.$store.getters['kiosks_user/error'];
-    }
+      return this.$store.getters["kiosks_user/error"];
+    },
   },
 
   mounted() {
@@ -465,38 +490,38 @@ export default {
   methods: {
     async onRequest(props) {
       const { page, rowsPerPage } = props.pagination;
-      
-      this.isLoading = true;
-      
+
       try {
-        const response = await this.$store.dispatch('kiosks_user/fetchUsers', {
+        const response = await this.$store.dispatch("kiosks_user/fetchUsers", {
           page: page,
-          per_page: rowsPerPage
+          per_page: rowsPerPage,
         });
-        
+
         let usersData = null;
-        
+
         if (response && response.data) {
           usersData = response.data;
         } else if (Array.isArray(response)) {
           usersData = response;
         }
-        
+
         if (Array.isArray(usersData) && usersData.length > 0) {
-          const mappedUsers = usersData.map(user => ({
+          const mappedUsers = usersData.map((user) => ({
             id: user.id,
-            name: user.first_name && user.last_name 
-              ? `${user.first_name} ${user.last_name}` 
-              : user.name || 'N/A',
-            email: user.email || 'N/A',
-            contact_number: user.contact_number || 'N/A',
-            points_balance: user.points_balance !== undefined ? user.points_balance : 0,
-            first_name: user.first_name || '',
-            last_name: user.last_name || ''
+            name:
+              user.first_name && user.last_name
+                ? `${user.first_name} ${user.last_name}`
+                : user.name || "N/A",
+            email: user.email || "N/A",
+            contact_number: user.contact_number || "N/A",
+            points_balance:
+              user.points_balance !== undefined ? user.points_balance : 0,
+            first_name: user.first_name || "",
+            last_name: user.last_name || "",
           }));
-          
+
           this.users = mappedUsers;
-          
+
           // Update pagination
           if (response.pagination) {
             this.pagination.page = response.pagination.current_page;
@@ -508,63 +533,64 @@ export default {
           this.pagination.rowsNumber = 0;
         }
       } catch (error) {
-        console.error('Error loading users:', error);
+        console.error("Error loading users:", error);
         this.$q.notify({
-          type: 'negative',
-          message: 'Failed to load patrons',
-          position: 'top'
+          type: "negative",
+          message: "Failed to load patrons",
+          position: "top",
         });
         this.users = [];
-      } finally {
-        this.isLoading = false;
       }
     },
-    
+
     async loadUsers() {
       await this.onRequest({
-        pagination: this.pagination
+        pagination: this.pagination,
       });
     },
 
     getInitials(name) {
       return name
-        .split(' ')
-        .map(word => word[0])
-        .join('')
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
         .toUpperCase()
         .slice(0, 2);
     },
 
     getRoleColor(role) {
       const colors = {
-        'Admin': 'red',
-        'Manager': 'orange',
-        'Operator': 'blue',
-        'Support': 'purple',
-        'User': 'grey',
-        'Administrator': 'red'
+        Admin: "red",
+        Manager: "orange",
+        Operator: "blue",
+        Support: "purple",
+        User: "grey",
+        Administrator: "red",
       };
-      return colors[role] || 'grey';
+      return colors[role] || "grey";
     },
 
     openCreateDialog() {
       this.editingId = null;
       this.userForm = {
-        first_name: '',
-        last_name: '',
-        contact_number: '',
-        email: '',
-        points_balance: 0
+        first_name: "",
+        last_name: "",
+        contact_number: "",
+        email: "",
+        points_balance: 0,
       };
       this.showCreateDialog = true;
     },
 
     async createUserHandler() {
       this.saving = true;
-      
+
       try {
-        const response = await this.$store.dispatch('kiosks_user/createUser', this.userForm);
-        
+        const response = await this.$store.dispatch(
+          "kiosks_user/createUser",
+          this.userForm
+        );
+
         if (response.success) {
           // Add user to the list
           this.users.unshift({
@@ -574,25 +600,25 @@ export default {
             last_name: response.data.last_name,
             email: response.data.email,
             contact_number: response.data.contact_number,
-            points_balance: response.data.points_balance || 0
+            points_balance: response.data.points_balance || 0,
           });
 
           this.showCreateDialog = false;
 
           // Show success notification
           this.$q.notify({
-            color: 'green',
-            message: 'Patron created successfully',
-            icon: 'check_circle',
-            position: 'top'
+            color: "green",
+            message: "Patron created successfully",
+            icon: "check_circle",
+            position: "top",
           });
         }
       } catch (error) {
-        let errorMessage = 'Failed to create patron';
-        
+        let errorMessage = "Failed to create patron";
+
         if (error.response?.data?.errors) {
           const errors = error.response.data.errors;
-          errorMessage = Object.values(errors).flat().join(', ');
+          errorMessage = Object.values(errors).flat().join(", ");
         } else if (error.response?.data?.message) {
           errorMessage = error.response.data.message;
         } else if (error.response?.data) {
@@ -600,10 +626,10 @@ export default {
         }
 
         this.$q.notify({
-          color: 'red',
+          color: "red",
           message: errorMessage,
-          icon: 'error',
-          position: 'top',
+          icon: "error",
+          position: "top",
           timeout: 5000,
         });
       } finally {
@@ -613,55 +639,60 @@ export default {
 
     async editUser(user) {
       this.editingUserId = user.id;
-      
+
       try {
         // Fetch complete user data from backend
-        const response = await this.$store.dispatch('kiosks_user/getUser', user.id);
-        
+        const response = await this.$store.dispatch(
+          "kiosks_user/getUser",
+          user.id
+        );
+
         if (response.data) {
           const fullUserData = response.data;
           this.userForm = {
-            first_name: fullUserData.first_name || '',
-            last_name: fullUserData.last_name || '',
+            first_name: fullUserData.first_name || "",
+            last_name: fullUserData.last_name || "",
             contact_number: fullUserData.contact_number,
             email: fullUserData.email,
-            points_balance: fullUserData.points_balance || 0
+            points_balance: fullUserData.points_balance || 0,
           };
         }
       } catch (error) {
         // console.error('Error fetching patron details:', error);
         // Fallback to table data if API call fails
         this.userForm = {
-          first_name: user.first_name || '',
-          last_name: user.last_name || '',
+          first_name: user.first_name || "",
+          last_name: user.last_name || "",
           contact_number: user.contact_number,
           email: user.email,
-          points_balance: user.points_balance || 0
+          points_balance: user.points_balance || 0,
         };
       }
-      
+
       this.showEditDialog = true;
     },
 
     async updateUserHandler() {
       this.saving = true;
-      
+
       try {
-        const response = await this.$store.dispatch('kiosks_user/updateUser', {
+        const response = await this.$store.dispatch("kiosks_user/updateUser", {
           id: this.editingUserId,
-          userData: this.userForm
+          userData: this.userForm,
         });
-        
+
         if (response.success) {
           this.$q.notify({
-            color: 'green',
-            message: response.message || 'Patron updated successfully',
-            icon: 'check_circle',
-            position: 'top'
+            color: "green",
+            message: response.message || "Patron updated successfully",
+            icon: "check_circle",
+            position: "top",
           });
 
           // Update user in the table immediately
-          const index = this.users.findIndex(u => u.id === this.editingUserId);
+          const index = this.users.findIndex(
+            (u) => u.id === this.editingUserId
+          );
           if (index !== -1) {
             this.$set(this.users, index, {
               // id: response.data.id,
@@ -670,7 +701,7 @@ export default {
               last_name: response.data.last_name,
               email: response.data.email,
               contact_number: response.data.contact_number,
-              points_balance: response.data.points_balance || 0
+              points_balance: response.data.points_balance || 0,
             });
           }
 
@@ -678,20 +709,20 @@ export default {
           this.$forceUpdate();
         }
       } catch (error) {
-        let errorMessage = 'Failed to update patron';
+        let errorMessage = "Failed to update patron";
         if (error.response?.data?.errors) {
           const errors = error.response.data.errors;
-          errorMessage = Object.values(errors).flat().join(', ');
+          errorMessage = Object.values(errors).flat().join(", ");
         } else if (error.response?.data?.message) {
           errorMessage = error.response.data.message;
         }
 
         this.$q.notify({
-          color: 'red',
+          color: "red",
           message: errorMessage,
-          icon: 'error',
-          position: 'top',
-          timeout: 5000
+          icon: "error",
+          position: "top",
+          timeout: 5000,
         });
       } finally {
         this.saving = false;
@@ -699,113 +730,55 @@ export default {
     },
 
     async deleteUserHandler(user) {
-      this.$q.dialog({
-        title: 'Confirm Delete',
-        message: `Are you sure you want to delete ${user.name}?`,
-        cancel: true,
-        persistent: true,
-        dark: true
-      }).onOk(async () => {
-        try {
-          await this.$store.dispatch('kiosks_user/deleteUser', user.id);
-          this.users = this.users.filter(u => u.id !== user.id);
-          
-          this.$q.notify({
-            color: 'green',
-            message: 'Patron deleted successfully',
-            icon: 'check_circle',
-            position: 'top'
-          });
-        } catch (error) {
-          this.$q.notify({
-            color: 'red',
-            message: 'Failed to delete patron',
-            icon: 'error',
-            position: 'top'
-          });
-        }
-      });
-    }
-  }
+      this.$q
+        .dialog({
+          title: "Confirm Delete",
+          message: `Are you sure you want to delete ${user.name}?`,
+          cancel: true,
+          persistent: true,
+          dark: true,
+        })
+        .onOk(async () => {
+          try {
+            await this.$store.dispatch("kiosks_user/deleteUser", user.id);
+            this.users = this.users.filter((u) => u.id !== user.id);
+
+            this.$q.notify({
+              color: "green",
+              message: "Patron deleted successfully",
+              icon: "check_circle",
+              position: "top",
+            });
+          } catch (error) {
+            this.$q.notify({
+              color: "red",
+              message: "Failed to delete patron",
+              icon: "error",
+              position: "top",
+            });
+          }
+        });
+    },
+  },
 };
 </script>
 
 <style scoped>
 .users-page {
-  background: linear-gradient(135deg, #0a0f0d 0%, #142221 50%, #1a2c28 100%);
+  background: #f5f5f5;
   min-height: 100vh;
   position: relative;
   overflow: hidden;
-}
-
-/* Animated Background Blobs */
-.animated-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.2;
-  animation: float 25s infinite ease-in-out;
-}
-
-.blob-1 {
-  width: 500px;
-  height: 500px;
-  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
-  top: -250px;
-  right: -250px;
-  animation-delay: 0s;
-}
-
-.blob-2 {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
-  bottom: -200px;
-  left: -200px;
-  animation-delay: 8s;
-}
-
-.blob-3 {
-  width: 350px;
-  height: 350px;
-  background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
-  top: 40%;
-  left: 50%;
-  animation-delay: 16s;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(50px, -80px) scale(1.15);
-  }
-  66% {
-    transform: translate(-30px, 50px) scale(0.9);
-  }
 }
 
 .page-header {
   position: relative;
   z-index: 1;
   padding: 24px;
-  background: rgba(20, 34, 33, 0.6);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .modern-btn {
@@ -826,11 +799,10 @@ export default {
 .table-card {
   position: relative;
   z-index: 1;
-  background: rgba(20, 34, 33, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 }
 
@@ -840,63 +812,45 @@ export default {
 
 .modern-table >>> .q-table__top {
   background: transparent;
-  border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+  border-bottom: 2px solid #e0e0e0;
 }
 
 .modern-table >>> thead tr {
-  background: rgba(76, 175, 80, 0.15);
+  background: #f5f5f5;
 }
 
 .modern-table >>> thead th {
-  color: #4caf50;
+  color: #2e7d32;
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 1px;
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  font-size: 0.75rem;
+  letter-spacing: 1.2px;
+  border: none;
+  border-bottom: 2px solid #e0e0e0;
   padding: 16px;
-  background: rgba(20, 34, 33, 0.8);
+  background: transparent;
 }
 
 .modern-table >>> tbody tr {
-  transition: all 0.3s ease;
-  border-bottom: 1px solid rgba(76, 175, 80, 0.2);
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .modern-table >>> tbody tr:hover {
-  background: rgba(76, 175, 80, 0.1);
-}
-
-.modern-table >>> tbody tr:nth-child(odd) td {
-  color: rgba(255, 255, 255, 0.95);
-  border-left: none;
-  border-right: none;
-  border-top: none;
-  border-bottom: 1px solid rgba(76, 175, 80, 0.1);
-  padding: 12px;
-  font-size: 0.9rem;
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.modern-table >>> tbody tr:nth-child(even) td {
-  color: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(76, 175, 80, 0.15);
-  padding: 12px;
-  font-size: 0.9rem;
-  background: rgba(0, 0, 0, 0.15);
+  background: #f9f9f9;
 }
 
 .modern-table >>> tbody td {
-  color: rgba(255, 255, 255, 0.95);
-  padding: 12px;
+  color: #333;
+  padding: 16px;
   font-size: 0.9rem;
 }
 
 .modern-table >>> .q-table__bottom {
   background: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  border-top: 2px solid rgba(76, 175, 80, 0.3);
-  padding: 12px;
+  color: #666;
+  border-top: 2px solid #e0e0e0;
+  padding: 16px;
 }
 
 .modern-table >>> .q-table__card {
@@ -905,34 +859,35 @@ export default {
 }
 
 .search-input >>> .q-field__control {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
 }
 
 .search-input >>> .q-field__control:hover {
-  border-color: rgba(76, 175, 80, 0.5);
+  border-color: #4caf50;
 }
 
 .dialog-card {
-  background: rgba(20, 34, 33, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(76, 175, 80, 0.3);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
 .dialog-card >>> .q-field__control {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.7);
   border-radius: 8px;
+  border: 1px solid #e0e0e0;
 }
 
 .dialog-card >>> .q-field__control:hover {
-  border-color: rgba(76, 175, 80, 0.5);
+  border-color: #4caf50;
 }
 
 .dialog-card >>> .q-field--focused .q-field__control {
   border-color: #4caf50;
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
 }
 
 @media (max-width: 1024px) {

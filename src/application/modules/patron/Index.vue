@@ -11,12 +11,10 @@
     <div class="page-header q-mb-lg">
       <div class="row items-center justify-between">
         <div>
-          <div class="text-h4 text-white text-weight-bold q-mb-xs">
+          <div class="text-h4 text-dark text-weight-bold q-mb-xs">
             Welcome, {{ userName }}!
           </div>
-          <div class="text-subtitle1 text-grey-5">
-            Your charging dashboard
-          </div>
+          <div class="text-subtitle1 text-grey-7">Your charging dashboard</div>
         </div>
         <div class="row q-gutter-sm">
           <q-btn
@@ -54,8 +52,10 @@
                 <q-icon name="stars" />
               </q-avatar>
               <div class="col q-ml-md">
-                <div class="text-h5 text-white text-weight-bold">{{ patronPoints }}</div>
-                <div class="text-caption text-grey-5">Total Points</div>
+                <div class="text-h5 text-dark text-weight-bold">
+                  {{ patronPoints }}
+                </div>
+                <div class="text-caption text-grey-7">Total Points</div>
               </div>
             </div>
           </q-card-section>
@@ -70,8 +70,10 @@
                 <q-icon name="ev_station" />
               </q-avatar>
               <div class="col q-ml-md">
-                <div class="text-h5 text-white text-weight-bold">{{ totalCharges }}</div>
-                <div class="text-caption text-grey-5">Total Charges</div>
+                <div class="text-h5 text-dark text-weight-bold">
+                  {{ totalCharges }}
+                </div>
+                <div class="text-caption text-grey-7">Total Charges</div>
               </div>
             </div>
           </q-card-section>
@@ -86,8 +88,10 @@
                 <q-icon name="flash_on" />
               </q-avatar>
               <div class="col q-ml-md">
-                <div class="text-h5 text-white text-weight-bold">{{ totalEnergy }} kWh</div>
-                <div class="text-caption text-grey-5">Energy Used</div>
+                <div class="text-h5 text-dark text-weight-bold">
+                  {{ totalEnergy }} kWh
+                </div>
+                <div class="text-caption text-grey-7">Energy Used</div>
               </div>
             </div>
           </q-card-section>
@@ -102,8 +106,10 @@
                 <q-icon name="eco" />
               </q-avatar>
               <div class="col q-ml-md">
-                <div class="text-h5 text-white text-weight-bold">{{ co2Saved }} kg</div>
-                <div class="text-caption text-grey-5">CO₂ Saved</div>
+                <div class="text-h5 text-dark text-weight-bold">
+                  {{ co2Saved }} kg
+                </div>
+                <div class="text-caption text-grey-7">CO₂ Saved</div>
               </div>
             </div>
           </q-card-section>
@@ -115,21 +121,40 @@
     <q-card class="table-card q-mb-lg">
       <q-card-section>
         <div class="row items-center justify-between q-mb-md">
-          <div class="text-h6 text-white">Recent Charging Sessions</div>
-          <q-badge color="green" outline>{{ chargingSessions.length }} sessions</q-badge>
+          <div class="text-h6 text-dark">Recent Charging Sessions</div>
+          <q-badge color="green" outline
+            >{{ chargingSessions.length }} sessions</q-badge
+          >
         </div>
-        
+
         <q-inner-loading :showing="loading">
           <q-spinner-gears size="50px" color="green" />
         </q-inner-loading>
-        
-        <div v-if="!loading && chargingSessions.length === 0" class="text-center q-pa-lg">
-          <q-icon name="ev_station" size="64px" color="grey-6" class="q-mb-md" />
-          <div class="text-h6 text-grey-5 q-mb-xs">No Charging Sessions Yet</div>
-          <div class="text-caption text-grey-6 q-mb-md">Start converting your points to begin charging!</div>
-          <q-btn color="green" icon="bolt" label="Convert Points" @click="goToConvert" />
+
+        <div
+          v-if="!loading && chargingSessions.length === 0"
+          class="text-center q-pa-lg"
+        >
+          <q-icon
+            name="ev_station"
+            size="64px"
+            color="grey-6"
+            class="q-mb-md"
+          />
+          <div class="text-h6 text-grey-5 q-mb-xs">
+            No Charging Sessions Yet
+          </div>
+          <div class="text-caption text-grey-6 q-mb-md">
+            Start converting your points to begin charging!
+          </div>
+          <q-btn
+            color="green"
+            icon="bolt"
+            label="Convert Points"
+            @click="goToConvert"
+          />
         </div>
-        
+
         <q-table
           v-if="!loading && chargingSessions.length > 0"
           :data="chargingSessions"
@@ -141,8 +166,16 @@
         >
           <template v-slot:body-cell-status="props">
             <q-td :props="props">
-              <q-badge 
-                :color="props.row.status === 'completed' ? 'green' : props.row.status === 'active' ? 'orange' : props.row.status === 'cancelled' ? 'red' : 'grey'"
+              <q-badge
+                :color="
+                  props.row.status === 'completed'
+                    ? 'green'
+                    : props.row.status === 'active'
+                    ? 'orange'
+                    : props.row.status === 'cancelled'
+                    ? 'red'
+                    : 'grey'
+                "
                 :label="props.row.status"
               />
             </q-td>
@@ -155,7 +188,7 @@
               </q-badge>
             </q-td>
           </template>
-          
+
           <template v-slot:body-cell-energy="props">
             <q-td :props="props">
               <span class="text-green">{{ props.row.energy }} Wh</span>
@@ -175,8 +208,10 @@
                 <q-icon name="map" size="32px" />
               </q-avatar>
               <div class="col q-ml-md">
-                <div class="text-h6 text-white">Find Charging Stations</div>
-                <div class="text-caption text-grey-5">Locate nearby charging stations on the map</div>
+                <div class="text-h6 text-dark">Find Charging Stations</div>
+                <div class="text-caption text-grey-7">
+                  Locate nearby charging stations on the map
+                </div>
               </div>
               <q-icon name="chevron_right" color="grey-5" size="24px" />
             </div>
@@ -192,8 +227,10 @@
                 <q-icon name="emoji_events" size="32px" />
               </q-avatar>
               <div class="col q-ml-md">
-                <div class="text-h6 text-white">Achievements & Leaderboard</div>
-                <div class="text-caption text-grey-5">View your achievements and compete with others</div>
+                <div class="text-h6 text-dark">Achievements & Leaderboard</div>
+                <div class="text-caption text-grey-7">
+                  View your achievements and compete with others
+                </div>
               </div>
               <q-icon name="chevron_right" color="grey-5" size="24px" />
             </div>
@@ -211,53 +248,53 @@ export default {
     return {
       hasLoadedOnce: false,
       pagination: {
-        rowsPerPage: 10
+        rowsPerPage: 10,
       },
 
       sessionColumns: [
         {
-          name: 'date',
-          label: 'Date',
-          field: 'date',
-          align: 'left',
-          sortable: true
+          name: "date",
+          label: "Date",
+          field: "date",
+          align: "left",
+          sortable: true,
         },
         {
-          name: 'station',
-          label: 'Station',
-          field: 'station',
-          align: 'left',
-          sortable: true
+          name: "station",
+          label: "Station",
+          field: "station",
+          align: "left",
+          sortable: true,
         },
         {
-          name: 'duration',
-          label: 'Duration',
-          field: 'duration',
-          align: 'left',
-          sortable: true
+          name: "duration",
+          label: "Duration",
+          field: "duration",
+          align: "left",
+          sortable: true,
         },
         {
-          name: 'energy',
-          label: 'Energy (Wh)',
-          field: 'energy',
-          align: 'left',
-          sortable: true
+          name: "energy",
+          label: "Energy (Wh)",
+          field: "energy",
+          align: "left",
+          sortable: true,
         },
         {
-          name: 'points',
-          label: 'Points Redeemed',
-          field: 'points',
-          align: 'left',
-          sortable: true
+          name: "points",
+          label: "Points Redeemed",
+          field: "points",
+          align: "left",
+          sortable: true,
         },
         {
-          name: 'status',
-          label: 'Status',
-          field: 'status',
-          align: 'center',
-          sortable: true
-        }
-      ]
+          name: "status",
+          label: "Status",
+          field: "status",
+          align: "center",
+          sortable: true,
+        },
+      ],
     };
   },
 
@@ -267,20 +304,20 @@ export default {
       if (user?.first_name && user?.last_name) {
         return `${user.first_name} ${user.last_name}`;
       }
-      return user?.email?.split('@')[0] || 'Patron';
+      return user?.email?.split("@")[0] || "Patron";
     },
-    
+
     userPointsBalance() {
       const user = this.$store.state.auth?.user;
       return user?.points_balance || 0;
     },
 
     loading() {
-      return this.$store.getters['patron/isLoading'];
+      return this.$store.getters["patron/isLoading"];
     },
 
     dashboardStats() {
-      return this.$store.getters['patron/dashboardStats'];
+      return this.$store.getters["patron/dashboardStats"];
     },
 
     patronPoints() {
@@ -293,42 +330,44 @@ export default {
 
     totalEnergy() {
       // Return in kWh format
-      return this.dashboardStats?.energy_used_kwh?.toFixed(2) || '0.00';
+      return this.dashboardStats?.energy_used_kwh?.toFixed(2) || "0.00";
     },
 
     co2Saved() {
-      return this.dashboardStats?.co2_saved_kg?.toFixed(2) || '0.00';
+      return this.dashboardStats?.co2_saved_kg?.toFixed(2) || "0.00";
     },
 
     recyclablesWeight() {
-      return this.dashboardStats?.total_recyclables_weight_kg?.toFixed(2) || '0.00';
+      return (
+        this.dashboardStats?.total_recyclables_weight_kg?.toFixed(2) || "0.00"
+      );
     },
 
     rawChargingSessions() {
-      return this.$store.getters['patron/chargingHistory'];
+      return this.$store.getters["patron/chargingHistory"];
     },
 
     chargingSessions() {
       const sessions = this.rawChargingSessions || [];
-      
-      return sessions.map(session => {
+
+      return sessions.map((session) => {
         // Format date
         const startDate = new Date(session.start_time);
-        const formattedDate = startDate.toLocaleString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
+        const formattedDate = startDate.toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         });
-        
+
         // Format duration
-        let duration = '-';
+        let duration = "-";
         if (session.end_time) {
           const endDate = new Date(session.end_time);
           const durationMs = endDate - startDate;
           const durationMins = Math.round(durationMs / 1000 / 60);
-          
+
           if (durationMins < 60) {
             duration = `${durationMins} min`;
           } else {
@@ -337,18 +376,18 @@ export default {
             duration = mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
           }
         }
-        
+
         return {
           id: session.session_id,
           date: formattedDate,
-          station: session.kiosk_location || 'Unknown Station',
+          station: session.kiosk_location || "Unknown Station",
           duration: duration,
           energy: (parseFloat(session.energy_wh) || 0).toFixed(1),
           points: session.points_redeemed,
-          status: session.status
+          status: session.status,
         };
       });
-    }
+    },
   },
 
   mounted() {
@@ -360,159 +399,97 @@ export default {
       try {
         // Fetch dashboard stats and charging history in parallel
         await Promise.all([
-          this.$store.dispatch('patron/fetchDashboardStats'),
-          this.$store.dispatch('patron/fetchChargingHistory')
+          this.$store.dispatch("patron/fetchDashboardStats"),
+          this.$store.dispatch("patron/fetchChargingHistory"),
         ]);
-        
+
         // Show success notification on first load
         if (!this.hasLoadedOnce) {
           this.$q.notify({
-            type: 'positive',
-            message: 'Dashboard data updated',
-            position: 'top',
-            timeout: 1500
+            type: "positive",
+            message: "Dashboard data updated",
+            position: "top",
+            timeout: 1500,
           });
           this.hasLoadedOnce = true;
         }
-        
       } catch (error) {
-        console.error('Error loading patron data:', error);
-        
+        console.error("Error loading patron data:", error);
+
         // Don't show error notification if it's a 401 (user will be redirected)
         if (error.response?.status === 401) {
           return;
         }
-        
+
         this.$q.notify({
-          type: 'negative',
-          message: 'Failed to load dashboard data',
-          position: 'top',
+          type: "negative",
+          message: "Failed to load dashboard data",
+          position: "top",
           actions: [
             {
-              label: 'Retry',
-              color: 'white',
+              label: "Retry",
+              color: "white",
               handler: () => {
                 this.loadPatronData();
-              }
-            }
-          ]
+              },
+            },
+          ],
         });
       }
     },
 
     goToMap() {
-      this.$router.push('/patron/map');
+      this.$router.push("/patron/map");
     },
 
     goToAchievements() {
-      this.$router.push('/patron/achievements');
+      this.$router.push("/patron/achievements");
     },
 
     goToConvert() {
-      this.$router.push('/patron/convert');
+      this.$router.push("/patron/convert");
     },
 
     viewProfile() {
-      this.$router.push('/patron/profile');
-    }
-  }
+      this.$router.push("/patron/profile");
+    },
+  },
 };
 </script>
 
 <style scoped>
 .patron-page {
-  background: linear-gradient(135deg, #0a0f0d 0%, #142221 50%, #1a2c28 100%);
+  background: #f5f5f5;
   min-height: 100vh;
   position: relative;
   overflow: hidden;
-}
-
-/* Animated Background Blobs */
-.animated-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.2;
-  animation: float 25s infinite ease-in-out;
-}
-
-.blob-1 {
-  width: 500px;
-  height: 500px;
-  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
-  top: -250px;
-  right: -250px;
-  animation-delay: 0s;
-}
-
-.blob-2 {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
-  bottom: -200px;
-  left: -200px;
-  animation-delay: 8s;
-}
-
-.blob-3 {
-  width: 350px;
-  height: 350px;
-  background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
-  top: 40%;
-  left: 50%;
-  animation-delay: 16s;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(50px, -80px) scale(1.15);
-  }
-  66% {
-    transform: translate(-30px, 50px) scale(0.9);
-  }
 }
 
 .page-header {
   position: relative;
   z-index: 1;
   padding: 24px;
-  background: rgba(20, 34, 33, 0.6);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .stat-card,
 .action-card {
   position: relative;
   z-index: 1;
-  background: rgba(20, 34, 33, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(76, 175, 80, 0.2);
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
   border-radius: 12px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .stat-card:hover,
 .action-card:hover {
-  border-color: rgba(76, 175, 80, 0.5);
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.2);
+  border-color: #4caf50;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .action-card {
@@ -522,11 +499,10 @@ export default {
 .table-card {
   position: relative;
   z-index: 1;
-  background: rgba(20, 34, 33, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 }
 
@@ -535,32 +511,33 @@ export default {
 }
 
 .modern-table >>> thead tr {
-  background: rgba(76, 175, 80, 0.15);
+  background: #f5f5f5;
 }
 
 .modern-table >>> thead th {
-  color: #4caf50;
+  color: #2e7d32;
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 1px;
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  font-size: 0.75rem;
+  letter-spacing: 1.2px;
+  border: none;
+  border-bottom: 2px solid #e0e0e0;
   padding: 16px;
-  background: rgba(20, 34, 33, 0.8);
+  background: transparent;
 }
 
 .modern-table >>> tbody tr {
-  transition: all 0.3s ease;
-  border-bottom: 1px solid rgba(76, 175, 80, 0.2);
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .modern-table >>> tbody tr:hover {
-  background: rgba(76, 175, 80, 0.1);
+  background: #f9f9f9;
 }
 
 .modern-table >>> tbody td {
-  color: rgba(255, 255, 255, 0.95);
-  padding: 12px;
+  color: #333;
+  padding: 16px;
   font-size: 0.9rem;
 }
 
@@ -751,4 +728,3 @@ export default {
   padding: 8px 24px;
 }
 </style>
-
