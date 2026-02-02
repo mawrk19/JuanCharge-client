@@ -1,171 +1,154 @@
 <template>
-  <q-page class="dashboard-bg q-pa-lg">
-    <!-- Animated Background -->
-    <div class="animated-bg">
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
-      <div class="blob blob-3"></div>
-    </div>
-
-    <!-- Welcome Header -->
-    <div class="welcome-header q-mb-lg">
-      <div class="row items-center justify-between">
+  <q-page class="bg-[#F8F9FB] min-h-screen font-sans text-gray-800">
+    <div class="max-w-7xl mx-auto p-4 md:p-6 space-y-5">
+      
+      <!-- Top Header (Compact) -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <div class="text-h4 text-white text-weight-bold q-mb-xs">
-            Welcome {{ userName }}!
+          <h4 class="text-xl font-bold text-[#1A1A1A] tracking-tight">
+            Dashboard Overview
+          </h4>
+          <p class="text-gray-400 text-xs mt-0.5 font-medium">View your key metrics and activity for today</p>
+        </div>
+        <div class="flex items-center gap-2">
+        </div>
+      </div>
+
+      <!-- KPI Grid (Top Row) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <DashboardCard
+          title="Total Users"
+          subtitle="Registered"
+          :value="overview?.total_users || 0"
+          icon="people"
+          change="+14%" 
+          changeType="positive"
+        />
+        <DashboardCard
+          title="Active Energy"
+          subtitle="Total Consumed"
+          :value="overview?.charging?.total_energy_kwh || 0"
+          icon="bolt"
+          format="decimal"
+          change="+13%"
+          changeType="positive"
+        />
+        <DashboardCard
+          title="Active Kiosks"
+          subtitle="Network Status"
+          :value="(overview?.kiosks?.active || 0) + '/' + (overview?.kiosks?.total || 0)"
+          icon="ev_station"
+          change="+4.68%"
+          changeType="positive"
+        />
+        <DashboardCard
+          title="Recycling"
+          subtitle="Total Deposited"
+          :value="overview?.recycling?.total_weight_kg || 0"
+          icon="recycling"
+          format="weight"
+          :change="(overview?.recycling?.total_deposits || 0) + ' drops'"
+          changeType="positive"
+        />
+      </div>
+
+      <!-- Charts Section (Middle Content - Reduced Height) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        
+        <!-- Main Chart: Activity Overview (Taking 2/3 width) -->
+        <div class="lg:col-span-2 bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <div class="flex items-center justify-between mb-4">
+             <h5 class="text-xs font-bold text-[#1A1A1A] uppercase tracking-wide">Activity Overview</h5>
+             <div class="bg-gray-50 px-2.5 py-1 rounded-full text-[10px] font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors">
+               Last 7 Days
+               <q-icon name="expand_more" />
+             </div>
           </div>
-          <div class="text-subtitle1 text-grey-5">
-            JuanCharge LGU Dashboard
+          
+          <div class="w-full h-[240px]">
+            <apexchart
+              type="bar"
+              height="100%"
+              :options="barChartOptions"
+              :series="chartSeries"
+            />
           </div>
         </div>
-        <div>
-          <q-btn
-            unelevated
-            color="green"
-            icon="add"
-            label="Add Station"
-            class="modern-btn"
-            @click="$router.push('../main/kiosks')"
-          />
-        </div>
-      </div>
-    </div>
 
-    <div class="q-mb-lg">
-      <div class="section-header q-mb-md">
-        <q-icon name="analytics" size="28px" color="green" class="q-mr-sm" />
-        <span class="text-h5 text-white text-weight-bold">Key Metrics</span>
-      </div>
-      <div class="row q-col-gutter-md q-row-gutter-md">
-        <div class="col-12 col-sm-6 col-md-3 q-mb-md">
-          <DashboardCard
-            title="Collected"
-            subtitle="Total Recyclable"
-            :value="metrics.garbageCollected"
-            icon="recycling"
-            iconColor="white"
-            format="weight"
-            change="+1 from last month"
-            changeType="positive"
-          />
-        </div>
-        <div class="col-12 col-sm-6 col-md-3 q-mb-md">
-          <DashboardCard
-            title="Charging Time"
-            subtitle="Dispensed"
-            :value="metrics.chargingTime"
-            icon="charging_station"
-            iconColor="white"
-            format="minutes"
-            change="+8.5% from last month"
-            changeType="positive"
-          />
-        </div>
-        <div class="col-12 col-sm-6 col-md-3 q-mb-md">
-          <DashboardCard
-            title="Online"
-            subtitle="JuanCharge Kiosk"
-            :value="metrics.onlineKiosk"
-            icon="podcasts"
-            iconColor="white"
-            change="Uptime: 120 hrs"
-            changeType="positive"
-          />
-        </div>
-        <div class="col-12 col-sm-6 col-md-3 q-mb-md">
-          <DashboardCard
-            title="Charge Capacity"
-            subtitle="Battery Status"
-            :value="metrics.chargeCapacity"
-            icon="battery_charging_full"
-            iconColor="white"
-            format="percentage"
-            change="Last Full: 4 days ago"
-            changeType="positive"
-          />
+        <!-- Secondary Chart: Distribution (Taking 1/3 width) -->
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col">
+          <div class="flex items-center justify-between mb-2">
+             <h5 class="text-xs font-bold text-[#1A1A1A] uppercase tracking-wide">Impact by Category</h5>
+             <div class="bg-gray-50 px-2.5 py-1 rounded-full text-[10px] font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors">
+               This Week
+               <q-icon name="expand_more" />
+             </div>
+          </div>
+          
+          <div class="flex-1 flex items-center justify-center relative">
+            <apexchart
+              type="donut"
+              width="100%"
+              height="200"
+              :options="donutChartOptions"
+              :series="donutSeries"
+            />
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="q-mb-lg">
-      <div class="section-header q-mb-md">
-        <q-icon name="restore_from_trash" size="28px" color="green" class="q-mr-sm" />
-        <span class="text-h5 text-white text-weight-bold">Collection Overview</span>
-      </div>
-      <div class="row q-col-gutter-md q-row-gutter-md">
-        <div class="col-12 col-md-8 q-mb-md">
-          <q-card class="dashboard-chart-card">
-            <q-card-section>
-              <div class="text-h6">Bin Collection Insights</div>
-              <div class="text-subtitle2 text-grey-7">Monthly kiosk bin collection for the past 6 months</div>
-            </q-card-section>
-            <q-card-section>
-              <apexchart
-                type="area"
-                height="300"
-                :options="revenueChartOptions"
-                :series="revenueChartSeries"
-              />
-            </q-card-section>
-          </q-card>
-        </div>
-        <div class="col-12 col-md-4 q-mb-md">
-          <q-card class="dashboard-chart-card">
-            <q-card-section>
-              <div class="text-h6">Kiosk Status</div>
-              <div class="text-subtitle2 text-grey-7"></div>
-            </q-card-section>
-            <q-card-section>
-              <apexchart
-                type="donut"
-                height="300"
-                :options="stationStatusChartOptions"
-                :series="stationStatusChartSeries"
-              />
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
-    </div>
+       <!-- Bottom Section: Transactions / Lists (Compact Text) -->
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+         <div class="flex items-center justify-between mb-4">
+            <h5  class="text-xs font-bold text-[#1A1A1A] uppercase tracking-wide">Recent Transactions</h5>
+            <div class="flex gap-2">
+              <div class="relative">
+                 <q-icon name="search" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size="14px"/>
+                 <input type="text" placeholder="Search" class="pl-8 pr-3 py-1 bg-gray-50 rounded-lg text-xs border-none focus:ring-0 w-40 placeholder-gray-400 text-gray-600 font-medium">
+              </div>
+              <button class="p-1 rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100">
+                <q-icon name="filter_list" size="16px" />
+              </button>
+            </div>
+         </div>
 
-    <div>
-      <div class="section-header q-mb-md">
-        <q-icon name="electric_bolt" size="28px" color="green" class="q-mr-sm" />
-        <span class="text-h5 text-white text-weight-bold">Usage & Energy</span>
-      </div>
-      <div class="row q-col-gutter-md q-row-gutter-md">
-        <div class="col-12 col-md-6 q-mb-md">
-          <q-card class="dashboard-chart-card">
-            <q-card-section>
-              <div class="text-h6">Daily Usage Patterns</div>
-              <div class="text-subtitle2 text-grey-7">Charging sessions by hour</div>
-            </q-card-section>
-            <q-card-section>
-              <apexchart
-                type="column"
-                height="300"
-                :options="usagePatternChartOptions"
-                :series="usagePatternChartSeries"
-              />
-            </q-card-section>
-          </q-card>
-        </div>
-        <div class="col-12 col-md-6 q-mb-md">
-          <q-card class="dashboard-chart-card">
-            <q-card-section>
-              <div class="text-h6">Energy Consumption</div>
-              <div class="text-subtitle2 text-grey-7">kWh delivered this week</div>
-            </q-card-section>
-            <q-card-section>
-              <apexchart
-                type="line"
-                height="300"
-                :options="energyConsumptionChartOptions"
-                :series="energyConsumptionChartSeries"
-              />
-            </q-card-section>
-          </q-card>
-        </div>
+         <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-50">
+                   <th class="py-2 pl-2">User</th>
+                   <th class="py-2">Type</th>
+                   <th class="py-2">Date</th>
+                   <th class="py-2 text-right pr-2">Amount</th>
+                </tr>
+              </thead>
+              <tbody class="text-xs">
+                 <tr v-for="item in combinedActivity" :key="item.id" class="group hover:bg-gray-50/50 transition-colors">
+                    <td class="py-2.5 pl-2 font-semibold text-[#1A1A1A] flex items-center gap-2">
+                       <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                          <q-icon :name="item.icon" size="14px" />
+                       </div>
+                       {{ item.user_name }}
+                    </td>
+                    <td class="py-2.5">
+                       <span 
+                          class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide"
+                          :class="item.typeClass"
+                       >
+                          {{ item.typeLabel }}
+                       </span>
+                    </td>
+                    <td class="py-2.5 text-gray-500 font-medium">{{ formatTime(item.timestamp) }}</td>
+                    <td class="py-2.5 text-right pr-2 font-bold" :class="item.amountClass">
+                       {{ item.amountLabel }}
+                    </td>
+                 </tr>
+                 <tr v-if="combinedActivity.length === 0">
+                    <td colspan="4" class="py-6 text-center text-xs text-gray-400">No recent activity detected.</td>
+                 </tr>
+              </tbody>
+            </table>
+         </div>
       </div>
     </div>
   </q-page>
@@ -177,298 +160,184 @@ import DashboardCard from "./components/DashboardCard.vue";
 export default {
   name: "Dashboard",
   components: {
-    DashboardCard
+    DashboardCard,
   },
   data() {
     return {
-      metrics: {
-        garbageCollected: 415,
-        chargingTime: 314,
-        onlineKiosk: 1,
-        chargeCapacity: 74.5,
-      },
-      
-      // Revenue Chart Configuration
-      revenueChartOptions: {
+      barChartOptions: {
         chart: {
-          type: 'area',
+          type: "bar",
           toolbar: { show: false },
-          fontFamily: 'inherit',
-          background: 'transparent'
+          fontFamily: "'Inter', sans-serif",
+          stacked: false,
         },
-        colors: ['#4caf50'],
-        theme: {
-          mode: 'dark'
-        },
-        fill: {
-          type: 'gradient',
-          gradient: {
-            shadeIntensity: 1,
-            opacityFrom: 0.7,
-            opacityTo: 0.3,
-          }
-        },
-        dataLabels: { enabled: false },
-        stroke: { curve: 'smooth', width: 2 },
-        xaxis: {
-          categories: [ 'May', 'June', 'July', 'August', 'September', 'October', 'November']
-        },
-        yaxis: {
-          labels: {
-            formatter: (value) => `${(value / 1000).toFixed(0)}k`
-          }
-        },
-        tooltip: {
-          y: {
-            formatter: (value) => `₱${value.toLocaleString()}`
-          }
-        }
-      },
-      revenueChartSeries: [{
-        name: 'Bin Collection',
-        data: [10, 80, 30, 70, 50, 85, 90]
-      }],
-
-      // Station Status Chart
-      stationStatusChartOptions: {
-        chart: { 
-          type: 'donut',
-          background: 'transparent'
-        },
-        theme: {
-          mode: 'dark'
-        },
-        colors: ['#4caf50', '#ff9800', '#f44336', '#9e9e9e'],
-        labels: ['Online', 'Charging', 'Offline', 'Maintenance'],
-        legend: { position: 'bottom' },
-        plotOptions: {
-          pie: {
-            donut: {
-              labels: {
-                show: true,
-                total: {
-                  show: true,
-                  label: 'Total Kiosk'
-                }
-              }
-            }
-          }
-        }
-      },
-      stationStatusChartSeries: [1],
-
-      // Usage Pattern Chart
-      usagePatternChartOptions: {
-        chart: {
-          type: 'column',
-          toolbar: { show: false },
-          background: 'transparent'
-        },
-        theme: {
-          mode: 'dark'
-        },
-        colors: ['#66bb6a'],
+        colors: ["#82D616", "#C1F085"], 
         plotOptions: {
           bar: {
             borderRadius: 4,
-            columnWidth: '60%'
+            columnWidth: '40%',
+            dataLabels: { position: 'top' },
           }
         },
-        dataLabels: { enabled: false },
+        dataLabels: { enabled: false }, // Too messy on small charts
+        stroke: { show: true, width: 0, colors: ['transparent'] },
+        grid: {
+          borderColor: '#F1F1F1',
+          strokeDashArray: 4,
+          padding: { top: 0, right: 10, bottom: 0, left: 10 },
+          yaxis: { lines: { show: true } },
+          xaxis: { lines: { show: false } }, 
+        },
         xaxis: {
-          categories: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00']
+          categories: [],
+          axisBorder: { show: false },
+          axisTicks: { show: false },
+          labels: { style: { colors: '#9CA3AF', fontSize: '10px', fontWeight: 500 } }
         },
         yaxis: {
-          title: { text: 'Sessions' }
-        }
+          labels: { style: { colors: '#9CA3AF', fontSize: '10px', fontWeight: 500 } },
+        },
+        legend: { position: 'top', horizontalAlign: 'right', fontSize: '11px', itemMargin: { horizontal: 10 } },
+        tooltip: { theme: 'light', style: { fontSize: '11px' } },
       },
-      usagePatternChartSeries: [{
-        name: 'Charging Sessions',
-        data: [12, 8, 35, 42, 38, 28]
-      }],
-
-      // Energy Consumption Chart
-      energyConsumptionChartOptions: {
-        chart: {
-          type: 'line',
-          toolbar: { show: false },
-          background: 'transparent'
-        },
-        theme: {
-          mode: 'dark'
-        },
-        colors: ['#81c784'],
-        stroke: { curve: 'smooth', width: 3 },
+      
+      donutChartOptions: {
+        chart: { type: 'donut', fontFamily: "'Inter', sans-serif" },
+        colors: ["#1B3C08", "#82D616", "#C1F085", "#E9F8D6"], 
+        labels: ["Sessions", "Recycling", "Kiosks", "Other"],
         dataLabels: { enabled: false },
-        xaxis: {
-          categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-        },
-        yaxis: {
-          title: { text: 'Energy (kWh)' },
-          labels: {
-            formatter: (value) => `${(value / 1000).toFixed(1)}k`
-          }
-        },
-        markers: {
-          size: 5,
-          colors: ['#ff5722'],
-          strokeWidth: 2
+        legend: { position: 'bottom', horizontalAlign: 'center', fontSize: '11px', itemMargin: { horizontal: 5 } },
+        plotOptions: {
+           pie: {
+              donut: {
+                 size: '70%',
+                 labels: {
+                    show: true,
+                    name: { show: true, color: '#9CA3AF', fontSize: '11px', offsetY: -2 },
+                    value: { show: true, fontSize: '18px', fontWeight: 700, color: '#1A1A1A', offsetY: 4 },
+                    total: { show: true, label: 'Impact', color: '#9CA3AF', fontWeight: 600, fontSize: '10px' }
+                 }
+              }
+           }
         }
       },
-      energyConsumptionChartSeries: [{
-        name: 'Energy Delivered',
-        data: [8420, 9150, 8890, 9720, 9340, 7650, 6890]
-      }]
+      chartSeries: [], 
     };
   },
+
   computed: {
     userName() {
       const user = this.$store.state.auth.user;
-      if (!user) return '';
-      return user.name || user.first_name || 'User';
+      return user ? (user.name || user.first_name || "Admin") : "User";
+    },
+    isLoading() {
+      return this.$store.getters["dashboard/isLoading"];
+    },
+    overview() {
+      return this.$store.getters["dashboard/overview"];
+    },
+    sessions() {
+      return this.$store.getters["dashboard/sessions"] || [];
+    },
+    recycling() {
+      return this.$store.getters["dashboard/recycling"] || [];
+    },
+    chartData() {
+      return this.$store.getters["dashboard/chartData"] || [];
+    },
+    combinedActivity() {
+      // Merge sessions and recycling into one "Transactions" list
+      const txs = [
+        ...this.sessions.map(s => ({
+           id: 's-'+s.session_id,
+           user_name: s.user_name,
+           icon: 'bolt',
+           timestamp: s.created_at || new Date().toISOString(), 
+           typeLabel: 'Charging',
+           typeClass: 'bg-green-50 text-green-600',
+           amountLabel: `-${s.points_used} pts`,
+           amountClass: 'text-[#1A1A1A]' 
+        })),
+        ...this.recycling.map(r => ({
+           id: 'r-'+r.id,
+           user_name: r.user_name,
+           icon: 'recycling',
+           timestamp: r.created_at || new Date().toISOString(),
+           typeLabel: 'Recycling',
+           typeClass: 'bg-blue-50 text-blue-600',
+           amountLabel: `+${r.points_earned} pts`,
+           amountClass: 'text-[#82D616]' 
+        }))
+      ];
+      return txs.slice(0, 6); 
+    },
+    donutSeries() {
+      const sess = this.overview?.charging?.total_sessions || 0;
+      const recyc = this.overview?.recycling?.total_deposits || 0;
+      const kiosks = this.overview?.kiosks?.active || 0;
+      
+      if (sess + recyc + kiosks === 0) return [1];
+      
+      return [sess, recyc, kiosks, 10]; 
+    }
+  },
+
+  watch: {
+    chartData: {
+      handler(newData) {
+        if (newData && newData.length > 0) {
+           this.updateBarChart(newData);
+        }
+      },
+      immediate: true,
+    },
+  },
+
+  mounted() {
+    this.refreshDashboard();
+  },
+
+  methods: {
+    async refreshDashboard() {
+      try {
+        await this.$store.dispatch("dashboard/fetchAllDashboardData");
+        await Promise.all([
+          this.$store.dispatch("dashboard/fetchSessions", 5),
+          this.$store.dispatch("dashboard/fetchRecycling", 5)
+        ]);
+      } catch (error) {
+        console.warn("Some dashboard data unavailable");
+      }
+    },
+
+    updateBarChart(data) {
+      this.barChartOptions = {
+        ...this.barChartOptions,
+        xaxis: {
+          ...this.barChartOptions.xaxis,
+          categories: data.map((d) => {
+             // Handle date parsing safely
+             if (!d.date) return '-';
+             const date = new Date(d.date);
+             if (isNaN(date.getTime())) return d.date; // Return original if invalid
+             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          }),
+        },
+      };
+      this.chartSeries = [
+        { name: "Sessions", data: data.map((d) => d.sessions) },
+        { name: "Recycling (kg)", data: data.map((d) => d.recycling_kg) },
+      ];
+    },
+
+    formatTime(timestamp) {
+       if (!timestamp) return "-";
+       return new Date(timestamp).toLocaleDateString('en-US', { 
+         month: 'short', 
+         day: 'numeric',
+         year: 'numeric'
+       });
     }
   },
 };
 </script>
-
-<style scoped>
-.dashboard-bg {
-  background: linear-gradient(135deg, #0a0f0d 0%, #142221 50%, #1a2c28 100%);
-  min-height: 100vh;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Animated Background Blobs */
-.animated-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.2;
-  animation: float 25s infinite ease-in-out;
-}
-
-.blob-1 {
-  width: 500px;
-  height: 500px;
-  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
-  top: -250px;
-  left: -250px;
-  animation-delay: 0s;
-}
-
-.blob-2 {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
-  bottom: -200px;
-  right: -200px;
-  animation-delay: 8s;
-}
-
-.blob-3 {
-  width: 350px;
-  height: 350px;
-  background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
-  top: 40%;
-  right: 10%;
-  animation-delay: 16s;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(50px, -80px) scale(1.15);
-  }
-  66% {
-    transform: translate(-30px, 50px) scale(0.9);
-  }
-}
-
-/* Welcome Header */
-.welcome-header {
-  position: relative;
-  z-index: 1;
-  padding: 24px;
-  background: rgba(20, 34, 33, 0.6);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-/* Section Header */
-.section-header {
-  display: flex;
-  align-items: center;
-  position: relative;
-  z-index: 1;
-  padding-bottom: 12px;
-  border-bottom: 2px solid rgba(76, 175, 80, 0.2);
-}
-
-/* Modern Button */
-.modern-btn {
-  border-radius: 10px;
-  padding: 8px 20px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: none;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-  transition: all 0.3s ease;
-}
-
-.modern-btn:hover {
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
-  transform: translateY(-2px);
-}
-
-/* Chart Cards */
-.dashboard-chart-card {
-  position: relative;
-  z-index: 1;
-  background: rgba(20, 34, 33, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-}
-
-.dashboard-chart-card:hover {
-  border-color: rgba(76, 175, 80, 0.4);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(76, 175, 80, 0.1);
-  transform: translateY(-4px);
-}
-
-.dashboard-chart-card >>> .text-h6 {
-  color: white;
-  font-weight: 600;
-}
-
-.dashboard-chart-card >>> .text-subtitle2 {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .welcome-header .row {
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 16px;
-  }
-}
-</style>

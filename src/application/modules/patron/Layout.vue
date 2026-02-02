@@ -4,15 +4,14 @@
     <q-header elevated class="patron-header">
       <q-toolbar>
         <q-toolbar-title class="brand-title" @click="goToDashboard">
-          <img src="/image/logo.png" alt="JuanCharge Logo" class="navbar-logo" />
+          <img
+            src="/image/logo.png"
+            alt="JuanCharge Logo"
+            class="navbar-logo"
+          />
         </q-toolbar-title>
 
-        <q-btn
-          flat
-          round
-          dense
-          icon="account_circle"
-        >
+        <q-btn flat round dense icon="account_circle">
           <q-menu>
             <q-list style="min-width: 150px">
               <q-item clickable v-close-popup @click="viewProfile">
@@ -21,9 +20,9 @@
                 </q-item-section>
                 <q-item-section>Profile</q-item-section>
               </q-item>
-              
+
               <q-separator />
-              
+
               <q-item clickable v-close-popup @click="logout">
                 <q-item-section avatar>
                   <q-icon name="logout" />
@@ -39,7 +38,7 @@
     <!-- Page Content -->
     <q-page-container>
       <router-view />
-      
+
       <!-- Charging Widget - Shows on all pages when session is active -->
       <charging-widget />
     </q-page-container>
@@ -47,56 +46,58 @@
 </template>
 
 <script>
-import ChargingWidget from './components/ChargingWidget.vue';
+import ChargingWidget from "./components/ChargingWidget.vue";
 
 export default {
   name: "PatronLayout",
-  
+
   components: {
-    ChargingWidget
+    ChargingWidget,
   },
 
   mounted() {
     // Restore any active session from localStorage on app load
-    this.$store.dispatch('patron/restoreSession');
+    this.$store.dispatch("patron/restoreSession");
   },
 
   methods: {
     goToDashboard() {
-      this.$router.push('/patron');
+      this.$router.push("/patron");
     },
 
     viewProfile() {
-      this.$router.push('/patron/profile');
+      this.$router.push("/patron/profile");
     },
-    
+
     async logout() {
       try {
-        await this.$store.dispatch('auth/logout');
+        await this.$store.dispatch("auth/logout");
         this.$q.notify({
-          type: 'positive',
-          message: 'Logged out successfully',
-          icon: 'check_circle',
-          position: 'top'
+          type: "positive",
+          message: "Logged out successfully",
+          icon: "check_circle",
+          position: "top",
         });
-        this.$router.push('/login');
+        this.$router.push("/login");
       } catch (err) {
         // console.error('Logout error:', err);
         this.$q.notify({
-          type: 'negative',
-          message: 'Logout failed',
-          icon: 'error',
-          position: 'top'
+          type: "negative",
+          message: "Logout failed",
+          icon: "error",
+          position: "top",
         });
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
 <style scoped>
 .patron-header {
-  background: linear-gradient(135deg, #1a4d2e 0%, #2d5f3f 100%);
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .brand-title {

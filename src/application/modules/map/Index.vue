@@ -22,14 +22,16 @@
                 <template v-slot:prepend>
                   <q-icon name="search" />
                 </template>
-                
+
                 <!-- Suggestions Menu -->
-                <q-menu
-                  v-model="showSuggestions"
-                  fit
-                  no-parent-event
-                >
-                  <q-list style="min-width: 100px; max-height: 400px; overflow-y: auto;">
+                <q-menu v-model="showSuggestions" fit no-parent-event>
+                  <q-list
+                    style="
+                      min-width: 100px;
+                      max-height: 400px;
+                      overflow-y: auto;
+                    "
+                  >
                     <q-item
                       v-for="suggestion in searchSuggestions"
                       :key="suggestion.value"
@@ -38,14 +40,22 @@
                       @click="selectSuggestion(suggestion)"
                     >
                       <q-item-section avatar>
-                        <q-icon :name="suggestion.icon" :color="suggestion.iconColor" />
+                        <q-icon
+                          :name="suggestion.icon"
+                          :color="suggestion.iconColor"
+                        />
                       </q-item-section>
                       <q-item-section>
                         <q-item-label>{{ suggestion.label }}</q-item-label>
-                        <q-item-label caption>{{ suggestion.caption }}</q-item-label>
+                        <q-item-label caption>{{
+                          suggestion.caption
+                        }}</q-item-label>
                       </q-item-section>
                       <q-item-section side>
-                        <q-badge :color="suggestion.badgeColor" :label="suggestion.badge" />
+                        <q-badge
+                          :color="suggestion.badgeColor"
+                          :label="suggestion.badge"
+                        />
                       </q-item-section>
                     </q-item>
                     <q-item v-if="searchSuggestions.length === 0">
@@ -97,14 +107,11 @@
             :zoom="zoom"
             :center="center"
             :options="mapOptions"
-            style="height: 100%; width: 100%;"
+            style="height: 100%; width: 100%"
             @ready="onMapReady"
           >
-            <l-tile-layer
-              :url="tileLayerUrl"
-              :attribution="attribution"
-            />
-            
+            <l-tile-layer :url="tileLayerUrl" :attribution="attribution" />
+
             <!-- Markers for Charging Stations -->
             <l-marker
               v-for="station in filteredStations"
@@ -119,7 +126,9 @@
               />
               <l-popup>
                 <div class="station-popup">
-                  <div class="text-subtitle2 text-weight-bold">{{ station.name }}</div>
+                  <div class="text-subtitle2 text-weight-bold">
+                    {{ station.name }}
+                  </div>
                   <div class="text-caption">Click to view details →</div>
                 </div>
               </l-popup>
@@ -159,9 +168,12 @@
       <!-- Right Side: Stations Catalog -->
       <div class="stations-catalog">
         <div class="catalog-header q-pa-md">
-          <div class="text-h6 text-white">Charging Stations</div>
-          <div class="text-caption text-grey-5">
-            {{ filteredStations.length }} station{{ filteredStations.length !== 1 ? 's' : '' }} found
+          <div class="text-h6 text-dark">Charging Stations</div>
+          <div class="text-caption text-grey-7">
+            {{ filteredStations.length }} station{{
+              filteredStations.length !== 1 ? "s" : ""
+            }}
+            found
           </div>
         </div>
 
@@ -172,7 +184,10 @@
             <div class="text-grey-5">Loading kiosks...</div>
           </div>
 
-          <div v-else-if="filteredStations.length === 0" class="tw-text-center tw-p-8 tw-opacity-60">
+          <div
+            v-else-if="filteredStations.length === 0"
+            class="tw-text-center tw-p-8 tw-opacity-60"
+          >
             <q-icon name="ev_station" size="48px" class="tw-mb-2" />
             <div>No stations found</div>
           </div>
@@ -181,27 +196,43 @@
             v-for="station in filteredStations"
             :key="station.id"
             class="station-card q-mb-md tw-cursor-pointer"
-            :class="{ 'selected': selectedStation && selectedStation.id === station.id }"
+            :class="{
+              selected: selectedStation && selectedStation.id === station.id,
+            }"
             @click="selectStation(station)"
           >
             <q-card-section class="q-pa-md">
               <div class="row items-center q-mb-sm">
-                <q-avatar size="40px" :color="getStatusColor(station.status)" text-color="white">
+                <q-avatar
+                  size="40px"
+                  :color="getStatusColor(station.status)"
+                  text-color="white"
+                >
                   <q-icon name="ev_station" />
                 </q-avatar>
                 <div class="col q-ml-sm">
-                  <div class="text-subtitle2 text-weight-bold text-white">{{ station.name }}</div>
-                  <div class="text-caption text-grey-5">{{ station.address }}</div>
+                  <div class="text-subtitle2 text-weight-bold text-dark">
+                    {{ station.name }}
+                  </div>
+                  <div class="text-caption text-grey-7">
+                    {{ station.address }}
+                  </div>
                 </div>
               </div>
 
-              <q-separator class="q-my-sm" style="border-color: rgba(76, 175, 80, 0.2);" />
+              <q-separator
+                class="q-my-sm"
+                style="border-color: rgba(76, 175, 80, 0.2)"
+              />
 
               <!-- Bin Level Indicator -->
               <div class="q-mb-sm">
                 <div class="row items-center justify-between q-mb-xs">
-                  <span class="text-caption text-grey-4">Availability</span>
-                  <span class="text-caption text-weight-bold" :style="{ color: getStatusColor(station.status) }">
+                  <span class="text-caption text-grey-7">Availability</span>
+                  <span
+                    class="text-caption text-weight-bold"
+                    :style="{ color: getStatusColor(station.status) }"
+                  >
                     {{ station.available }}/{{ station.total }} ports
                   </span>
                 </div>
@@ -212,8 +243,9 @@
                   rounded
                   class="q-mb-xs"
                 />
-                <div class="text-caption text-grey-5">
-                  {{ Math.round((station.available / station.total) * 100) }}% available
+                <div class="text-caption text-grey-7">
+                  {{ Math.round((station.available / station.total) * 100) }}%
+                  available
                 </div>
               </div>
 
@@ -222,26 +254,17 @@
                 <div class="col-6">
                   <div class="info-box q-pa-xs">
                     <q-icon name="qr_code" size="16px" color="purple" />
-                    <span class="text-caption text-grey-4 q-ml-xs">{{ station.kiosk_code }}</span>
+                    <span class="text-caption text-grey-7 q-ml-xs">{{
+                      station.kiosk_code
+                    }}</span>
                   </div>
                 </div>
                 <div class="col-6">
-                  <div class="info-box q-pa-xs">
-                    <q-icon name="computer" size="16px" color="blue" />
-                    <span class="text-caption text-grey-4 q-ml-xs">v{{ station.software_version }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="row q-col-gutter-sm">
-                <div class="col-6">
-                  <div class="info-box q-pa-xs">
-                    <q-icon name="vpn_key" size="16px" color="orange" />
-                    <span class="text-caption text-grey-4 q-ml-xs">{{ station.serial_number }}</span>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <q-badge :color="getStatusColor(station.status)" :label="station.status" class="full-width" />
+                  <q-badge
+                    :color="getStatusColor(station.status)"
+                    :label="station.status"
+                    class="full-width"
+                  />
                 </div>
               </div>
 
@@ -283,7 +306,9 @@
       <q-card style="min-width: 350px">
         <q-card-section v-if="selectedStation">
           <div class="text-h6">{{ selectedStation.name }}</div>
-          <div class="text-subtitle2 text-grey-7">{{ selectedStation.address }}</div>
+          <div class="text-subtitle2 text-grey-7">
+            {{ selectedStation.address }}
+          </div>
         </q-card-section>
 
         <q-separator />
@@ -294,31 +319,28 @@
           </div>
           <div class="q-mb-sm">
             <strong>Status:</strong>
-            <q-badge :color="getStatusColor(selectedStation.status)" :label="selectedStation.status" class="q-ml-sm" />
-          </div>
-          <div class="q-mb-sm">
-            <strong>Serial Number:</strong> {{ selectedStation.serial_number }}
-          </div>
-          <div class="q-mb-sm">
-            <strong>IP Address:</strong> {{ selectedStation.ip_address }}
-          </div>
-          <div class="q-mb-sm">
-            <strong>MAC Address:</strong> {{ selectedStation.mac_address }}
-          </div>
-          <div class="q-mb-sm">
-            <strong>Software Version:</strong> {{ selectedStation.software_version }}
+            <q-badge
+              :color="getStatusColor(selectedStation.status)"
+              :label="selectedStation.status"
+              class="q-ml-sm"
+            />
           </div>
           <div class="q-mb-sm" v-if="selectedStation.assigned_to">
             <strong>Assigned To:</strong> {{ selectedStation.assigned_to }}
           </div>
           <div class="q-mb-sm">
-            <strong>Location:</strong> {{ selectedStation.lat }}, {{ selectedStation.lng }}
+            <strong>Location:</strong> {{ selectedStation.lat }},
+            {{ selectedStation.lng }}
           </div>
         </q-card-section>
 
         <q-card-actions align="right">
           <q-btn flat label="Close" color="primary" v-close-popup />
-          <q-btn label="Get Directions" color="primary" @click="getDirections(selectedStation)" />
+          <q-btn
+            label="Get Directions"
+            color="primary"
+            @click="getDirections(selectedStation)"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -326,17 +348,17 @@
 </template>
 
 <script>
-import { LMap, LTileLayer, LMarker, LPopup, LIcon } from 'vue2-leaflet';
-import 'leaflet/dist/leaflet.css';
+import { LMap, LTileLayer, LMarker, LPopup, LIcon } from "vue2-leaflet";
+import "leaflet/dist/leaflet.css";
 
 export default {
-  name: 'MapView',
+  name: "MapView",
   components: {
     LMap,
     LTileLayer,
     LMarker,
     LPopup,
-    LIcon
+    LIcon,
   },
   data() {
     return {
@@ -346,32 +368,33 @@ export default {
       mapOptions: {
         zoomControl: true,
         attributionControl: true,
-        zoomSnap: 0.5
+        zoomSnap: 0.5,
       },
-      tileLayerUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      tileLayerUrl: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 
       // Search and Filter
-      searchQuery: '',
+      searchQuery: "",
       searchSuggestions: [],
       allSuggestions: [],
       showSuggestions: false,
-      selectedStatus: 'all',
-      selectedConnector: 'all',
-      
+      selectedStatus: "all",
+      selectedConnector: "all",
+
       // Filter Options
       statusOptions: [
-        { label: 'All Status', value: 'all' },
-        { label: 'Available', value: 'available' },
-        { label: 'Occupied', value: 'occupied' },
-        { label: 'Offline', value: 'offline' }
+        { label: "All Status", value: "all" },
+        { label: "Available", value: "available" },
+        { label: "Occupied", value: "occupied" },
+        { label: "Offline", value: "offline" },
       ],
       connectorOptions: [
-        { label: 'All Types', value: 'all' },
-        { label: 'Type 2', value: 'Type 2' },
-        { label: 'CCS', value: 'CCS' },
-        { label: 'CHAdeMO', value: 'CHAdeMO' },
-        { label: 'Tesla', value: 'Tesla' }
+        { label: "All Types", value: "all" },
+        { label: "Type 2", value: "Type 2" },
+        { label: "CCS", value: "CCS" },
+        { label: "CHAdeMO", value: "CHAdeMO" },
+        { label: "Tesla", value: "Tesla" },
       ],
 
       // Stations Data
@@ -385,7 +408,7 @@ export default {
 
       // Selected Station
       selectedStation: null,
-      showDetailsDialog: false
+      showDetailsDialog: false,
     };
   },
   async mounted() {
@@ -398,61 +421,70 @@ export default {
     async loadKiosks() {
       this.isLoadingStations = true;
       try {
-        const response = await this.$store.dispatch('kiosks/fetchKiosks');
-        
+        const response = await this.$store.dispatch("kiosks/fetchKiosks");
+
         let kiosksData = null;
         if (response && response.data) {
           kiosksData = response.data;
         } else if (Array.isArray(response)) {
           kiosksData = response;
         }
-        
+
         if (Array.isArray(kiosksData) && kiosksData.length > 0) {
-          // Transform kiosk data to station format
-          this.allStations = kiosksData.map(kiosk => {
-            // Parse location string "lat, lng"
-            const [lat, lng] = kiosk.location ? 
-              kiosk.location.split(',').map(coord => parseFloat(coord.trim())) : 
-              [14.5995, 120.9842]; // Default Manila coordinates
-            
-            return {
-              id: kiosk.id,
-              name: `Kiosk ${kiosk.kiosk_code}`,
-              address: kiosk.notes || 'No address provided',
-              lat: lat,
-              lng: lng,
-              status: kiosk.status === 'active' ? 'available' : 'offline',
-              available: kiosk.status === 'active' ? 1 : 0,
-              total: 1,
-              connectorType: 'Type 2',
-              power: 50,
-              pricePerKwh: 12.5,
-              // Additional kiosk info
-              kiosk_code: kiosk.kiosk_code,
-              serial_number: kiosk.serial_number,
-              mac_address: kiosk.mac_address,
-              ip_address: kiosk.ip_address,
-              software_version: kiosk.software_version,
-              assigned_to: kiosk.assigned_to
-            };
-          });
-          
+          // Transform kiosk data to station format, filtering out invalid locations
+          this.allStations = kiosksData
+            .map((kiosk) => {
+              // Parse location string "lat, lng"
+              let lat = 14.5995; // Default Manila coordinates
+              let lng = 120.9842;
+
+              if (kiosk.location && typeof kiosk.location === "string") {
+                const parts = kiosk.location.split(",");
+                if (parts.length >= 2) {
+                  const parsedLat = parseFloat(parts[0].trim());
+                  const parsedLng = parseFloat(parts[1].trim());
+                  // Only use parsed values if they are valid numbers
+                  if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+                    lat = parsedLat;
+                    lng = parsedLng;
+                  }
+                }
+              }
+
+              return {
+                id: kiosk.id,
+                name: `Kiosk ${kiosk.kiosk_code}`,
+                address: kiosk.location || "No address provided",
+                lat: lat,
+                lng: lng,
+                status: kiosk.status === "active" ? "available" : "offline",
+                available: kiosk.status === "active" ? 1 : 0,
+                total: 1,
+                connectorType: "Type 2",
+                power: 50,
+                pricePerKwh: 12.5,
+                // Additional kiosk info
+                kiosk_code: kiosk.kiosk_code,
+                assigned_to: kiosk.assigned_to,
+              };
+            });
+
           this.filteredStations = [...this.allStations];
         } else {
           this.$q.notify({
-            color: 'info',
-            message: 'No kiosks found',
-            icon: 'info',
-            position: 'top'
+            color: "info",
+            message: "No kiosks found",
+            icon: "info",
+            position: "top",
           });
         }
       } catch (error) {
         // console.error('Error loading kiosks:', error);
         this.$q.notify({
-          color: 'red',
-          message: 'Failed to load kiosks',
-          icon: 'error',
-          position: 'top'
+          color: "red",
+          message: "Failed to load kiosks",
+          icon: "error",
+          position: "top",
         });
       } finally {
         this.isLoadingStations = false;
@@ -461,15 +493,15 @@ export default {
 
     generateSearchSuggestions() {
       // Generate suggestions from all stations
-      this.allSuggestions = this.allStations.map(station => ({
+      this.allSuggestions = this.allStations.map((station) => ({
         label: station.name,
         value: station.id,
         caption: station.address,
-        icon: 'ev_station',
+        icon: "ev_station",
         iconColor: this.getStatusColor(station.status),
         badge: station.status,
         badgeColor: this.getStatusColor(station.status),
-        station: station
+        station: station,
       }));
       this.searchSuggestions = [...this.allSuggestions];
     },
@@ -478,9 +510,10 @@ export default {
       // Show suggestions when user types
       if (val && val.length > 0) {
         const needle = val.toLowerCase();
-        this.searchSuggestions = this.allSuggestions.filter(v => 
-          v.label.toLowerCase().includes(needle) || 
-          v.caption.toLowerCase().includes(needle)
+        this.searchSuggestions = this.allSuggestions.filter(
+          (v) =>
+            v.label.toLowerCase().includes(needle) ||
+            v.caption.toLowerCase().includes(needle)
         );
         this.showSuggestions = true;
       } else {
@@ -502,13 +535,14 @@ export default {
 
     filterSearch(val, update) {
       update(() => {
-        if (val === '') {
+        if (val === "") {
           this.searchSuggestions = [...this.allSuggestions];
         } else {
           const needle = val.toLowerCase();
-          this.searchSuggestions = this.allSuggestions.filter(v => 
-            v.label.toLowerCase().includes(needle) || 
-            v.caption.toLowerCase().includes(needle)
+          this.searchSuggestions = this.allSuggestions.filter(
+            (v) =>
+              v.label.toLowerCase().includes(needle) ||
+              v.caption.toLowerCase().includes(needle)
           );
         }
       });
@@ -516,7 +550,7 @@ export default {
 
     updateSearchQuery(val) {
       // Update the search query as user types
-      if (typeof val === 'string') {
+      if (typeof val === "string") {
         this.searchQuery = val;
         this.filterStationsByText(val);
       }
@@ -524,7 +558,7 @@ export default {
 
     onSearchSelect(stationId) {
       if (stationId) {
-        const station = this.allStations.find(s => s.id === stationId);
+        const station = this.allStations.find((s) => s.id === stationId);
         if (station) {
           this.selectStation(station);
           this.filterStations();
@@ -540,20 +574,25 @@ export default {
       // Filter by search query
       if (query && query.trim()) {
         const needle = query.toLowerCase();
-        filtered = filtered.filter(station => 
-          station.name.toLowerCase().includes(needle) ||
-          station.address.toLowerCase().includes(needle)
+        filtered = filtered.filter(
+          (station) =>
+            station.name.toLowerCase().includes(needle) ||
+            station.address.toLowerCase().includes(needle)
         );
       }
 
       // Apply status filter
-      if (this.selectedStatus !== 'all') {
-        filtered = filtered.filter(station => station.status === this.selectedStatus);
+      if (this.selectedStatus !== "all") {
+        filtered = filtered.filter(
+          (station) => station.status === this.selectedStatus
+        );
       }
 
       // Apply connector filter
-      if (this.selectedConnector !== 'all') {
-        filtered = filtered.filter(station => station.connectorType === this.selectedConnector);
+      if (this.selectedConnector !== "all") {
+        filtered = filtered.filter(
+          (station) => station.connectorType === this.selectedConnector
+        );
       }
 
       this.filteredStations = filtered;
@@ -562,49 +601,59 @@ export default {
     onMapReady() {
       // console.log('Map is ready');
     },
-    
+
     filterStations() {
       let filtered = [...this.allStations];
 
       // Filter by search query - handle both string and number (station ID)
       if (this.searchQuery) {
-        if (typeof this.searchQuery === 'number') {
+        if (typeof this.searchQuery === "number") {
           // If it's a station ID from selection
-          filtered = filtered.filter(station => station.id === this.searchQuery);
-        } else if (typeof this.searchQuery === 'string' && this.searchQuery.trim()) {
+          filtered = filtered.filter(
+            (station) => station.id === this.searchQuery
+          );
+        } else if (
+          typeof this.searchQuery === "string" &&
+          this.searchQuery.trim()
+        ) {
           // If it's a text search
           const query = this.searchQuery.toLowerCase();
-          filtered = filtered.filter(station => 
-            station.name.toLowerCase().includes(query) ||
-            station.address.toLowerCase().includes(query)
+          filtered = filtered.filter(
+            (station) =>
+              station.name.toLowerCase().includes(query) ||
+              station.address.toLowerCase().includes(query)
           );
         }
       }
 
       // Filter by status
-      if (this.selectedStatus !== 'all') {
-        filtered = filtered.filter(station => station.status === this.selectedStatus);
+      if (this.selectedStatus !== "all") {
+        filtered = filtered.filter(
+          (station) => station.status === this.selectedStatus
+        );
       }
 
       // Filter by connector type
-      if (this.selectedConnector !== 'all') {
-        filtered = filtered.filter(station => station.connectorType === this.selectedConnector);
+      if (this.selectedConnector !== "all") {
+        filtered = filtered.filter(
+          (station) => station.connectorType === this.selectedConnector
+        );
       }
 
       this.filteredStations = filtered;
     },
 
     clearSearch() {
-      this.searchQuery = '';
+      this.searchQuery = "";
       this.showSuggestions = false;
       // Reset to show all stations based on other filters
       this.filterStations();
     },
 
     resetFilters() {
-      this.searchQuery = '';
-      this.selectedStatus = 'all';
-      this.selectedConnector = 'all';
+      this.searchQuery = "";
+      this.selectedStatus = "all";
+      this.selectedConnector = "all";
       this.showSuggestions = false;
       this.filterStations();
       this.searchSuggestions = [...this.allSuggestions];
@@ -623,21 +672,24 @@ export default {
 
     getStatusColor(status) {
       switch (status) {
-        case 'available':
-          return 'green';
-        case 'occupied':
-          return 'orange';
-        case 'offline':
-          return 'red';
+        case "available":
+          return "green";
+        case "occupied":
+          return "orange";
+        case "offline":
+          return "red";
         default:
-          return 'grey';
+          return "grey";
       }
     },
 
     getMarkerIcon(status) {
-      const color = status === 'available' ? '%2322c55e' : 
-                    status === 'occupied' ? '%23f97316' : 
-                    '%23ef4444';
+      const color =
+        status === "available"
+          ? "%2322c55e"
+          : status === "occupied"
+          ? "%23f97316"
+          : "%23ef4444";
       return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='${color}' d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E`;
     },
 
@@ -648,33 +700,33 @@ export default {
           (position) => {
             this.userLocation = {
               lat: position.coords.latitude,
-              lng: position.coords.longitude
+              lng: position.coords.longitude,
             };
             this.center = [this.userLocation.lat, this.userLocation.lng];
             this.zoom = 14;
             this.locating = false;
             this.$q.notify({
-              color: 'positive',
-              message: 'Location found!',
-              icon: 'check_circle'
+              color: "positive",
+              message: "Location found!",
+              icon: "check_circle",
             });
           },
           (error) => {
             // console.error('Error getting location:', error);
             this.locating = false;
             this.$q.notify({
-              color: 'negative',
-              message: 'Unable to get your location',
-              icon: 'error'
+              color: "negative",
+              message: "Unable to get your location",
+              icon: "error",
             });
           }
         );
       } else {
         this.locating = false;
         this.$q.notify({
-          color: 'warning',
-          message: 'Geolocation is not supported by your browser',
-          icon: 'warning'
+          color: "warning",
+          message: "Geolocation is not supported by your browser",
+          icon: "warning",
         });
       }
     },
@@ -682,9 +734,9 @@ export default {
     getDirections(station) {
       const destination = `${station.lat},${station.lng}`;
       const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
-      window.open(url, '_blank');
-    }
-  }
+      window.open(url, "_blank");
+    },
+  },
 };
 </script>
 
@@ -738,16 +790,17 @@ export default {
 /* Stations Catalog */
 .stations-catalog {
   width: 380px;
-  background-color: #1a1a1a;
-  border-left: 2px solid rgba(76, 175, 80, 0.3);
+  background-color: #ffffff;
+  border-left: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .catalog-header {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.05) 100%);
-  border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 16px;
 }
 
 .catalog-content {
@@ -776,28 +829,28 @@ export default {
 
 /* Station Card */
 .station-card {
-  background: rgba(30, 30, 30, 0.9);
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  transition: all 0.2s ease;
 }
 
 .station-card:hover {
-  border-color: rgba(76, 175, 80, 0.5);
-  background: rgba(40, 40, 40, 0.9);
+  border-color: #4caf50;
+  background: #f9f9f9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .station-card.selected {
   border-color: #4caf50;
-  background: rgba(50, 50, 50, 0.95);
-  box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+  background: #f0f9f0;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
 }
 
 .info-box {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
+  background: #f5f5f5;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -818,11 +871,11 @@ export default {
   .split-container {
     flex-direction: column;
   }
-  
+
   .map-section {
     height: 50%;
   }
-  
+
   .stations-catalog {
     width: 100%;
     height: 50%;
