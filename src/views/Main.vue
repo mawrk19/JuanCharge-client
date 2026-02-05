@@ -196,6 +196,19 @@
           <q-item
             clickable
             v-ripple="false"
+            @click="navigateTo('/main/recycling-analytics')"
+            class="menu-item"
+            :class="{ 'active-menu-item': $route.path === '/main/recycling-analytics' }"
+          >
+            <q-item-section avatar>
+              <q-icon name="recycling" />
+            </q-item-section>
+            <q-item-section>Recycling Analytics</q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            v-ripple="false"
             @click="navigateTo('/main/map')"
             class="menu-item"
             :class="{ 'active-menu-item': $route.path === '/main/map' }"
@@ -232,7 +245,21 @@
             <q-item-section>Kiosks</q-item-section>
           </q-item>
 
-          <!-- Admin-only Patrons section -->
+          <!-- Admin-only sections -->
+          <q-item
+            v-if="isAdmin"
+            clickable
+            v-ripple="false"
+            @click="navigateTo('/main/lgus')"
+            class="menu-item"
+            :class="{ 'active-menu-item': $route.path === '/main/lgus' }"
+          >
+            <q-item-section avatar>
+              <q-icon name="business" />
+            </q-item-section>
+            <q-item-section>LGUs</q-item-section>
+          </q-item>
+
           <q-item
             v-if="isAdmin"
             clickable

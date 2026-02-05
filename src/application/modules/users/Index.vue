@@ -146,6 +146,21 @@
             </q-td>
           </template>
 
+          <!-- LGU Column -->
+          <template v-slot:body-cell-lgu="props">
+            <q-td :props="props">
+              <div class="row items-center no-wrap">
+                <q-icon
+                  name="business"
+                  size="16px"
+                  color="primary"
+                  class="q-mr-xs"
+                />
+                <span class="text-weight-medium text-primary">{{ props.row.lgu_name || "-" }}</span>
+              </div>
+            </q-td>
+          </template>
+
           <!-- Actions Column -->
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
@@ -226,13 +241,30 @@
               v-model="userForm.role"
               :options="roleOptions"
               label="Role"
-              
               outlined
               dense
               :rules="[(val) => !!val || 'Role is required']"
             >
               <template v-slot:prepend>
                 <q-icon name="badge" />
+              </template>
+            </q-select>
+
+            <!-- LGU Selection Field -->
+            <q-select
+              v-model="userForm.lgu_id"
+              :options="lguOptions"
+              option-value="value"
+              option-label="label"
+              emit-value
+              map-options
+              label="Select LGU"
+              outlined
+              dense
+              :rules="[(val) => !!val || 'LGU is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="business" />
               </template>
             </q-select>
 
@@ -381,6 +413,24 @@
               </template>
             </q-select>
 
+            <!-- LGU Selection Field -->
+            <q-select
+              v-model="userForm.lgu_id"
+              :options="lguOptions"
+              option-value="value"
+              option-label="label"
+              emit-value
+              map-options
+              label="Select LGU"
+              outlined
+              dense
+              :rules="[(val) => !!val || 'LGU is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="business" />
+              </template>
+            </q-select>
+
             <!-- Phone Number Field -->
             <q-input
               v-model="userForm.phone_number"
@@ -493,15 +543,14 @@ export default {
       },
 
       userForm: {
-        first_name: "",
-        last_name: "",
-        role: null,
         phone_number: "",
         email: "",
         birth_date: null,
+        lgu_id: null,
       },
 
       roleOptions: ["Admin", "Manager", "Operator", "Support"],
+      lguOptions: [],
 
       columns: [
         // {
@@ -540,6 +589,13 @@ export default {
           sortable: true,
         },
         {
+          name: "lgu",
+          label: "LGU",
+          field: (row) => row.lgu_name || "-",
+          align: "left",
+          sortable: true,
+        },
+        {
           name: "birth_date",
           label: "Birth Date",
           field: "birth_date",
@@ -570,9 +626,24 @@ export default {
 
   mounted() {
     this.loadUsers();
+    this.loadLgus();
   },
 
   methods: {
+    async loadLgus() {
+      try {
+        const response = await this.$store.dispatch("lgus/fetchLgus");
+        const lgusData = response?.data || response;
+        if (Array.isArray(lgusData)) {
+          this.lguOptions = lgusData.map((lgu) => ({
+            label: lgu.name,
+            value: lgu.id,
+          }));
+        }
+      } catch (error) {
+        // console.error('Failed to load LGUs:', error);
+      }
+    },
     // Normalize date to YYYY-MM-DD format (remove time)
     normalizeDateOnly(dateString) {
       if (!dateString) return null;
@@ -610,6 +681,8 @@ export default {
             phone: user.phone_number,
             birth_date: this.normalizeDateOnly(user.birth_date),
             roles: [user.role],
+            lgu_id: user.lgu_id,
+            lgu_name: user.lgu?.name || user.lgu_name || "-",
           }));
 
           this.users = mappedUsers;
@@ -665,6 +738,7 @@ export default {
         phone_number: "",
         email: "",
         birth_date: null,
+        lgu_id: null,
       };
       this.showCreateDialog = true;
     },
@@ -695,6 +769,8 @@ export default {
             phone: response.data.phone_number,
             birth_date: this.normalizeDateOnly(response.data.birth_date),
             roles: [response.data.role],
+            lgu_id: response.data.lgu_id,
+            lgu_name: response.data.lgu?.name || response.data.lgu_name || "-",
           });
 
           this.showCreateDialog = false;
@@ -748,6 +824,7 @@ export default {
             phone_number: fullUserData.phone_number,
             email: fullUserData.email,
             birth_date: this.normalizeDateOnly(fullUserData.birth_date),
+            lgu_id: fullUserData.lgu_id,
           };
         }
       } catch (error) {
@@ -798,6 +875,8 @@ export default {
               phone: response.data.phone_number,
               birth_date: this.normalizeDateOnly(response.data.birth_date),
               roles: [response.data.role],
+              lgu_id: response.data.lgu_id,
+              lgu_name: response.data.lgu?.name || response.data.lgu_name || "-",
             });
           }
 

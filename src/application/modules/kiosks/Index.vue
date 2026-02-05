@@ -113,6 +113,21 @@
             </q-td>
           </template>
 
+          <!-- LGU Column -->
+          <template v-slot:body-cell-lgu="props">
+            <q-td :props="props">
+              <div class="row items-center no-wrap">
+                <q-icon
+                  name="business"
+                  size="16px"
+                  color="primary"
+                  class="q-mr-xs"
+                />
+                <span class="text-weight-medium text-primary">{{ props.row.lgu_name || "-" }}</span>
+              </div>
+            </q-td>
+          </template>
+
           <!-- Assigned To Column -->
           <template v-slot:body-cell-assigned_to="props">
             <q-td :props="props">
@@ -244,6 +259,24 @@
               </div>
             </div>
 
+            <!-- LGU Selection Field -->
+            <q-select
+              v-model="kioskForm.lgu_id"
+              :options="lguOptions"
+              option-value="value"
+              option-label="label"
+              emit-value
+              map-options
+              label="Select LGU"
+              outlined
+              dense
+              :rules="[(val) => !!val || 'LGU is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="business" />
+              </template>
+            </q-select>
+
             <!-- Status Field -->
             <q-select
               v-model="kioskForm.status"
@@ -338,9 +371,11 @@ export default {
         location: "",
         status: null,
         assigned_to: null,
+        lgu_id: null,
       },
 
       userOptions: [], // Will be populated with LGU users
+      lguOptions: [], // Will be populated with LGUs
 
       statusOptions: [
         { label: "Active", value: "active" },
@@ -378,6 +413,13 @@ export default {
           sortable: true,
         },
         {
+          name: "lgu",
+          label: "LGU",
+          field: (row) => row.lgu_name || "-",
+          align: "left",
+          sortable: true,
+        },
+        {
           name: "assigned_to",
           label: "Assigned To",
           field: "assigned_to",
@@ -409,9 +451,24 @@ export default {
   mounted() {
     this.loadKiosks();
     this.loadUsers();
+    this.loadLgus();
   },
 
   methods: {
+    async loadLgus() {
+      try {
+        const response = await this.$store.dispatch("lgus/fetchLgus");
+        const lgusData = response?.data || response;
+        if (Array.isArray(lgusData)) {
+          this.lguOptions = lgusData.map((lgu) => ({
+            label: lgu.name,
+            value: lgu.id,
+          }));
+        }
+      } catch (error) {
+        // console.error('Failed to load LGUs:', error);
+      }
+    },
     async loadUsers() {
       try {
         const response = await this.$store.dispatch("users/fetchUsers");
@@ -440,6 +497,8 @@ export default {
             status: [kiosk.status],
             assigned_to: kiosk.assigned_user_name || "-",
             assigned_to_id: kiosk.assigned_to,
+            lgu_id: kiosk.lgu_id,
+            lgu_name: kiosk.lgu?.name || kiosk.lgu_name || "-",
           }));
         }
       } catch (error) {
@@ -477,6 +536,7 @@ export default {
         location: "",
         status: null,
         assigned_to: null,
+        lgu_id: null,
       };
       this.selectedLocation = null;
       this.mapCenter = [14.5995, 120.9842]; // Reset to Manila
@@ -579,6 +639,8 @@ export default {
             assigned_to:
               kioskData.assigned_to?.name || kioskData.assigned_to || "-",
             assigned_to_id: kioskData.assigned_to?.id || null,
+            lgu_id: kioskData.lgu_id,
+            lgu_name: kioskData.lgu?.name || kioskData.lgu_name || "-",
           });
 
           this.showCreateDialog = false;
@@ -614,6 +676,7 @@ export default {
         location: kiosk.location,
         status: kiosk.status[0],
         assigned_to: kiosk.assigned_to_id || null,
+        lgu_id: kiosk.lgu_id || null,
       };
       
       // Parse existing location and set map marker
@@ -668,6 +731,8 @@ export default {
               assigned_to:
                 kioskData.assigned_to?.name || kioskData.assigned_to || "-",
               assigned_to_id: kioskData.assigned_to?.id || null,
+              lgu_id: kioskData.lgu_id,
+              lgu_name: kioskData.lgu?.name || kioskData.lgu_name || "-",
             });
           }
 
