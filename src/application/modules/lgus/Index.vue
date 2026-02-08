@@ -374,7 +374,7 @@ export default {
         },
       ],
 
-      lgus: [],
+
     };
   },
 

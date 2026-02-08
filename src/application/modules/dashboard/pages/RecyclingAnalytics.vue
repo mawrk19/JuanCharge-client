@@ -116,7 +116,7 @@
               </tr>
             </thead>
             <tbody class="text-sm">
-              <tr v-for="item in analyticsData?.breakdown" :key="item.item_type" class="hover:bg-emerald-50/30 transition-colors border-b border-gray-50 last:border-0">
+              <tr v-for="item in groupedBreakdown" :key="item.item_type" class="hover:bg-emerald-50/30 transition-colors border-b border-gray-50 last:border-0">
                 <td class="py-4 px-6 font-bold text-gray-700 flex items-center gap-3">
                   <div class="w-2 h-2 rounded-full" :style="{ backgroundColor: getBadgeColor(item.item_type) }"></div>
                   {{ formatItemType(item.item_type) }}
@@ -223,21 +223,62 @@ export default {
     },
     donutSeries() {
       const data = this.analyticsData?.breakdown || [];
-      // Order: pet, can, glass_bottle as per requirement colors
-      const pet = data.find(d => d.item_type === 'pet')?.total_count || 0;
-      const can = data.find(d => d.item_type === 'can')?.total_count || 0;
-      const glass = data.find(d => d.item_type === 'glass_bottle')?.total_count || 0;
+      
+      const pet = data.filter(d => 
+        ['pet', 'Pet/plastic battles', 'Pet/plastic battles'].some(key => 
+          d.item_type.toLowerCase().includes('pet') || d.item_type === key
+        )
+      ).reduce((acc, curr) => acc + curr.total_count, 0);
+
+      const can = data.filter(d => 
+        ['can', 'Tin/cans'].some(key => 
+          d.item_type.toLowerCase().includes('can') || d.item_type === key
+        )
+      ).reduce((acc, curr) => acc + curr.total_count, 0);
+
+      const glass = data.filter(d => 
+        d.item_type.toLowerCase().includes('glass')
+      ).reduce((acc, curr) => acc + curr.total_count, 0);
+
       return [pet, can, glass];
     },
+    groupedBreakdown() {
+      const data = this.analyticsData?.breakdown || [];
+      const groups = {
+        'pet': { item_type: 'pet', total_count: 0 },
+        'can': { item_type: 'can', total_count: 0 },
+        'glass_bottle': { item_type: 'glass_bottle', total_count: 0 }
+      };
+
+      data.forEach(item => {
+        const type = item.item_type.toLowerCase();
+        if (type.includes('pet') || type.includes('battle')) {
+          groups['pet'].total_count += Number(item.total_count);
+        } else if (type.includes('can') || type.includes('tin')) {
+          groups['can'].total_count += Number(item.total_count);
+        } else if (type.includes('glass')) {
+          groups['glass_bottle'].total_count += Number(item.total_count);
+        } else {
+          // Fallback for unknown types - could add to an 'other' group or keep separate
+          if (!groups[item.item_type]) {
+            groups[item.item_type] = { item_type: item.item_type, total_count: 0 };
+          }
+          groups[item.item_type].total_count += Number(item.total_count);
+        }
+      });
+
+      return Object.values(groups).filter(g => g.total_count > 0);
+    },
     topItemType() {
-      if (!this.analyticsData?.breakdown?.length) return "N/A";
-      const sorted = [...this.analyticsData.breakdown].sort((a, b) => b.total_count - a.total_count);
+      const breakdown = this.groupedBreakdown;
+      if (!breakdown.length) return "N/A";
+      const sorted = [...breakdown].sort((a, b) => b.total_count - a.total_count);
       return this.formatItemType(sorted[0].item_type);
     },
     weeklyAverage() {
       const trends = this.analyticsData?.trends || [];
       if (!trends.length) return 0;
-      const sum = trends.reduce((acc, curr) => acc + curr.total_count, 0);
+      const sum = trends.reduce((acc, curr) => acc + Number(curr.total_count), 0);
       return (sum / trends.length).toFixed(1);
     }
   },
