@@ -224,21 +224,19 @@ export default {
     donutSeries() {
       const data = this.analyticsData?.breakdown || [];
       
-      const pet = data.filter(d => 
-        ['pet', 'Pet/plastic battles', 'Pet/plastic battles'].some(key => 
-          d.item_type.toLowerCase().includes('pet') || d.item_type === key
-        )
-      ).reduce((acc, curr) => acc + curr.total_count, 0);
+      const pet = data.filter(d => {
+        const type = d.item_type.toLowerCase();
+        return type.includes('pet') || type.includes('battle') || type.includes('plastic');
+      }).reduce((acc, curr) => acc + Number(curr.total_count), 0);
 
-      const can = data.filter(d => 
-        ['can', 'Tin/cans'].some(key => 
-          d.item_type.toLowerCase().includes('can') || d.item_type === key
-        )
-      ).reduce((acc, curr) => acc + curr.total_count, 0);
+      const can = data.filter(d => {
+        const type = d.item_type.toLowerCase();
+        return type.includes('can') || type.includes('tin') || type.includes('metal');
+      }).reduce((acc, curr) => acc + Number(curr.total_count), 0);
 
       const glass = data.filter(d => 
         d.item_type.toLowerCase().includes('glass')
-      ).reduce((acc, curr) => acc + curr.total_count, 0);
+      ).reduce((acc, curr) => acc + Number(curr.total_count), 0);
 
       return [pet, can, glass];
     },
@@ -252,14 +250,13 @@ export default {
 
       data.forEach(item => {
         const type = item.item_type.toLowerCase();
-        if (type.includes('pet') || type.includes('battle')) {
+        if (type.includes('pet') || type.includes('battle') || type.includes('plastic')) {
           groups['pet'].total_count += Number(item.total_count);
-        } else if (type.includes('can') || type.includes('tin')) {
+        } else if (type.includes('can') || type.includes('tin') || type.includes('metal')) {
           groups['can'].total_count += Number(item.total_count);
         } else if (type.includes('glass')) {
           groups['glass_bottle'].total_count += Number(item.total_count);
         } else {
-          // Fallback for unknown types - could add to an 'other' group or keep separate
           if (!groups[item.item_type]) {
             groups[item.item_type] = { item_type: item.item_type, total_count: 0 };
           }
