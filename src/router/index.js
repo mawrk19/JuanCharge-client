@@ -47,6 +47,12 @@ const routes = [
         meta: { requiresAuth: true }
       },
       {
+        path: "recycling-analytics",
+        name: "recycling-analytics",
+        component: () => import("@/application/modules/dashboard/pages/RecyclingAnalytics.vue"),
+        meta: { requiresAuth: true }
+      },
+      {
         path: "map",
         name: "map",
         component: () => import("@/application/modules/map/Index.vue"),
@@ -74,6 +80,12 @@ const routes = [
         path: "kiosks-users",
         name: "kiosks-users",
         component: () => import("@/application/modules/kiosks_user/Index.vue"),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: "lgus",
+        name: "lgus",
+        component: () => import("@/application/modules/lgus/Index.vue"),
         meta: { requiresAuth: true }
       },
     ]
@@ -129,14 +141,14 @@ const routes = [
 ];
 
 const permissions = {
-  Admin:[ 
-    {name: 'dashboard', path: '/main/dashboard' }
+  Admin: [
+    { name: 'dashboard', path: '/main/dashboard' }
   ],
-  Partner:[ 
-    {name: 'dashboard', path: '/main/dashboard' }
+  Partner: [
+    { name: 'dashboard', path: '/main/dashboard' }
   ],
-  Patrons:[ 
-    {name: 'dashboard', path: '/main/dashboard' }
+  Patrons: [
+    { name: 'dashboard', path: '/main/dashboard' }
   ]
 };
 
@@ -149,7 +161,7 @@ router.beforeEach(async (to, from, next) => {
   // Always prioritize localStorage for token check
   const token = localStorage.getItem('token');
   const userType = localStorage.getItem('user_type');
-  
+
   // If store is empty but localStorage has data, restore session
   if (token && !store.state.auth?.token) {
     try {
@@ -158,24 +170,24 @@ router.beforeEach(async (to, from, next) => {
       console.error('Failed to restore session:', error);
     }
   }
-  
+
   // Treat kiosk_user as patron (they are the users who charge at kiosks)
   const isPatron = userType === 'patron' || userType === 'kiosk_user';
-  
+
   // Public routes (accessible without authentication)
   const publicPages = ['/login', '/register', '/forgot-password', '/reset-password'];
   const authRequired = !publicPages.includes(to.path);
-  
+
   if (authRequired && !token) {
     // Redirect to login if not authenticated
     return next('/login');
   }
-  
+
   // If user has token and accessing protected route, validate it
   if (authRequired && token) {
     // Only validate on first load or when coming from public page
     const shouldValidate = !from.name || publicPages.includes(from.path);
-    
+
     if (shouldValidate) {
       const isValid = await store.dispatch('auth/validateToken');
       if (!isValid) {
@@ -184,7 +196,7 @@ router.beforeEach(async (to, from, next) => {
       }
     }
   }
-  
+
   // If user is authenticated and on login page, redirect based on role
   if (token && publicPages.includes(to.path)) {
     if (isPatron) {
@@ -192,17 +204,17 @@ router.beforeEach(async (to, from, next) => {
     }
     return next('/main/dashboard');
   }
-  
+
   // Check if patron trying to access admin routes
   if (token && isPatron && to.path.startsWith('/main')) {
     return next('/patron');
   }
-  
+
   // Check if admin/lgu trying to access patron routes
   if (token && !isPatron && to.path.startsWith('/patron')) {
     return next('/main/dashboard');
   }
-  
+
   // For non-protected routes, allow access
   next();
 });

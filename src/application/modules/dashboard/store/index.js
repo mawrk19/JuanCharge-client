@@ -7,6 +7,7 @@ export default {
     sessions: [],
     recycling: [],
     chartData: [],
+    recyclingAnalytics: null,
     loading: false,
     error: null,
   },
@@ -22,6 +23,9 @@ export default {
     },
     SET_CHART_DATA(state, data) {
       state.chartData = data;
+    },
+    SET_RECYCLING_ANALYTICS(state, data) {
+      state.recyclingAnalytics = data;
     },
     SET_LOADING(state, val) {
       state.loading = val;
@@ -70,7 +74,20 @@ export default {
         return null;
       }
     },
-
+    // Fetch recycling analytics data
+    async fetchRecyclingAnalytics({ commit }) {
+      commit("SET_LOADING", true);
+      try {
+        const { data } = await http.get("/admin/analytics/recycling");
+        commit("SET_RECYCLING_ANALYTICS", data.data);
+        return data.data;
+      } catch (error) {
+        console.warn("Recycling analytics not available:", error.message);
+        return null;
+      } finally {
+        commit("SET_LOADING", false);
+      }
+    },
     // Fetch chart data (last 7 days)
     async fetchChartData({ commit }) {
       try {
@@ -99,6 +116,7 @@ export default {
     sessions: (state) => state.sessions,
     recycling: (state) => state.recycling,
     chartData: (state) => state.chartData,
+    recyclingAnalytics: (state) => state.recyclingAnalytics,
     isLoading: (state) => state.loading,
     error: (state) => state.error,
   },
