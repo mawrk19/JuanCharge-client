@@ -8,12 +8,45 @@
     </div>
 
     <!-- Page Header -->
-    <div class="page-header q-mb-lg">
-      <div class="text-h4 text-dark text-weight-bold q-mb-xs">
-        Patron Management
-      </div>
-      <div class="text-subtitle1 text-grey-7">
-        Manage patrons and their points
+    <div class="q-mb-xl">
+      <div class="row items-center justify-between">
+        <div>
+          <div class="text-h4 text-dark text-weight-bolder q-mb-xs tracking-tight">
+            Patron Management
+          </div>
+          <div class="text-subtitle1 text-grey-7 text-weight-medium">
+            Manage patrons and their points balance
+          </div>
+        </div>
+        <div class="row items-center gap-4">
+          <q-input
+            v-model="filter"
+            outlined
+            dense
+            placeholder="Search patrons..."
+            class="search-input"
+            style="min-width: 300px"
+          >
+            <template v-slot:prepend>
+              <q-icon name="search" />
+            </template>
+            <template v-slot:append>
+              <q-icon
+                v-if="filter"
+                name="close"
+                @click="filter = ''"
+                class="cursor-pointer"
+              />
+            </template>
+          </q-input>
+          <q-btn
+            color="green"
+            icon="add"
+            label="Add Member"
+            @click="openCreateDialog"
+            class="modern-btn"
+          />
+        </div>
       </div>
     </div>
 
@@ -41,38 +74,9 @@
             </div>
           </template>
 
-          <!-- Table Header Slot -->
           <template v-slot:top>
             <div class="row full-width items-center q-pa-md">
-              <div class="text-h6 text-dark">Patron List</div>
-              <q-space />
-              <q-btn
-                color="green"
-                icon="add"
-                label="Create Patron"
-                @click="openCreateDialog"
-                class="modern-btn q-mr-md"
-              />
-              <q-input
-                v-model="filter"
-                outlined
-                dense
-                placeholder="Search patrons..."
-                class="search-input"
-                style="min-width: 300px"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="search" />
-                </template>
-                <template v-slot:append>
-                  <q-icon
-                    v-if="filter"
-                    name="close"
-                    @click="filter = ''"
-                    class="cursor-pointer"
-                  />
-                </template>
-              </q-input>
+              <div class="text-h6 text-dark font-bold">Patrons List</div>
             </div>
           </template>
 
@@ -175,9 +179,9 @@
 
     <!-- Create/Edit User Dialog -->
     <q-dialog v-model="showCreateDialog" persistent>
-      <q-card class="dialog-card" style="min-width: 500px">
+      <q-card class="dialog-card light-theme" style="min-width: 500px">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-dark">
+          <div class="text-h6 text-primary">
             {{ editingId ? "Edit Patron" : "Create New Patron" }}
           </div>
           <q-space />
@@ -193,38 +197,36 @@
             <q-input
               v-model="userForm.first_name"
               label="First Name"
-              dark
               outlined
               dense
-              :rules="[(val) => !!val || 'First name is required']"
+              class="premium-input"
+              :rules="[(val) => !!val || 'First Name is required']"
             >
               <template v-slot:prepend>
                 <q-icon name="person" />
               </template>
             </q-input>
 
-            <!-- Last Name Field -->
             <q-input
               v-model="userForm.last_name"
               label="Last Name"
-              dark
               outlined
               dense
-              :rules="[(val) => !!val || 'Last name is required']"
+              class="premium-input"
+              :rules="[(val) => !!val || 'Last Name is required']"
             >
               <template v-slot:prepend>
-                <q-icon name="person_outline" />
+                <q-icon name="person" />
               </template>
             </q-input>
 
-            <!-- Contact Number Field -->
             <q-input
               v-model="userForm.contact_number"
-              label="Contact Number"
-              dark
+              label="Mobile Number"
               outlined
               dense
-              :rules="[(val) => !!val || 'Contact number is required']"
+              class="premium-input"
+              :rules="[(val) => !!val || 'Mobile Number is required']"
               placeholder="+63 XXX XXX XXXX"
             >
               <template v-slot:prepend>
@@ -232,14 +234,13 @@
               </template>
             </q-input>
 
-            <!-- Email Field -->
             <q-input
               v-model="userForm.email"
               label="Email Address"
               type="email"
-              dark
               outlined
               dense
+              class="premium-input"
               :rules="[
                 (val) => !!val || 'Email is required',
                 (val) => /.+@.+\..+/.test(val) || 'Email must be valid',
@@ -250,15 +251,14 @@
               </template>
             </q-input>
 
-            <!-- Points Field -->
             <q-input
-              v-model.number="userForm.points_balance"
-              label="Points"
+              v-model="userForm.points_balance"
+              label="Points Balance"
               type="number"
-              dark
               outlined
               dense
-              :rules="[(val) => val >= 0 || 'Points must be a positive number']"
+              class="premium-input"
+              :rules="[(val) => val >= 0 || 'Points cannot be negative']"
             >
               <template v-slot:prepend>
                 <q-icon name="stars" />
@@ -280,7 +280,6 @@
                 color="green"
                 class="modern-btn"
                 :loading="saving"
-                @click="editingId ? updateUserHandler() : createUserHandler()"
               />
             </div>
           </q-form>
@@ -896,5 +895,25 @@ export default {
     align-items: flex-start !important;
     gap: 16px;
   }
+}
+.text-dark {
+  color: #1a202c !important;
+}
+
+.tracking-tight {
+  letter-spacing: -0.025em;
+}
+
+:deep(.q-table thead tr) {
+  background-color: #f8fafc;
+}
+
+:deep(.q-table th) {
+  color: #64748b !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 1px solid #f1f5f9 !important;
 }
 </style>

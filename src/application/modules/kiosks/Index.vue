@@ -8,11 +8,46 @@
     </div>
 
     <!-- Page Header -->
-    <div class="page-header q-mb-lg">
-      <div class="text-h4 text-white text-weight-bold q-mb-xs">
-        Kiosk Management
+    <div class="q-mb-xl">
+      <div class="row items-center justify-between">
+        <div>
+          <div class="text-h4 text-dark text-weight-bolder q-mb-xs tracking-tight">
+            Kiosk Management
+          </div>
+          <div class="text-subtitle1 text-grey-7 text-weight-medium">
+            Configure and monitor charging kiosks across the network
+          </div>
+        </div>
+        <div class="row items-center gap-4">
+          <q-input
+            v-model="filter"
+            outlined
+            dense
+            placeholder="Search kiosks..."
+            class="search-input"
+            style="min-width: 300px"
+          >
+            <template v-slot:prepend>
+              <q-icon name="search" />
+            </template>
+            <template v-slot:append>
+              <q-icon
+                v-if="filter"
+                name="close"
+                @click="filter = ''"
+                class="cursor-pointer"
+              />
+            </template>
+          </q-input>
+          <q-btn
+            color="green"
+            icon="add"
+            label="Add Kiosk"
+            @click="openCreateDialog"
+            class="modern-btn"
+          />
+        </div>
       </div>
-      <div class="text-subtitle1 text-grey-5">Manage kiosks</div>
     </div>
 
     <!-- Kiosks Table Card -->
@@ -41,36 +76,7 @@
           <!-- Table Header Slot -->
           <template v-slot:top>
             <div class="row full-width items-center q-pa-md">
-              <div class="text-h6 text-white">Kiosks List</div>
-              <q-space />
-              <q-btn
-                color="green"
-                icon="add"
-                label="Add Kiosk"
-                @click="openCreateDialog"
-                class="modern-btn q-mr-md"
-              />
-              <q-input
-                v-model="filter"
-                outlined
-                dense
-                placeholder="Search kiosks..."
-                dark
-                class="search-input"
-                style="min-width: 300px"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="search" />
-                </template>
-                <template v-slot:append>
-                  <q-icon
-                    v-if="filter"
-                    name="close"
-                    @click="filter = ''"
-                    class="cursor-pointer"
-                  />
-                </template>
-              </q-input>
+              <div class="text-h6 text-dark font-bold">Kiosks List</div>
             </div>
           </template>
 
@@ -128,20 +134,6 @@
             </q-td>
           </template>
 
-          <!-- Assigned To Column -->
-          <template v-slot:body-cell-assigned_to="props">
-            <q-td :props="props">
-              <div class="row items-center no-wrap">
-                <q-icon
-                  name="person"
-                  size="16px"
-                  color="grey-5"
-                  class="q-mr-xs"
-                />
-                <span class="text-grey-4">{{ props.row.assigned_to }}</span>
-              </div>
-            </q-td>
-          </template>
 
           <!-- Actions Column -->
           <template v-slot:body-cell-actions="props">
@@ -150,10 +142,22 @@
                 flat
                 dense
                 round
+                icon="visibility"
+                color="green"
+                size="sm"
+                @click="viewKioskDetails(props.row)"
+              >
+                <q-tooltip>View Details</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat
+                dense
+                round
                 icon="edit"
                 color="blue"
                 size="sm"
                 @click="editKiosk(props.row)"
+                class="q-ml-xs"
               >
                 <q-tooltip>Edit Kiosk</q-tooltip>
               </q-btn>
@@ -177,9 +181,9 @@
 
     <!-- Create/Edit Kiosk Dialog -->
     <q-dialog v-model="showCreateDialog" persistent>
-      <q-card class="dialog-card" style="min-width: 700px; max-width: 90vw">
+      <q-card class="dialog-card light-theme" style="min-width: 700px; max-width: 90vw">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white">
+          <div class="text-h6 text-primary">
             {{ editingId ? "Edit Kiosk" : "Add New Kiosk" }}
           </div>
           <q-space />
@@ -211,9 +215,9 @@
                 label="Location (lat, lng)"
                 outlined
                 dense
-                readonly
+                @input="onLocationInput"
                 :rules="[(val) => !!val || 'Location is required']"
-                hint="Click on the map to select location"
+                hint="Click on map or paste coordinates (e.g., 14.5, 121.0)"
               >
                 <template v-slot:prepend>
                   <q-icon name="location_on" />
@@ -294,24 +298,6 @@
               </template>
             </q-select>
 
-            <!-- Assigned To Field -->
-            <q-select
-              v-model="kioskForm.assigned_to"
-              :options="userOptions"
-              option-value="value"
-              option-label="label"
-              emit-value
-              map-options
-              label="Assigned To"
-              outlined
-              dense
-              clearable
-            >
-              <template v-slot:prepend>
-                <q-icon name="person" />
-              </template>
-            </q-select>
-
             <!-- Action Buttons -->
             <div class="row q-gutter-sm justify-end q-mt-md">
               <q-btn
@@ -333,6 +319,114 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+
+    <!-- Kiosk Details Dialog -->
+    <q-dialog v-model="showDetailsDialog">
+      <q-card class="dialog-card" style="min-width: 500px; max-width: 90vw">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 text-white row items-center">
+            <q-icon name="info" color="green" class="q-mr-sm" />
+            Kiosk Details
+          </div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section class="q-pa-md">
+          <div class="details-grid">
+            <!-- Header Info -->
+            <div class="detail-item full-width q-mb-md">
+              <div class="row items-center no-wrap">
+                <q-avatar size="64px" color="green" text-color="white" class="q-mr-md shadow-2">
+                  {{ getInitials(selectedKiosk.kiosk_code || '') }}
+                </q-avatar>
+                <div>
+                  <div class="text-h5 text-white text-weight-bold">{{ selectedKiosk.kiosk_code }}</div>
+                  <q-badge :color="getStatusColor(selectedKiosk.status ? selectedKiosk.status[0] : '')" class="text-uppercase">
+                    {{ selectedKiosk.status ? selectedKiosk.status[0] : '-' }}
+                  </q-badge>
+                </div>
+              </div>
+            </div>
+
+            <q-separator dark class="q-my-md full-width" />
+
+            <!-- Core Details -->
+            <div class="row q-col-gutter-md">
+              <div class="col-12 col-sm-6">
+                <div class="detail-group">
+                  <div class="text-overline text-grey-5">System Information</div>
+                  <div class="detail-row">
+                    <q-icon name="qr_code" color="grey-4" size="20px" />
+                    <div class="detail-content">
+                      <div class="text-caption text-grey-5">Kiosk Code</div>
+                      <div class="text-body1 text-white">{{ selectedKiosk.kiosk_code }}</div>
+                    </div>
+                  </div>
+                  <div class="detail-row">
+                    <q-icon name="business" color="grey-4" size="20px" />
+                    <div class="detail-content">
+                      <div class="text-caption text-grey-5">LGU</div>
+                      <div class="text-body1 text-white">{{ selectedKiosk.lgu_name }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-sm-6">
+                <div class="detail-group">
+                  <div class="text-overline text-grey-5">Location Data</div>
+                  <div class="detail-row">
+                    <q-icon name="location_on" color="grey-4" size="20px" />
+                    <div class="detail-content">
+                      <div class="text-caption text-grey-5">Coordinates</div>
+                      <div class="text-body1 text-white text-weight-medium">{{ selectedKiosk.location }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="detail-group">
+                  <div class="text-overline text-grey-5">Personnel Management</div>
+                  <div class="detail-row items-start">
+                    <q-icon name="person" color="grey-4" size="24px" class="q-mt-xs" />
+                    <div class="detail-content" v-if="selectedKiosk.assigned_user_data">
+                      <div class="text-caption text-grey-5">Assigned To</div>
+                      <div class="text-body1 text-white text-weight-bold">
+                        {{ selectedKiosk.assigned_user_data.name }}
+                      </div>
+                      <div class="row items-center text-grey-4 q-mt-xs">
+                        <q-icon name="email" size="14px" class="q-mr-xs" />
+                        <span class="text-caption">{{ selectedKiosk.assigned_user_data.email }}</span>
+                      </div>
+                      <div class="row items-center text-grey-4 q-mt-xs">
+                        <q-icon name="phone" size="14px" class="q-mr-xs" />
+                        <span class="text-caption">{{ selectedKiosk.assigned_user_data.phone_number }}</span>
+                      </div>
+                      <div class="text-caption text-grey-5 q-mt-xs text-italic">
+                        Role: {{ selectedKiosk.assigned_user_data.role }}
+                      </div>
+                    </div>
+                    <div class="detail-content" v-else>
+                      <div class="text-caption text-grey-5">Assigned To</div>
+                      <div class="text-body1 text-white">{{ selectedKiosk.assigned_to }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-separator dark />
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Close" color="white" v-close-popup />
+          <q-btn flat label="Edit Kiosk" color="blue" @click="openEditFromDetails" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -352,15 +446,17 @@ export default {
     return {
       filter: "",
       showCreateDialog: false,
+      showDetailsDialog: false,
       saving: false,
       editingId: null,
       gettingLocation: false,
+      selectedKiosk: {},
 
       // Map picker properties
       mapZoom: 13,
       mapCenter: [14.5995, 120.9842], // Default: Manila
       selectedLocation: null,
-      markerIcon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='%234CAF50' d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E",
+      markerIcon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/vue' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='%23FFD600' stroke='%23000000' stroke-width='1.5' d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E",
 
       pagination: {
         rowsPerPage: 10,
@@ -370,7 +466,6 @@ export default {
         kiosk_code: "",
         location: "",
         status: null,
-        assigned_to: null,
         lgu_id: null,
       },
 
@@ -416,13 +511,6 @@ export default {
           name: "lgu",
           label: "LGU",
           field: (row) => row.lgu_name || "-",
-          align: "left",
-          sortable: true,
-        },
-        {
-          name: "assigned_to",
-          label: "Assigned To",
-          field: "assigned_to",
           align: "left",
           sortable: true,
         },
@@ -497,6 +585,7 @@ export default {
             status: [kiosk.status],
             assigned_to: kiosk.assigned_user_name || "-",
             assigned_to_id: kiosk.assigned_to,
+            assigned_user_data: kiosk.assigned_user,
             lgu_id: kiosk.lgu_id,
             lgu_name: kiosk.lgu?.name || kiosk.lgu_name || "-",
           }));
@@ -535,7 +624,6 @@ export default {
         kiosk_code: "",
         location: "",
         status: null,
-        assigned_to: null,
         lgu_id: null,
       };
       this.selectedLocation = null;
@@ -605,13 +693,27 @@ export default {
       return null;
     },
 
+    onLocationInput(val) {
+      if (!val) return;
+      const coords = this.parseLocationToCoords(val);
+      if (coords) {
+        this.selectedLocation = coords;
+        this.mapCenter = coords;
+        this.mapZoom = 16;
+        
+        this.$nextTick(() => {
+          if (this.$refs.locationMap && this.$refs.locationMap.mapObject) {
+            this.$refs.locationMap.mapObject.invalidateSize();
+          }
+        });
+      }
+    },
+
     async createKioskHandler() {
       this.saving = true;
       try {
-        // Prepare the data with correct field name for API
         const payload = {
           ...this.kioskForm,
-          assigned_to: this.kioskForm.assigned_to, // Keep the same name used in backend
         };
 
         const response = await this.$store.dispatch(
@@ -639,6 +741,7 @@ export default {
             assigned_to:
               kioskData.assigned_to?.name || kioskData.assigned_to || "-",
             assigned_to_id: kioskData.assigned_to?.id || null,
+            assigned_user_data: kioskData.assigned_user || kioskData.assigned_to,
             lgu_id: kioskData.lgu_id,
             lgu_name: kioskData.lgu?.name || kioskData.lgu_name || "-",
           });
@@ -675,7 +778,6 @@ export default {
         kiosk_code: kiosk.kiosk_code,
         location: kiosk.location,
         status: kiosk.status[0],
-        assigned_to: kiosk.assigned_to_id || null,
         lgu_id: kiosk.lgu_id || null,
       };
       
@@ -698,10 +800,8 @@ export default {
       this.saving = true;
 
       try {
-        // Prepare the data with correct field name for API
         const payload = {
           ...this.kioskForm,
-          assigned_to: this.kioskForm.assigned_to, // Keep the same name used in backend
         };
 
         const response = await this.$store.dispatch("kiosks/updateKiosk", {
@@ -731,6 +831,7 @@ export default {
               assigned_to:
                 kioskData.assigned_to?.name || kioskData.assigned_to || "-",
               assigned_to_id: kioskData.assigned_to?.id || null,
+              assigned_user_data: kioskData.assigned_user || kioskData.assigned_to,
               lgu_id: kioskData.lgu_id,
               lgu_name: kioskData.lgu?.name || kioskData.lgu_name || "-",
             });
@@ -760,6 +861,19 @@ export default {
       } finally {
         this.saving = false;
       }
+    },
+
+    viewKioskDetails(kiosk) {
+      this.selectedKiosk = { ...kiosk };
+      this.showDetailsDialog = true;
+    },
+
+    openEditFromDetails() {
+      const kiosk = this.selectedKiosk;
+      this.showDetailsDialog = false;
+      this.$nextTick(() => {
+        this.editKiosk(kiosk);
+      });
     },
 
     async deleteKioskHandler(kiosk) {
@@ -1063,5 +1177,97 @@ export default {
   .blob {
     filter: blur(80px);
   }
+}
+.dialog-card {
+  background: rgba(26, 32, 44, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.dialog-card.light-theme {
+  background: #ffffff;
+  color: #1a202c;
+  border: 1px solid #e2e8f0;
+}
+
+.dialog-card.light-theme .text-primary {
+  color: #2e7d32 !important; /* Green primary for light theme */
+}
+
+.dialog-card.light-theme q-input,
+.dialog-card.light-theme q-select {
+  background: #f8fafc;
+}
+
+.dialog-card.light-theme .text-white {
+  color: #1a202c !important;
+}
+
+.dialog-card.light-theme .q-btn:not(.modern-btn) {
+  color: #4a5568 !important;
+}
+
+.details-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-group {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  border-radius: 12px;
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.detail-content {
+  flex: 1;
+}
+
+.modern-btn {
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.modern-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.tracking-tight {
+  letter-spacing: -0.025em;
+}
+
+.text-dark {
+  color: #1a202c !important;
+}
+
+.modern-table {
+  background: white !important;
+}
+
+:deep(.q-table thead tr) {
+  background-color: #f8fafc;
+}
+
+:deep(.q-table th) {
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+
+:deep(.q-table td) {
+  color: #1e293b;
 }
 </style>

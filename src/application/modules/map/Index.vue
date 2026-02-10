@@ -325,8 +325,8 @@
               class="q-ml-sm"
             />
           </div>
-          <div class="q-mb-sm" v-if="selectedStation.assigned_to">
-            <strong>Assigned To:</strong> {{ selectedStation.assigned_to }}
+          <div class="q-mb-sm" v-if="selectedStation.lgu_name">
+            <strong>LGU Assigned:</strong> {{ selectedStation.lgu_name }}
           </div>
           <div class="q-mb-sm">
             <strong>Location:</strong> {{ selectedStation.lat }},
@@ -463,9 +463,9 @@ export default {
                 connectorType: "Type 2",
                 power: 50,
                 pricePerKwh: 12.5,
-                // Additional kiosk info
+                 // Additional kiosk info
                 kiosk_code: kiosk.kiosk_code,
-                assigned_to: kiosk.assigned_to,
+                lgu_name: kiosk.lgu?.name || kiosk.lgu_name || "No LGU assigned",
               };
             });
 
@@ -686,11 +686,11 @@ export default {
     getMarkerIcon(status) {
       const color =
         status === "available"
-          ? "%2322c55e"
+          ? "%2300C853" // Vibrant Green
           : status === "occupied"
-          ? "%23f97316"
-          : "%23ef4444";
-      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='${color}' d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E`;
+          ? "%23FF6D00" // Vibrant Orange
+          : "%23D50000"; // Vibrant Red
+      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='${color}' stroke='%23ffffff' stroke-width='1.5' d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E`;
     },
 
     locateUser() {

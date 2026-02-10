@@ -14,6 +14,9 @@
         </div>
       </div>
 
+      <!-- Dynamic Operational Alerts -->
+      <OperationalAlerts />
+
       <!-- KPI Grid (Top Row) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardCard
@@ -161,6 +164,7 @@ export default {
   name: "Dashboard",
   components: {
     DashboardCard,
+    OperationalAlerts: () => import("./components/OperationalAlerts.vue"),
   },
   data() {
     return {
