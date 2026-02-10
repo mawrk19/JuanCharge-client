@@ -8,12 +8,45 @@
     </div>
 
     <!-- Page Header -->
-    <div class="page-header q-mb-lg">
-      <div class="text-h4 text-white text-weight-bold q-mb-xs">
-        LGU User Management
-      </div>
-      <div class="text-subtitle1 text-grey-5">
-        Manage LGU users, roles, and permissions
+    <div class="q-mb-xl">
+      <div class="row items-center justify-between">
+        <div>
+          <div class="text-h4 text-dark text-weight-bolder q-mb-xs tracking-tight">
+            LGU User Management
+          </div>
+          <div class="text-subtitle1 text-grey-7 text-weight-medium">
+            Manage LGU users, roles, and permissions
+          </div>
+        </div>
+        <div class="row items-center gap-4">
+          <q-input
+            v-model="filter"
+            outlined
+            dense
+            placeholder="Search users..."
+            class="search-input"
+            style="min-width: 300px"
+          >
+            <template v-slot:prepend>
+              <q-icon name="search" />
+            </template>
+            <template v-slot:append>
+              <q-icon
+                v-if="filter"
+                name="close"
+                @click="filter = ''"
+                class="cursor-pointer"
+              />
+            </template>
+          </q-input>
+          <q-btn
+            color="green"
+            icon="add"
+            label="Add User"
+            @click="openCreateDialog"
+            class="modern-btn"
+          />
+        </div>
       </div>
     </div>
 
@@ -44,36 +77,7 @@
           <!-- Table Header Slot -->
           <template v-slot:top>
             <div class="row full-width items-center q-pa-md">
-              <div class="text-h6 text-white">LGU Users List</div>
-              <q-space />
-              <q-btn
-                color="green"
-                icon="add"
-                label="Create User"
-                @click="openCreateDialog"
-                class="modern-btn q-mr-md"
-              />
-              <q-input
-                v-model="filter"
-                outlined
-                dense
-                placeholder="Search users..."
-                dark
-                class="search-input"
-                style="min-width: 300px"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="search" />
-                </template>
-                <template v-slot:append>
-                  <q-icon
-                    v-if="filter"
-                    name="close"
-                    @click="filter = ''"
-                    class="cursor-pointer"
-                  />
-                </template>
-              </q-input>
+              <div class="text-h6 text-dark font-bold">LGU Users List</div>
             </div>
           </template>
 
@@ -195,9 +199,9 @@
 
     <!-- Create/Edit User Dialog -->
     <q-dialog v-model="showCreateDialog" persistent>
-      <q-card class="dialog-card" style="min-width: 500px">
+      <q-card class="dialog-card light-theme" style="min-width: 500px">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white">
+          <div class="text-h6 text-primary">
             {{ editingId ? "Edit User" : "Create New User" }}
           </div>
           <q-space />
@@ -209,88 +213,38 @@
             @submit="editingId ? updateUserHandler() : createUserHandler()"
             class="q-gutter-md"
           >
-            <!-- First Name Field -->
             <q-input
               v-model="userForm.first_name"
               label="First Name"
               outlined
               dense
-              :rules="[(val) => !!val || 'First name is required']"
+              class="premium-input"
+              :rules="[(val) => !!val || 'First Name is required']"
             >
               <template v-slot:prepend>
                 <q-icon name="person" />
               </template>
             </q-input>
 
-            <!-- Last Name Field -->
             <q-input
               v-model="userForm.last_name"
               label="Last Name"
-              
               outlined
               dense
-              :rules="[(val) => !!val || 'Last name is required']"
+              class="premium-input"
+              :rules="[(val) => !!val || 'Last Name is required']"
             >
               <template v-slot:prepend>
-                <q-icon name="person_outline" />
+                <q-icon name="person" />
               </template>
             </q-input>
 
-            <!-- Role Dropdown -->
-            <q-select
-              v-model="userForm.role"
-              :options="roleOptions"
-              label="Role"
-              outlined
-              dense
-              :rules="[(val) => !!val || 'Role is required']"
-            >
-              <template v-slot:prepend>
-                <q-icon name="badge" />
-              </template>
-            </q-select>
-
-            <!-- LGU Selection Field -->
-            <q-select
-              v-model="userForm.lgu_id"
-              :options="lguOptions"
-              option-value="value"
-              option-label="label"
-              emit-value
-              map-options
-              label="Select LGU"
-              outlined
-              dense
-              :rules="[(val) => !!val || 'LGU is required']"
-            >
-              <template v-slot:prepend>
-                <q-icon name="business" />
-              </template>
-            </q-select>
-
-            <!-- Phone Number Field -->
-            <q-input
-              v-model="userForm.phone_number"
-              label="Phone Number"
-              
-              outlined
-              dense
-              :rules="[(val) => !!val || 'Phone number is required']"
-              placeholder="+63 XXX XXX XXXX"
-            >
-              <template v-slot:prepend>
-                <q-icon name="phone" />
-              </template>
-            </q-input>
-
-            <!-- Email Field -->
             <q-input
               v-model="userForm.email"
-              label="Email Address"
-              type="email"
-              
+              label="Email"
               outlined
               dense
+              class="premium-input"
               :rules="[
                 (val) => !!val || 'Email is required',
                 (val) => /.+@.+\..+/.test(val) || 'Email must be valid',
@@ -301,42 +255,82 @@
               </template>
             </q-input>
 
-            <!-- Birth Date Field -->
             <q-input
-              v-model="userForm.birth_date"
-              label="Birth Date"
-              
+              v-model="userForm.phone"
+              label="Phone"
               outlined
               dense
-              placeholder="YYYY-MM-DD or click calendar"
+              class="premium-input"
+              placeholder="+63 XXX XXX XXXX"
             >
               <template v-slot:prepend>
-                <q-icon name="cake" />
+                <q-icon name="phone" />
               </template>
-              <template v-slot:append>
-                <q-icon name="event" class="cursor-pointer">
-                  <q-popup-proxy
-                    cover
-                    transition-show="scale"
-                    transition-hide="scale"
-                  >
-                    <q-date
-                      v-model="userForm.birth_date"
-                      dark
-                      mask="YYYY-MM-DD"
-                      today-btn
-                    >
-                      <div class="row items-center justify-end">
-                        <q-btn
-                          v-close-popup
-                          label="Close"
-                          color="primary"
-                          flat
-                        />
-                      </div>
-                    </q-date>
-                  </q-popup-proxy>
-                </q-icon>
+            </q-input>
+
+            <q-select
+              v-model="userForm.role"
+              :options="roles"
+              label="Role"
+              outlined
+              dense
+              class="premium-input"
+              :rules="[(val) => !!val || 'Role is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="badge" />
+              </template>
+            </q-select>
+
+            <!-- LGU Selection Field -->
+            <q-select
+              v-model="userForm.lgu_id"
+              :options="lgus"
+              option-value="id"
+              option-label="name"
+              label="Assign to LGU"
+              outlined
+              dense
+              emit-value
+              map-options
+              class="premium-input"
+              :rules="[(val) => !!val || 'LGU assignment is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="business" />
+              </template>
+            </q-select>
+
+            <q-input
+              v-if="!editingId"
+              v-model="userForm.password"
+              label="Password"
+              type="password"
+              outlined
+              dense
+              class="premium-input"
+              :rules="[(val) => !!val || 'Password is required']"
+            >
+              <template v-slot:prepend>
+                <q-icon name="lock" />
+              </template>
+            </q-input>
+
+            <q-input
+              v-if="!editingId"
+              v-model="userForm.password_confirmation"
+              label="Confirm Password"
+              type="password"
+              outlined
+              dense
+              class="premium-input"
+              :rules="[
+                (val) => !!val || 'Confirmation is required',
+                (val) => val === userForm.password || 'Passwords do not match',
+              ]"
+            >
+              <template v-slot:prepend>
+                <q-icon name="lock" />
               </template>
             </q-input>
 
@@ -351,166 +345,6 @@
               />
               <q-btn
                 :label="editingId ? 'Update User' : 'Create User'"
-                type="submit"
-                color="green"
-                class="modern-btn"
-                :loading="saving"
-              />
-            </div>
-          </q-form>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <!-- Edit User Dialog -->
-    <q-dialog v-model="showEditDialog" persistent>
-      <q-card class="dialog-card" style="min-width: 500px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white">Edit User</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-
-        <q-card-section>
-          <q-form @submit="updateUserHandler" class="q-gutter-md">
-            <!-- First Name Field -->
-            <q-input
-              v-model="userForm.first_name"
-              label="First Name"
-              outlined
-              dense
-              :rules="[(val) => !!val || 'First name is required']"
-            >
-              <template v-slot:prepend>
-                <q-icon name="person" />
-              </template>
-            </q-input>
-
-            <!-- Last Name Field -->
-            <q-input
-              v-model="userForm.last_name"
-              label="Last Name"
-              outlined
-              dense
-              :rules="[(val) => !!val || 'Last name is required']"
-            >
-              <template v-slot:prepend>
-                <q-icon name="person_outline" />
-              </template>
-            </q-input>
-
-            <!-- Role Dropdown -->
-            <q-select
-              v-model="userForm.role"
-              :options="roleOptions"
-              label="Role"
-              outlined
-              dense
-              :rules="[(val) => !!val || 'Role is required']"
-            >
-              <template v-slot:prepend>
-                <q-icon name="badge" />
-              </template>
-            </q-select>
-
-            <!-- LGU Selection Field -->
-            <q-select
-              v-model="userForm.lgu_id"
-              :options="lguOptions"
-              option-value="value"
-              option-label="label"
-              emit-value
-              map-options
-              label="Select LGU"
-              outlined
-              dense
-              :rules="[(val) => !!val || 'LGU is required']"
-            >
-              <template v-slot:prepend>
-                <q-icon name="business" />
-              </template>
-            </q-select>
-
-            <!-- Phone Number Field -->
-            <q-input
-              v-model="userForm.phone_number"
-              label="Phone Number"
-              outlined
-              dense
-              :rules="[(val) => !!val || 'Phone number is required']"
-              placeholder="+63 XXX XXX XXXX"
-            >
-              <template v-slot:prepend>
-                <q-icon name="phone" />
-              </template>
-            </q-input>
-
-            <!-- Email Field -->
-            <q-input
-              v-model="userForm.email"
-              label="Email Address"
-              type="email"
-              outlined
-              dense
-              :rules="[
-                (val) => !!val || 'Email is required',
-                (val) => /.+@.+\..+/.test(val) || 'Email must be valid',
-              ]"
-            >
-              <template v-slot:prepend>
-                <q-icon name="email" />
-              </template>
-            </q-input>
-
-            <!-- Birth Date Field -->
-            <q-input
-              v-model="userForm.birth_date"
-              label="Birth Date"
-              outlined
-              dense
-              placeholder="YYYY-MM-DD or click calendar"
-            >
-              <template v-slot:prepend>
-                <q-icon name="cake" />
-              </template>
-              <template v-slot:append>
-                <q-icon name="event" class="cursor-pointer">
-                  <q-popup-proxy
-                    cover
-                    transition-show="scale"
-                    transition-hide="scale"
-                  >
-                    <q-date
-                      v-model="userForm.birth_date"
-                      dark
-                      mask="YYYY-MM-DD"
-                      today-btn
-                    >
-                      <div class="row items-center justify-end">
-                        <q-btn
-                          v-close-popup
-                          label="Close"
-                          color="primary"
-                          flat
-                        />
-                      </div>
-                    </q-date>
-                  </q-popup-proxy>
-                </q-icon>
-              </template>
-            </q-input>
-
-            <!-- Action Buttons -->
-            <div class="row q-gutter-sm justify-end q-mt-md">
-              <q-btn
-                label="Cancel"
-                color="grey"
-                flat
-                v-close-popup
-                :disable="saving"
-              />
-              <q-btn
-                label="Update User"
                 type="submit"
                 color="green"
                 class="modern-btn"
@@ -1185,5 +1019,25 @@ export default {
   .blob {
     filter: blur(80px);
   }
+}
+.text-dark {
+  color: #1a202c !important;
+}
+
+.tracking-tight {
+  letter-spacing: -0.025em;
+}
+
+:deep(.q-table thead tr) {
+  background-color: #f8fafc;
+}
+
+:deep(.q-table th) {
+  color: #64748b !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 1px solid #f1f5f9 !important;
 }
 </style>

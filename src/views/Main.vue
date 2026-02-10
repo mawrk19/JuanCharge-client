@@ -291,53 +291,7 @@ export default {
   data() {
     return {
       leftDrawerOpen: true, // drawer always visible
-      notifications: [
-        {
-          id: 1,
-          type: "success",
-          title: "Charging Complete",
-          message:
-            "Your vehicle charging session at SM Mall Station has completed successfully.",
-          time: "5 minutes ago",
-          read: false,
-        },
-        {
-          id: 2,
-          type: "warning",
-          title: "Low Battery Alert",
-          message:
-            "Your vehicle battery is at 15%. Find a nearby charging station.",
-          time: "1 hour ago",
-          read: false,
-        },
-        {
-          id: 3,
-          type: "info",
-          title: "New Station Available",
-          message:
-            "A new charging station has opened near your location in Makati.",
-          time: "3 hours ago",
-          read: false,
-        },
-        {
-          id: 4,
-          type: "error",
-          title: "Payment Failed",
-          message:
-            "Your payment for the last charging session could not be processed.",
-          time: "1 day ago",
-          read: true,
-        },
-        {
-          id: 5,
-          type: "success",
-          title: "Reservation Confirmed",
-          message:
-            "Your charging slot at BGC Station is reserved for 3:00 PM today.",
-          time: "2 days ago",
-          read: true,
-        },
-      ],
+      notifications: [],
     };
   },
   computed: {

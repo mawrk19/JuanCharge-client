@@ -2,36 +2,53 @@
   <q-page class="bg-[#F8F9FB] min-h-screen font-sans text-gray-800 q-pa-lg">
     <div class="max-w-7xl mx-auto space-y-6">
       
-      <!-- Premium Header Section -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h4 class="text-2xl font-bold text-[#1A1A1A] tracking-tight q-mb-xs">
-            LGU Management
-          </h4>
-          <p class="text-gray-400 text-sm font-medium">Configure and monitor Local Government Units across the network</p>
+      <!-- Page Header -->
+      <div class="q-mb-xl">
+        <div class="row items-center justify-between">
+          <div>
+            <div class="text-h4 text-dark text-weight-bolder q-mb-xs tracking-tight">
+              LGU Management
+            </div>
+            <div class="text-subtitle1 text-grey-7 text-weight-medium">
+              Configure and monitor Local Government Units across the network
+            </div>
+          </div>
+          <div class="row items-center gap-4">
+            <q-input
+              v-model="filter"
+              outlined
+              dense
+              placeholder="Search LGUs..."
+              class="search-input"
+              style="min-width: 300px"
+            >
+              <template v-slot:prepend>
+                <q-icon name="search" />
+              </template>
+              <template v-slot:append>
+                <q-icon
+                  v-if="filter"
+                  name="close"
+                  @click="filter = ''"
+                  class="cursor-pointer"
+                />
+              </template>
+            </q-input>
+            <q-btn
+              color="green"
+              icon="add"
+              label="Add New LGU"
+              @click="openCreateDialog"
+              class="modern-btn"
+            />
+          </div>
         </div>
-        <q-btn
-          @click="openCreateDialog"
-          icon="add"
-          label="Add New LGU"
-          unelevated
-          class="tw-btn-primary px-6 shadow-sm hover:translate-y-[-2px] transition-all duration-300"
-        />
       </div>
 
       <!-- Main Table Card -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between bg-white">
-          <h5 class="text-xs font-bold text-[#1A1A1A] uppercase tracking-wide">LGU Directory</h5>
-          <div class="relative">
-            <q-icon name="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size="16px" />
-            <input 
-              v-model="filter" 
-              type="text" 
-              placeholder="Search LGUs..." 
-              class="pl-10 pr-4 py-2 bg-gray-50 rounded-lg text-xs border-none focus:ring-1 focus:ring-[#82D616]/20 w-64 placeholder-gray-400 text-gray-600 font-medium transition-all"
-            >
-          </div>
+          <div class="text-h6 text-dark font-bold">LGUs List</div>
         </div>
 
         <q-table
@@ -147,15 +164,10 @@
 
     <!-- Create/Edit LGU Dialog -->
     <q-dialog v-model="showCreateDialog" persistent transition-show="scale" transition-hide="scale">
-      <q-card class="dialog-card shadow-24" style="min-width: 800px; border-radius: 24px;">
-        <q-card-section class="q-pa-lg row items-center bg-gray-50/50">
-          <div>
-            <div class="text-h6 text-[#1A1A1A] font-bold tracking-tight">
-              {{ editingId ? "Edit LGU Profile" : "Create New LGU" }}
-            </div>
-            <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
-              {{ editingId ? "Update existing government unit details" : "Register a new local government entity" }}
-            </div>
+      <q-card class="dialog-card light-theme shadow-24" style="min-width: 800px; border-radius: 24px;">
+        <q-card-section class="q-pa-lg row items-center bg-white">
+          <div class="text-h6 text-primary font-bold tracking-tight">
+            {{ editingId ? "Edit LGU" : "Add New LGU" }}
           </div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup color="grey-5" class="hover:bg-gray-100 transition-colors" />
@@ -177,18 +189,24 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <q-input
                     v-model="lguForm.name"
-                    label="Official LGU Name"
+                    label="Official Name"
                     outlined
                     dense
-                    class="premium-input shadow-sm"
-                    :rules="[(val) => !!val || 'Name is required']"
-                    placeholder="e.g. City of Manila"
-                  >
-                    <template v-slot:prepend>
-                      <q-icon name="business" size="18px" color="primary" />
-                    </template>
-                  </q-input>
-
+                    bg-color="gray-50/50"
+                    placeholder="e.g. Quezon City"
+                    :rules="[(val) => !!val || 'LGU name is required']"
+                    class="col-span-2 premium-input"
+                  />
+                  <q-input
+                    v-model="lguForm.code"
+                    label="LGU Code"
+                    outlined
+                    dense
+                    bg-color="gray-50/50"
+                    placeholder="e.g. QC-001"
+                    :rules="[(val) => !!val || 'LGU code is required']"
+                    class="premium-input"
+                  />
                   <q-select
                     v-model="lguForm.status"
                     :options="statusOptions"
@@ -199,6 +217,7 @@
                     label="Operational Status"
                     outlined
                     dense
+                    bg-color="gray-50/50"
                     class="premium-input shadow-sm"
                     :rules="[(val) => !!val || 'Status is required']"
                   >
@@ -273,20 +292,20 @@
               <!-- Action Footer -->
               <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-100">
                 <q-btn
-                  label="Discard Changes"
-                  flat
-                  color="grey-6"
-                  class="px-5 font-bold text-xs"
-                  v-close-popup
-                  :disable="saving"
-                />
-                <q-btn
-                  :label="editingId ? 'Update Unit Profile' : 'Register LGU'"
-                  type="submit"
-                  unelevated
-                  class="tw-btn-primary px-8 shadow-md"
-                  :loading="saving"
-                />
+                label="Cancel"
+                color="grey-6"
+                flat
+                v-close-popup
+                class="px-8 font-bold"
+              />
+              <q-btn
+                :label="editingId ? 'Update LGU' : 'Create LGU'"
+                type="submit"
+                color="green"
+                unelevated
+                :loading="saving"
+                class="modern-btn px-12 shadow-md"
+              />
               </div>
             </div>
           </q-form>
@@ -656,5 +675,25 @@ export default {
 }
 .fade-enter, .fade-leave-to {
   opacity: 0;
+}
+.text-dark {
+  color: #1a202c !important;
+}
+
+.tracking-tight {
+  letter-spacing: -0.025em;
+}
+
+:deep(.q-table thead tr) {
+  background-color: #f8fafc;
+}
+
+:deep(.q-table th) {
+  color: #64748b !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 1px solid #f1f5f9 !important;
 }
 </style>
