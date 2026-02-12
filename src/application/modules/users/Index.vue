@@ -255,84 +255,9 @@
               </template>
             </q-input>
 
-            <q-input
-              v-model="userForm.phone"
-              label="Phone"
-              outlined
-              dense
-              class="premium-input"
-              placeholder="+63 XXX XXX XXXX"
-            >
-              <template v-slot:prepend>
-                <q-icon name="phone" />
-              </template>
-            </q-input>
 
-            <q-select
-              v-model="userForm.role"
-              :options="roles"
-              label="Role"
-              outlined
-              dense
-              class="premium-input"
-              :rules="[(val) => !!val || 'Role is required']"
-            >
-              <template v-slot:prepend>
-                <q-icon name="badge" />
-              </template>
-            </q-select>
 
-            <!-- LGU Selection Field -->
-            <q-select
-              v-model="userForm.lgu_id"
-              :options="lgus"
-              option-value="id"
-              option-label="name"
-              label="Assign to LGU"
-              outlined
-              dense
-              emit-value
-              map-options
-              class="premium-input"
-              :rules="[(val) => !!val || 'LGU assignment is required']"
-            >
-              <template v-slot:prepend>
-                <q-icon name="business" />
-              </template>
-            </q-select>
 
-            <q-input
-              v-if="!editingId"
-              v-model="userForm.password"
-              label="Password"
-              type="password"
-              outlined
-              dense
-              class="premium-input"
-              :rules="[(val) => !!val || 'Password is required']"
-            >
-              <template v-slot:prepend>
-                <q-icon name="lock" />
-              </template>
-            </q-input>
-
-            <q-input
-              v-if="!editingId"
-              v-model="userForm.password_confirmation"
-              label="Confirm Password"
-              type="password"
-              outlined
-              dense
-              class="premium-input"
-              :rules="[
-                (val) => !!val || 'Confirmation is required',
-                (val) => val === userForm.password || 'Passwords do not match',
-              ]"
-            >
-              <template v-slot:prepend>
-                <q-icon name="lock" />
-              </template>
-            </q-input>
 
             <!-- Action Buttons -->
             <div class="row q-gutter-sm justify-end q-mt-md">
@@ -377,10 +302,10 @@ export default {
       },
 
       userForm: {
-        phone_number: "",
+        first_name: "",
+        last_name: "",
         email: "",
         birth_date: null,
-        lgu_id: null,
       },
 
       roleOptions: ["Admin", "Manager", "Operator", "Support"],
@@ -568,11 +493,8 @@ export default {
       this.userForm = {
         first_name: "",
         last_name: "",
-        role: null,
-        phone_number: "",
         email: "",
         birth_date: null,
-        lgu_id: null,
       };
       this.showCreateDialog = true;
     },
@@ -654,11 +576,8 @@ export default {
           this.userForm = {
             first_name: fullUserData.first_name || "",
             last_name: fullUserData.last_name || "",
-            role: fullUserData.role,
-            phone_number: fullUserData.phone_number,
             email: fullUserData.email,
             birth_date: this.normalizeDateOnly(fullUserData.birth_date),
-            lgu_id: fullUserData.lgu_id,
           };
         }
       } catch (error) {
