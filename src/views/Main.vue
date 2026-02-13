@@ -181,6 +181,7 @@
 
         <q-list style="background-color: #18392b">
           <q-item
+            v-if="!isLguUser"
             clickable
             v-ripple="false"
             @click="navigateTo('/main/dashboard')"
@@ -300,6 +301,9 @@ export default {
     },
     isAdmin() {
       return this.$store.getters["auth/isAdmin"];
+    },
+    isLguUser() {
+      return this.$store.getters["auth/isLguUser"];
     },
     userType() {
       // Get user_type from the user object or from the getter

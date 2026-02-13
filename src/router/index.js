@@ -38,7 +38,10 @@ const routes = [
     children: [
       {
         path: "",
-        redirect: "dashboard"
+        redirect: to => {
+          const userType = localStorage.getItem('user_type');
+          return userType === 'lgu' ? 'users' : 'dashboard';
+        }
       },
       {
         path: "dashboard",
@@ -173,6 +176,7 @@ router.beforeEach(async (to, from, next) => {
 
   // Treat kiosk_user as patron (they are the users who charge at kiosks)
   const isPatron = userType === 'patron' || userType === 'kiosk_user';
+  const isLgu = userType === 'lgu';
 
   // Public routes (accessible without authentication)
   const publicPages = ['/login', '/register', '/forgot-password', '/reset-password'];
@@ -202,6 +206,9 @@ router.beforeEach(async (to, from, next) => {
     if (isPatron) {
       return next('/patron');
     }
+    if (isLgu) {
+      return next('/main/users');
+    }
     return next('/main/dashboard');
   }
 
@@ -210,8 +217,16 @@ router.beforeEach(async (to, from, next) => {
     return next('/patron');
   }
 
+  // Check if LGU trying to access dashboard
+  if (token && isLgu && to.path === '/main/dashboard') {
+    return next('/main/users');
+  }
+
   // Check if admin/lgu trying to access patron routes
-  if (token && !isPatron && to.path.startsWith('/patron')) {
+  if (token && (userType === 'admin' || isLgu) && to.path.startsWith('/patron')) {
+    if (isLgu) {
+      return next('/main/users');
+    }
     return next('/main/dashboard');
   }
 
