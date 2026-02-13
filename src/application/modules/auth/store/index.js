@@ -24,13 +24,13 @@ export default {
   }),
   getters: {
     isAdmin: (state) => {
-      return state.user?.user_type === 'admin';
+      return state.user?.user_type?.toLowerCase() === 'admin';
     },
     isLguUser: (state) => {
-      return state.user?.user_type === 'lgu';
+      return state.user?.user_type?.toLowerCase() === 'lgu';
     },
     userType: (state) => {
-      return state.user?.user_type || null;
+      return state.user?.user_type?.toLowerCase() || null;
     },
   },
   mutations: {
@@ -108,7 +108,7 @@ export default {
 
         // Extract user - it might be in data.user or we need to fetch it
         let user = res.data.user || responseData.user;
-        const user_type = res.data.user_type || responseData.user_type;
+        const user_type = (res.data.user_type || responseData.user_type || "").toLowerCase();
         const is_first_login = res.data.is_first_login || responseData.is_first_login;
 
         if (!token) {
@@ -123,8 +123,8 @@ export default {
             email: payload.email,
             user_type: user_type
           };
-        } else if (!user.user_type && user_type) {
-          // Ensure user_type is always in the user object
+        } else {
+          // Ensure user_type is always in the user object and normalized
           user.user_type = user_type;
         }
 
@@ -251,12 +251,10 @@ export default {
           // Update user data if provided
           if (response.data.user) {
             let user = response.data.user;
-            const user_type = response.data.user_type || user.user_type || localStorage.getItem("user_type");
+            const user_type = (response.data.user_type || user.user_type || localStorage.getItem("user_type") || "").toLowerCase();
 
             // Ensure user_type is in the user object
-            if (user_type && !user.user_type) {
-              user.user_type = user_type;
-            }
+            user.user_type = user_type;
 
             commit("SET_USER", user);
 
