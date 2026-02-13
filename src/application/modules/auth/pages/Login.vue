@@ -172,6 +172,8 @@ export default {
           // Treat kiosk_user as patron
           if (userType === "patron" || userType === "kiosk_user") {
             this.$router.push("/patron");
+          } else if (userType === "lgu") {
+            this.$router.push("/main/users");
           } else {
             this.$router.push("/main/dashboard");
           }
