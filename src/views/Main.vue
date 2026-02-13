@@ -181,7 +181,7 @@
 
         <q-list style="background-color: #18392b">
           <q-item
-            v-if="!isLguUser"
+            v-if="userType && !isLguUser"
             clickable
             v-ripple="false"
             @click="navigateTo('/main/dashboard')"
@@ -310,7 +310,7 @@ export default {
       return (
         this.$store.getters["auth/userType"] ||
         this.$store.state.auth.user?.user_type ||
-        "admin"
+        null
       );
     },
     userName() {

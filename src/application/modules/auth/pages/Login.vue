@@ -163,21 +163,22 @@ export default {
           classes: "rounded-borders",
         });
 
-        // Small delay to ensure state is fully updated
-        setTimeout(() => {
-          const userType =
-            this.$store.state.auth?.user?.user_type ||
-            localStorage.getItem("user_type");
+        // Login successful - Redirect immediately
+        const userType =
+          this.$store.state.auth?.user?.user_type ||
+          localStorage.getItem("user_type");
 
-          // Treat kiosk_user as patron
-          if (userType === "patron" || userType === "kiosk_user") {
-            this.$router.push("/patron");
-          } else if (userType === "lgu") {
-            this.$router.push("/main/users");
-          } else {
-            this.$router.push("/main/dashboard");
-          }
-        }, 300);
+        // Explicit role-based routing
+        if (userType === "patron" || userType === "kiosk_user") {
+          this.$router.push("/patron");
+        } else if (userType === "lgu") {
+          this.$router.push("/main/users");
+        } else if (userType === "admin") {
+          this.$router.push("/main/dashboard");
+        } else {
+          // Default fallback (e.g. for partners or if role unknown)
+          this.$router.push("/main/dashboard");
+        }
       } catch (e) {
         let errorMessage = "Login failed. Please check your credentials.";
 
