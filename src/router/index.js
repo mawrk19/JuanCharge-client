@@ -44,7 +44,7 @@ const routes = [
       {
         path: "",
         redirect: to => {
-          const userType = localStorage.getItem('user_type');
+          const userType = localStorage.getItem('user_type')?.toLowerCase();
           return userType === 'lgu' ? 'users' : 'dashboard';
         }
       },
@@ -168,7 +168,7 @@ const router = new Router({
 router.beforeEach(async (to, from, next) => {
   // Always prioritize localStorage for token check
   const token = localStorage.getItem('token');
-  const userType = localStorage.getItem('user_type');
+  const userType = localStorage.getItem('user_type')?.toLowerCase();
 
   // If store is empty but localStorage has data, restore session
   if (token && !store.state.auth?.token) {
@@ -223,7 +223,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // Check if LGU trying to access dashboard
-  if (token && isLgu && to.path === '/main/dashboard') {
+  if (token && isLgu && (to.path === '/main/dashboard' || to.path === '/main/dashboard/')) {
     return next('/main/users');
   }
 

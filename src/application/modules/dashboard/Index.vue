@@ -289,7 +289,7 @@ export default {
   watch: {
     chartData: {
       handler(newData) {
-        if (newData && newData.length > 0) {
+        if (Array.isArray(newData)) {
            this.updateBarChart(newData);
         }
       },
@@ -315,11 +315,25 @@ export default {
     },
 
     updateBarChart(data) {
+      let processedData = data;
+      if (!data || data.length === 0) {
+        processedData = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          processedData.push({
+            date: d.toISOString(),
+            sessions: 0,
+            recycling_kg: 0
+          });
+        }
+      }
+
       this.barChartOptions = {
         ...this.barChartOptions,
         xaxis: {
           ...this.barChartOptions.xaxis,
-          categories: data.map((d) => {
+          categories: processedData.map((d) => {
              // Handle date parsing safely
              if (!d.date) return '-';
              const date = new Date(d.date);
@@ -329,8 +343,8 @@ export default {
         },
       };
       this.chartSeries = [
-        { name: "Sessions", data: data.map((d) => d.sessions) },
-        { name: "Recycling (kg)", data: data.map((d) => d.recycling_kg) },
+        { name: "Sessions", data: processedData.map((d) => d.sessions) },
+        { name: "Recycling (kg)", data: processedData.map((d) => d.recycling_kg) },
       ];
     },
 

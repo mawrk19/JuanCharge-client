@@ -164,9 +164,10 @@ export default {
         });
 
         // Login successful - Redirect immediately
-        const userType =
+        const rawUserType =
           this.$store.state.auth?.user?.user_type ||
           localStorage.getItem("user_type");
+        const userType = rawUserType ? rawUserType.toLowerCase() : null;
 
         // Explicit role-based routing
         if (userType === "patron" || userType === "kiosk_user") {
