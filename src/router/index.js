@@ -32,6 +32,11 @@ const routes = [
     component: () => import("@/application/modules/auth/pages/ResetPassword.vue"),
   },
   {
+    path: "/set-password",
+    name: "set-password",
+    component: () => import("@/application/modules/auth/pages/SetPassword.vue"),
+  },
+  {
     path: "/main",
     component: () => import("@/views/Main.vue"),
     meta: { requiresAuth: true },
@@ -179,7 +184,7 @@ router.beforeEach(async (to, from, next) => {
   const isLgu = userType === 'lgu';
 
   // Public routes (accessible without authentication)
-  const publicPages = ['/login', '/register', '/forgot-password', '/reset-password'];
+  const publicPages = ['/login', '/register', '/forgot-password', '/reset-password', '/set-password'];
   const authRequired = !publicPages.includes(to.path);
 
   if (authRequired && !token) {

@@ -7,7 +7,7 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL ||
 
 const api = axios.create({
   baseURL: backendUrl,
-  withCredentials: true,            
+  withCredentials: false, // JWT Bearer token auth — no cookies needed
 });
 
 export default api;
