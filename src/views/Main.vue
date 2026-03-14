@@ -121,7 +121,7 @@
               <q-list style="min-width: 180px" class="q-py-sm">
                 <div class="q-px-md q-py-sm">
                   <div class="text-weight-bold">{{ userName }}</div>
-                  <div class="text-caption text-grey">Administrator</div>
+                  <div class="text-caption text-grey">{{ roleLabel }}</div>
                 </div>
                 <q-separator class="q-my-sm" />
 
@@ -315,6 +315,12 @@ export default {
     },
     userName() {
       return this.$store.state.auth.user?.name || "User";
+    },
+    roleLabel() {
+      if (this.isAdmin) return "Administrator";
+      if (this.isLguUser) return "LGU User";
+      if (this.userType === 'patron') return "Patron";
+      return "User";
     },
   },
   mounted() {
