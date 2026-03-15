@@ -176,7 +176,7 @@
             alt="JuanCharge Logo"
             style="width: 140px; height: auto; display: block; margin: 0 auto"
           />
-          <h4 class="text-amber-200">JuanCharge</h4>
+          <h4 class="text-white">JuanCharge</h4>
         </div>
 
         <q-list style="background-color: #18392b">

@@ -172,7 +172,7 @@ export default {
         // Explicit role-based routing
         if (userType === "patron" || userType === "kiosk_user") {
           this.$router.push("/patron");
-        } else if (userType === "lgu") {
+        } else if (userType === "lgu" || userType === "lgu_user") {
           this.$router.push("/main/users");
         } else if (userType === "admin") {
           this.$router.push("/main/dashboard");

@@ -45,13 +45,19 @@ const routes = [
         path: "",
         redirect: to => {
           const userType = localStorage.getItem('user_type')?.toLowerCase();
-          return userType === 'lgu' ? 'users' : 'dashboard';
+          return (userType === 'lgu' || userType === 'lgu_user') ? 'users' : 'dashboard';
         }
       },
       {
         path: "dashboard",
         name: "dashboard",
         component: () => import("@/application/modules/dashboard/Index.vue"),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: "unauthorized",
+        name: "unauthorized",
+        component: () => import("@/views/Unauthorized.vue"),
         meta: { requiresAuth: true }
       },
       {
@@ -181,7 +187,7 @@ router.beforeEach(async (to, from, next) => {
 
   // Treat kiosk_user as patron (they are the users who charge at kiosks)
   const isPatron = userType === 'patron' || userType === 'kiosk_user';
-  const isLgu = userType === 'lgu';
+  const isLgu = userType === 'lgu' || userType === 'lgu_user';
 
   // Public routes (accessible without authentication)
   const publicPages = ['/login', '/register', '/forgot-password', '/reset-password', '/set-password'];
@@ -224,7 +230,7 @@ router.beforeEach(async (to, from, next) => {
 
   // Check if LGU trying to access dashboard
   if (token && isLgu && (to.path === '/main/dashboard' || to.path === '/main/dashboard/')) {
-    return next('/main/users');
+    return next('/main/unauthorized');
   }
 
   // Check if admin/lgu trying to access patron routes

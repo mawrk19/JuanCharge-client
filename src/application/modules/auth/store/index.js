@@ -27,7 +27,8 @@ export default {
       return state.user?.user_type?.toLowerCase() === 'admin';
     },
     isLguUser: (state) => {
-      return state.user?.user_type?.toLowerCase() === 'lgu';
+      const type = state.user?.user_type?.toLowerCase();
+      return type === 'lgu' || type === 'lgu_user';
     },
     userType: (state) => {
       return state.user?.user_type?.toLowerCase() || null;

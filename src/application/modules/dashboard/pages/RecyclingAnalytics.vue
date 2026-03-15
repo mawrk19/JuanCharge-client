@@ -18,43 +18,43 @@
       </div>
 
       <!-- KPI Header Cards (Glassmorphism) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-slide-up">
         <!-- Total Items Card -->
-        <div class="glass-card p-6 flex items-center gap-5 border-l-4 border-emerald-500">
-          <div class="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-inner">
-            <q-icon name="recycling" size="32px" />
+        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-emerald-500">
+          <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-inner">
+            <q-icon name="recycling" size="24px" />
           </div>
           <div>
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Items Recycled</p>
-            <h2 class="text-3xl font-black text-emerald-700 tracking-tight">{{ analyticsData?.total_items || 0 }}</h2>
-            <div class="flex items-center gap-1 mt-1">
-              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600">+12.5%</span>
-              <span class="text-[10px] text-gray-400 font-medium">vs last week</span>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Total Items Recycled</p>
+            <h2 class="text-2xl font-black text-emerald-700 tracking-tight leading-none">{{ analyticsData?.total_items || 0 }}</h2>
+            <div class="flex items-center gap-1 mt-1.5">
+              <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 leading-none">+12.5%</span>
+              <span class="text-[9px] text-gray-400 font-medium leading-none">vs last week</span>
             </div>
           </div>
         </div>
 
         <!-- Breakdown Summary Card -->
-        <div class="glass-card p-6 flex items-center gap-5 border-l-4 border-blue-500">
-          <div class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 shadow-inner">
-            <q-icon name="analytics" size="32px" />
+        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-blue-500">
+          <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shadow-inner">
+            <q-icon name="analytics" size="24px" />
           </div>
           <div>
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Top Recycled Item</p>
-            <h3 class="text-xl font-bold text-blue-700">{{ topItemType }}</h3>
-            <p class="text-[10px] text-gray-400 font-medium mt-1">Most frequently deposited category</p>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Top Recycled Item</p>
+            <h3 class="text-xl font-bold text-blue-700 leading-none">{{ topItemType }}</h3>
+            <p class="text-[9px] text-gray-400 font-medium mt-1.5 leading-none">Most frequently deposited category</p>
           </div>
         </div>
 
         <!-- Growth Indicator Card -->
-        <div class="glass-card p-6 flex items-center gap-5 border-l-4 border-amber-500">
-          <div class="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600 shadow-inner">
-            <q-icon name="trending_up" size="32px" />
+        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-amber-500">
+          <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 shadow-inner">
+            <q-icon name="trending_up" size="24px" />
           </div>
           <div>
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Recycling Velocity</p>
-            <h3 class="text-xl font-bold text-amber-700">{{ weeklyAverage }} / day</h3>
-            <p class="text-[10px] text-gray-400 font-medium mt-1">Daily average this week</p>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Recycling Velocity</p>
+            <h3 class="text-xl font-bold text-amber-700 leading-none">{{ weeklyAverage }} / day</h3>
+            <p class="text-[9px] text-gray-400 font-medium mt-1.5 leading-none">Daily average this week</p>
           </div>
         </div>
       </div>
@@ -214,11 +214,26 @@ export default {
     analyticsData() {
       return this.$store.getters["dashboard/recyclingAnalytics"];
     },
+    processedTrends() {
+      let trends = this.analyticsData?.trends;
+      if (!trends || trends.length === 0) {
+        trends = [];
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          trends.push({
+            date: d.toISOString(),
+            total_count: 0
+          });
+        }
+      }
+      return trends;
+    },
     areaSeries() {
-      const data = this.analyticsData?.trends || [];
+      const data = this.processedTrends;
       return [{
         name: 'Items Recycled',
-        data: data.map(d => d.total_count)
+        data: data.map(d => Number(d.total_count) || 0)
       }];
     },
     donutSeries() {
@@ -280,14 +295,17 @@ export default {
     }
   },
   watch: {
-    'analyticsData.trends': {
+    processedTrends: {
       handler(newTrends) {
         if (newTrends) {
            this.areaChartOptions = {
              ...this.areaChartOptions,
              xaxis: {
                ...this.areaChartOptions.xaxis,
-               categories: newTrends.map(t => t.date)
+               categories: newTrends.map(t => {
+                 const date = new Date(t.date);
+                 return isNaN(date.getTime()) ? t.date : date.getTime();
+               })
              }
            };
         }
