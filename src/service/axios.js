@@ -49,7 +49,7 @@ http.interceptors.response.use(
       // Only redirect to login if we're not already on login page
       const currentPath = window.location.pathname;
       
-      if (currentPath !== '/login' && currentPath !== '/register') {
+      if (currentPath !== '/' && currentPath !== '/login' && currentPath !== '/register') {
         // Clear all auth data
         localStorage.removeItem('token');
         localStorage.removeItem('user');

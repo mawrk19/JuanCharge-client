@@ -1,6 +1,6 @@
 describe('Login Page', () => {
     beforeEach(() => {
-        cy.visit('/')
+        cy.visit('/login')
     })
 
     it('should display the login form with correct elements', () => {
@@ -27,7 +27,7 @@ describe('Login Page', () => {
         cy.contains('Sign In').click()
 
         // Should still be on login page
-        cy.url().should('include', '/')
+        cy.url().should('include', '/login')
     })
 
     it('should show error notification on invalid credentials', () => {

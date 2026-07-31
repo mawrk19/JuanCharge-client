@@ -9,7 +9,8 @@ Vue.use(Router);
 const routes = [
   {
     path: "/",
-    redirect: "/login"
+    name: "landing",
+    component: () => import("@/views/Landing.vue"),
   },
   {
     path: "/login",
@@ -190,7 +191,8 @@ router.beforeEach(async (to, from, next) => {
   const isLgu = userType === 'lgu' || userType === 'lgu_user';
 
   // Public routes (accessible without authentication)
-  const publicPages = ['/login', '/register', '/forgot-password', '/reset-password', '/set-password'];
+  const publicPages = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/set-password'];
+  const authRedirectPages = ['/login', '/register', '/forgot-password', '/reset-password', '/set-password'];
   const authRequired = !publicPages.includes(to.path);
 
   if (authRequired && !token) {
@@ -212,8 +214,8 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  // If user is authenticated and on login page, redirect based on role
-  if (token && publicPages.includes(to.path)) {
+  // Authenticated users on auth screens go to their home (landing stays public)
+  if (token && authRedirectPages.includes(to.path)) {
     if (isPatron) {
       return next('/patron');
     }
